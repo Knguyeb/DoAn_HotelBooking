@@ -1,0 +1,215 @@
+﻿@model DoAn_HotelBooking.Models.Phong
+
+@{
+    ViewData["Title"] = "Thêm phòng";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="~/css/KhachSan/Create.css" asp-append-version="true" />
+
+<div class="container-fluid fade-in-up py-5 px-4">
+
+    <!-- Tiêu đề & Nút Quay lại -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="text-subtitle">QUẢN LÝ PHÒNG</h4>
+            <h2 class="page-title">THÊM PHÒNG (@ViewBag.KhachSan.TenKhachSan)</h2>
+        </div>
+        <a class="btn btn-back-luxury" asp-action="Index" asp-route-id="@Model.MaKhachSan">
+            <i class="bi bi-arrow-left me-2"></i> Quay lại
+        </a>
+    </div>
+
+    <!-- Form Container -->
+    <div class="glass-form-container">
+        <form asp-action="Create" method="post" enctype="multipart/form-data" id="createForm">
+            @Html.AntiForgeryToken()
+            <!-- Giữ lại mã khách sạn -->
+            <input type="hidden" asp-for="MaKhachSan" value="@Model.MaKhachSan" />
+
+            <!-- Sử dụng cột 12 (full-width) xếp chồng lên nhau -->
+            <div class="row g-5">
+
+                <!-- PHẦN TRÊN: THÔNG TIN PHÒNG -->
+                <div class="col-12">
+                    <h5 class="section-header"><i class="bi bi-info-circle-fill me-2"></i>Thông tin chung</h5>
+
+                    <div class="row g-4">
+                        <!-- Nhập số phòng -->
+                        <div class="col-md-4">
+                            <label asp-for="SoPhong" class="form-label-luxury">Số phòng <span class="text-danger">*</span></label>
+                            <div class="input-group luxury-input-group">
+                                <span class="input-group-text"><i class="bi bi-door-closed-fill"></i></span>
+                                <input asp-for="SoPhong" class="form-control" placeholder="Nhập số phòng" />
+                            </div>
+                            <span asp-validation-for="SoPhong" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Nhập tầng -->
+                        <div class="col-md-4">
+                            <label asp-for="Tang" class="form-label-luxury">Tầng <span class="text-danger">*</span></label>
+                            <div class="input-group luxury-input-group">
+                                <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                <input asp-for="Tang" class="form-control" placeholder="Nhập tầng" />
+                            </div>
+                            <span asp-validation-for="Tang" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Loại phòng --> 
+                        <div class="col-md-4">
+                            <label asp-for="LoaiPhong" class="form-label-luxury">Loại phòng <span class="text-danger">*</span></label>
+                            <div class="input-group luxury-input-group">
+                                <span class="input-group-text"><i class="bi bi-star-fill"></i></span>
+                                <select asp-for="LoaiPhong" class="form-control luxury-dropdown">
+                                    <option value="">-- Chọn loại phòng --</option>
+                                    <option value="Standard">Standard</option>
+                                    <option value="Deluxe">Deluxe</option>
+                                    <option value="VIP">VIP</option>
+                                </select>
+                            </div>
+                            <span asp-validation-for="LoaiPhong" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Sức chứa -->
+                        <div class="col-md-6">
+                            <label asp-for="SucChua" class="form-label-luxury">Sức chứa <span class="text-danger">*</span></label>
+                            <div class="input-group luxury-input-group">
+                                <span class="input-group-text"><i class="bi bi-people-fill"></i></span>
+                                <input asp-for="SucChua" type="number" class="form-control" />
+                            </div>
+                            <span asp-validation-for="SucChua" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Giá phòng -->
+                        <div class="col-md-6">
+                            <label asp-for="GiaPhong" class="form-label-luxury">Giá phòng / đêm <span class="text-danger">*</span></label>
+                            <div class="input-group luxury-input-group">
+                                <span class="input-group-text"><i class="bi bi-cash"></i></span>
+                                <input asp-for="GiaPhong" type="number" step="1000" class="form-control" placeholder="Nhập giá phòng / đêm" />
+                            </div>
+                            <span asp-validation-for="GiaPhong" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PHẦN DƯỚI: MEDIA & UPLOAD ẢNH (Kéo ngang trải dài) -->
+                <div class="col-12">
+                    <h5 class="section-header"><i class="bi bi-images me-2"></i>Thư viện Hình ảnh</h5>
+
+                    <div class="row g-4">
+                        <!-- Khu vực Upload Kéo thả -->
+                        <div class="col-md-4 col-lg-3">
+                            <div class="upload-zone-container h-100">
+                                <input type="file" name="HinhAnhFiles" id="fileInput" multiple accept="image/*" class="visually-hidden" onchange="handleFileSelect(event)">
+                                <label for="fileInput" class="upload-label-luxury d-flex flex-column justify-content-center align-items-center text-center h-100 p-4" style="min-height: 250px; cursor: pointer;">
+                                    <i class="bi bi-cloud-arrow-up-fill upload-icon mb-3" style="font-size: 3.5rem;"></i>
+                                    <span class="upload-text d-block fs-5 fw-bold text-white">Bấm để tải ảnh phòng</span>
+                                    <span class="upload-hint small text-muted mt-2">(JPG, PNG - Hỗ trợ nhiều ảnh)</span>
+                                </label>
+                            </div>
+                            <span class="text-danger fw-bold d-block mt-2 text-center">@Html.ValidationMessage("HinhAnh")</span>
+                        </div>
+
+                        <!-- Khung Preview Ảnh (Nằm ngang) -->
+                        <div class="col-md-8 col-lg-9">
+                            <div id="imageThumbnailsContainer"
+                                 class="thumbnail-container thumbnail-horizontal thin-scrollbar border border-secondary border-opacity-25 rounded p-3"
+                                 style="height: 340px; overflow-x: auto; overflow-y: hidden; background: rgba(0,0,0,0.1);">
+
+                                <p id="noImageText" class="text-muted small fst-italic text-center w-100 m-0">
+                                    <i class="bi bi-camera me-1"></i> Chưa có hình ảnh nào được chọn.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Nút Lưu -->
+            <div class="form-actions mt-5 pt-4 border-top border-secondary border-opacity-25 text-end">
+                <a class="btn btn-back-luxury" asp-action="Index" asp-route-id="@Model.MaKhachSan">
+                    <i class="bi bi-arrow-left me-2"></i>Hủy bỏ
+                </a>
+                <button type="submit" class="btn btn-create-luxury">
+                    <i class="bi bi-plus-lg me-2"></i> Khởi tạo Phòng
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <input type="hidden" id="successMessage" value="@TempData["SuccessMessage"]" />
+    <input type="hidden" id="errorMessage" value="@TempData["ErrorMessage"]" />
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/Share/Success.js"></script>
+
+    <script>
+        const dt = new DataTransfer();
+
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            const container = document.getElementById("imageThumbnailsContainer");
+            const noImageText = document.getElementById("noImageText");
+
+            if (files.length > 0 && noImageText) noImageText.style.display = 'none';
+
+            Array.from(files).forEach(file => {
+                if (!file.type.startsWith('image/')) return;
+
+                dt.items.add(file);
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    createThumbnail(e.target.result, container, file);
+                };
+                reader.readAsDataURL(file);
+            });
+            document.getElementById('fileInput').files = dt.files;
+            document.getElementById("noImageText").style.display = 'none';
+        }
+
+        function createThumbnail(src, container, fileObj) {
+            const imgWrapper = document.createElement("div");
+            imgWrapper.className = "thumbnail-wrapper";
+
+            const deleteBtn = document.createElement("button");
+            deleteBtn.className = "btn-delete-image";
+            deleteBtn.innerHTML = '<i class="bi bi-x"></i>';
+            deleteBtn.type = "button";
+
+            deleteBtn.onclick = function () {
+                removeFile(fileObj);
+                imgWrapper.remove();
+
+                if (container.querySelectorAll('.thumbnail-wrapper').length === 0) {
+                    document.getElementById("noImageText").style.display = 'block';
+                }
+            };
+
+            const img = document.createElement("img");
+            img.src = src;
+            img.className = "thumbnail-img";
+
+            imgWrapper.appendChild(deleteBtn);
+            imgWrapper.appendChild(img);
+            container.appendChild(imgWrapper);
+        }
+
+        function removeFile(fileToRemove) {
+            const newDt = new DataTransfer();
+            const currentFiles = dt.files;
+            for (let i = 0; i < currentFiles.length; i++) {
+                if (currentFiles[i] !== fileToRemove) {
+                    newDt.items.add(currentFiles[i]);
+                }
+            }
+            dt.items.clear();
+            for (let i = 0; i < newDt.files.length; i++) {
+                dt.items.add(newDt.files[i]);
+            }
+            document.getElementById('fileInput').files = dt.files;
+        }
+    </script>
+}

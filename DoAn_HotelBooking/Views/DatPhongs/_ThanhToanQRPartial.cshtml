@@ -1,0 +1,139 @@
+﻿@using System.Globalization
+@model DoAn_HotelBooking.Models.DatPhong
+
+@{
+    Layout = null;
+
+    // KIỂM TRA TRẠNG THÁI NGAY TỪ ĐẦU
+    // Chuyển về chữ thường để so sánh cho an toàn, tránh lỗi viết hoa/thường
+    bool daThanhToan = !string.IsNullOrEmpty(Model.TrangThaiDatPhong) &&
+                       Model.TrangThaiDatPhong.ToLower().Contains("đã thanh toán");
+
+    // Chỉ tính toán tiền và tạo link QR nếu CHƯA thanh toán
+    string qrUrl = "";
+    decimal tongTien = 0;
+    if (!daThanhToan)
+    {
+        int soNgayO = (Model.NgayTraPhong - Model.NgayNhanPhong).Days;
+        if (soNgayO <= 0) soNgayO = 1;
+        tongTien = (Model.Phong?.GiaPhong ?? 0) * soNgayO;
+
+        string baseUrl = "https://tying-uncrown-grant.ngrok-free.dev";
+        string paymentLink = $"{baseUrl}/DatPhongs/TrangThanhToanDienThoai/{Model.ID}";
+
+        string encodedUrl = Uri.EscapeDataString(paymentLink);
+        qrUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={encodedUrl}";
+    }
+}
+
+<div id="hidden-modal-title" class="d-none">
+    <div class="d-flex align-items-center m-0" style="color: #20c997; text-transform: uppercase; font-weight: bold;">
+        <i class="bi bi-qr-code-scan me-2"></i> Thanh toán đơn #@Model.ID
+    </div>
+</div>
+
+<div class="d-flex flex-column align-items-center justify-content-center text-center">
+
+    @if (daThanhToan)
+    {
+        <div class="p-5 w-100 rounded-4" style="background: rgba(40, 167, 69, 0.1); border: 1px solid rgba(40, 167, 69, 0.3);">
+            <i class="bi bi-check-circle-fill text-success mb-3" style="font-size: 4rem;"></i>
+            <h4 class="text-success fw-bold">Đơn hàng đã được thanh toán!</h4>
+            <p class="text-light mt-2 mb-0">Khách hàng <strong class="text-warning">@(Model.TaiKhoan?.HoVaTen ?? "này")</strong> đã hoàn tất việc thanh toán cho đơn đặt phòng số #@Model.ID.</p>
+        </div>
+    }
+    else
+    {
+        <div class="w-100 p-3 mb-4 rounded-3 d-flex justify-content-between align-items-center" style="border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.2);">
+            <div class="text-start">
+                <span class="text-muted d-block small mb-1">Khách hàng</span>
+                <strong class="text-light">@(Model.TaiKhoan?.HoVaTen ?? "Khách hàng")</strong>
+            </div>
+            <div class="text-end">
+                <span class="text-muted d-block small mb-1">Cần thanh toán</span>
+                <strong class="text-success fs-5 price-element" data-base-price="@tongTien">
+                    @tongTien.ToString("N0") VNĐ
+                </strong>
+            </div>
+        </div>
+
+        <div class="bg-white p-3 rounded-4 shadow-lg mb-4 position-relative" style="display: inline-block;">
+            <img src="@qrUrl" alt="Mã QR Thanh Toán" class="img-fluid" style="width: 280px; height: 280px; object-fit: contain; border-radius: 10px;">
+        </div>
+
+        <div class="p-3 rounded-3 w-100" style="background: rgba(255, 193, 7, 0.1); border: 1px dashed rgba(255, 193, 7, 0.4);">
+            <p class="text-warning small fst-italic m-0">
+                <i class="bi bi-phone-vibrate me-1"></i>
+                Dùng điện thoại quét mã QR để truy cập vào trang xác nhận thanh toán.
+            </p>
+        </div>
+
+        <div id="paymentStatusContainer" class="w-100 mt-4">
+            <div class="p-3 rounded-pill d-flex justify-content-center align-items-center" style="background: rgba(23, 162, 184, 0.15); border: 1px solid rgba(23, 162, 184, 0.4);">
+                <div class="spinner-border spinner-border-sm text-info me-3" role="status"></div>
+                <span class="text-info fw-bold">Đang chờ bạn thao tác trên điện thoại...</span>
+            </div>
+        </div>
+    }
+
+</div>
+
+<script>
+    // 1. Đắp Tiêu đề Modal (Lúc nào cũng chạy)
+    setTimeout(function() {
+        var headerLabel = document.getElementById('dynamicAjaxModalLabel');
+        var hiddenTitle = document.getElementById('hidden-modal-title');
+        if (headerLabel && hiddenTitle) {
+            headerLabel.innerHTML = hiddenTitle.innerHTML;
+        }
+    }, 100);
+
+    // CHỈ CHẠY SCRIPT KIỂM TRA LIÊN TỤC NẾU ĐƠN NÀY CHƯA THANH TOÁN
+    @if (!daThanhToan)
+    {
+            <text>
+            function xacNhanThanhToanThanhCong() {
+                const statusContainer = document.getElementById('paymentStatusContainer');
+                if (!statusContainer) return;
+
+                statusContainer.innerHTML = `
+                    <div class="p-3 rounded-pill d-flex justify-content-center align-items-center" style="background: rgba(40, 167, 69, 0.15); border: 1px solid rgba(40, 167, 69, 0.4);">
+                        <i class="bi bi-check-circle-fill text-success me-2 fs-5"></i>
+                        <span class="text-success fw-bold">Đã thanh toán thành công!</span>
+                    </div>
+                `;
+
+                setTimeout(function() {
+                    const modalEl = document.getElementById('dynamicAjaxModal');
+                    if (modalEl) {
+                        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                        if (modalInstance) modalInstance.hide();
+                    }
+                    location.reload();
+                }, 3000);
+            }
+        let kiemTraThanhToan = setInterval(function() {
+            let url = '@Url.Action("KiemTraTrangThai", "DatPhongs", new { id = Model.ID })';
+            url = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
+
+            fetch(url, { cache: 'no-store' })
+                .then(res => res.json())
+                .then(data => {
+                    // Lấy giá trị dù nó viết hoa chữ D hay viết thường chữ d
+                    let isPaid = data.daThanhToan || data.DaThanhToan;
+
+                    // Kiểm tra an toàn
+                    if (isPaid === true || String(isPaid).toLowerCase() === 'true') {
+                        clearInterval(kiemTraThanhToan);
+                        xacNhanThanhToanThanhCong();
+                    }
+                })
+                .catch(err => console.error("Lỗi:", err));
+        }, 3000);
+
+            document.getElementById('dynamicAjaxModal').addEventListener('hidden.bs.modal', function () {
+                clearInterval(kiemTraThanhToan);
+            }, { once: true });
+            </text>
+    }
+</script>

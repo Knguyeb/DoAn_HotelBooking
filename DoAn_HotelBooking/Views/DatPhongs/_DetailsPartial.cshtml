@@ -1,0 +1,167 @@
+﻿@using System.Globalization
+@model DoAn_HotelBooking.Models.DatPhong
+
+@{
+    Layout = null;
+    var quyen = Context.Session.GetString("QuyenHan");
+
+    // Tính toán số ngày và tổng tiền
+    int soNgayO = (Model.NgayTraPhong - Model.NgayNhanPhong).Days;
+    if (soNgayO <= 0) soNgayO = 1;
+    decimal tongTien = (Model.Phong?.GiaPhong ?? 0) * soNgayO;
+}
+
+<link href="~/css/khachsan/details.css" rel="stylesheet" />
+
+<div id="hidden-modal-title" class="d-none">
+    <div class="d-flex align-items-center m-0" style="color: #FFD700; font-weight: bold;">
+        <i class="bi bi-clock-history me-2"></i> Ngày tạo: @Model.NgayTao.ToString("dd/MM/yyyy HH:mm")
+    </div>
+</div>
+
+<div class="row g-4 align-items-stretch">
+    <div class="col-md-6 d-flex flex-column">
+        <div class="p-3 p-lg-4 rounded-3 d-flex flex-column flex-grow-1" style="border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.15);">
+            <h6 class="text-warning fw-bold mb-4 pb-2" style="border-bottom: 1px solid rgba(255,255,255,0.2);">
+                <i class="bi bi-person-badge-fill me-2" style="color: #FFD700;"></i>THÔNG TIN KHÁCH HÀNG
+            </h6>
+
+            <dl class="row mb-0" style="font-size: 0.95rem;">
+                <dt class="col-sm-5 text-muted fw-normal mb-4 d-flex align-items-center">
+                    <i class="bi bi-person-circle fa-fw me-2" style="color: #4dabf7;"></i>Khách hàng</dt>
+                <dd class="col-sm-7 text-light fw-bold mb-4 d-flex align-items-center">@(Model.TaiKhoan?.HoVaTen ?? "Không rõ")</dd>
+
+                <dt class="col-sm-5 text-muted fw-normal mb-4 d-flex align-items-center">
+                    <i class="bi bi-telephone-fill fa-fw me-2" style="color: #69db7c;"></i>SĐT</dt>
+                <dd class="col-sm-7 text-light fw-bold mb-4 d-flex align-items-center">@(Model.TaiKhoan?.SoDienThoai ?? "Không có")</dd>
+
+                <dt class="col-sm-5 text-muted fw-normal mb-4 d-flex align-items-center">
+                    <i class="bi bi-envelope-fill fa-fw me-2" style="color: #ffa94d;"></i>Email</dt>
+                <dd class="col-sm-7 text-light fw-bold mb-4 d-flex align-items-center text-wrap text-break">@(Model.TaiKhoan?.Email ?? "Không có")</dd>
+
+                <dt class="col-sm-5 text-muted fw-normal mb-0 d-flex align-items-center">
+                    <i class="bi bi-people-fill fa-fw me-2" style="color: #b197fc;"></i>Số người</dt>
+                <dd class="col-sm-7 text-light fw-bold mb-0 d-flex align-items-center">@Model.SoNguoi người</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="col-md-6 d-flex flex-column">
+        <div class="p-3 p-lg-4 rounded-3 d-flex flex-column flex-grow-1" style="border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.15);">
+            <h6 class="text-warning fw-bold mb-4 pb-2" style="border-bottom: 1px solid rgba(255,255,255,0.2);">
+                <i class="bi bi-building-fill me-2" style="color: #FFD700;"></i>CHI TIẾT THUÊ PHÒNG
+            </h6>
+
+            <dl class="row mb-0" style="font-size: 0.95rem;">
+                <dt class="col-sm-5 text-muted fw-normal mb-3 d-flex align-items-center">
+                    <i class="bi bi-buildings fa-fw me-2" style="color: #ffd43b;"></i>Khách sạn</dt>
+                <dd class="col-sm-7 text-light fw-bold mb-3 d-flex align-items-center">@(Model.Phong?.KhachSan?.TenKhachSan ?? "Không rõ")</dd>
+
+                <dt class="col-sm-5 text-muted fw-normal mb-3 d-flex align-items-center">
+                    <i class="bi bi-door-closed fa-fw me-2" style="color: #f06595;"></i>Phòng số</dt>
+                <dd class="col-sm-7 text-light fw-bold mb-3 d-flex align-items-center">@Model.Phong?.SoPhong</dd>
+
+                <dt class="col-sm-5 text-muted fw-normal mb-3 d-flex align-items-center">
+                    <i class="bi bi-calendar-event fa-fw me-2" style="color: #20c997;"></i>Nhận phòng</dt>
+                <dd class="col-sm-7 text-light fw-bold mb-3 d-flex align-items-center">@Model.NgayNhanPhong.ToString("dd/MM/yyyy")</dd>
+
+                <dt class="col-sm-5 text-muted fw-normal mb-3 d-flex align-items-center">
+                    <i class="bi bi-calendar-x fa-fw me-2" style="color: #ff8787;"></i>Trả phòng</dt>
+                <dd class="col-sm-7 text-light fw-bold mb-3 d-flex align-items-center">@Model.NgayTraPhong.ToString("dd/MM/yyyy")</dd>
+
+                <dt class="col-sm-5 text-muted fw-normal mb-0 d-flex align-items-center">
+                    <i class="bi bi-info-circle fa-fw me-2" style="color: #4facfe;"></i>Trạng thái</dt>
+
+                <dd class="col-sm-7 mb-0 d-flex align-items-center">
+                    @if (Model.TrangThaiDatPhong == "Chờ xác nhận")
+                    {
+                        <span class="badge d-inline-flex align-items-center" style="background-color: rgba(255, 193, 7, 0.15); color: #ffc107; border: 1px solid rgba(255,193,7,0.5); padding: 5px 12px; font-size: 0.85rem; border-radius: 6px;">
+                            <i class="bi bi-hourglass-split me-2"></i> @Model.TrangThaiDatPhong
+                        </span>
+                    }
+                    else if (Model.TrangThaiDatPhong == "Đã xác nhận")
+                    {
+                        <span class="badge d-inline-flex align-items-center" style="background-color: rgba(0, 123, 255, 0.15); color: #007bff; border: 1px solid rgba(0,123,255,0.5); padding: 5px 12px; font-size: 0.85rem; border-radius: 6px;">
+                            <i class="bi bi-check-circle-fill me-2"></i> @Model.TrangThaiDatPhong
+                        </span>
+                    }
+                    else if (Model.TrangThaiDatPhong == "Đã thanh toán")
+                    {
+                        <span class="badge d-inline-flex align-items-center" style="background-color: rgba(40, 167, 69, 0.15); color: #28a745; border: 1px solid rgba(40,167,69,0.5); padding: 5px 12px; font-size: 0.85rem; border-radius: 6px;">
+                            <i class="bi bi-check2-all me-2"></i> @Model.TrangThaiDatPhong
+                        </span>
+                    }
+                    else if (Model.TrangThaiDatPhong == "Hoàn thành")
+                    {
+                        <span class="badge d-inline-flex align-items-center" style="background-color: rgba(13, 110, 253, 0.15); color: #0d6efd; border: 1px solid rgba(13,110,253,0.5); padding: 5px 12px; font-size: 0.85rem; border-radius: 6px;">
+                            <i class="bi bi-clipboard-check me-1"></i> @Model.TrangThaiDatPhong
+                        </span>
+                    }
+                    else if (Model.TrangThaiDatPhong == "Đã hủy")
+                    {
+                        <span class="badge d-inline-flex align-items-center" style="background-color: rgba(220, 53, 69, 0.15); color: #dc3545; border: 1px solid rgba(220,53,69,0.5); padding: 5px 12px; font-size: 0.85rem; border-radius: 6px;">
+                            <i class="bi bi-x-circle-fill me-2"></i> @Model.TrangThaiDatPhong
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge d-inline-flex align-items-center" style="background-color: rgba(108, 117, 125, 0.15); color: #6c757d; border: 1px solid rgba(108,117,125,0.5); padding: 5px 12px; font-size: 0.85rem; border-radius: 6px;">
+                            <i class="bi bi-info-circle-fill me-2"></i> @Model.TrangThaiDatPhong
+                        </span>
+                    }
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="col-12 mt-4">
+        <div class="p-3 p-lg-4 rounded-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-0"
+             style="border: 1px dashed rgba(255, 215, 0, 0.4); background: rgba(0, 0, 0, 0.2);">
+
+            <div class="flex-grow-1 pe-md-4 mb-3 mb-md-0">
+                <span class="text-warning fw-bold mb-2 d-block" style="font-size: 0.95rem;">
+                    <i class="bi bi-chat-left-dots-fill me-2"></i>GHI CHÚ CỦA KHÁCH:
+                </span>
+                <p class="mb-0 text-light fst-italic" style="color: #c0c0c0 !important; font-size: 0.95rem;">
+                    @(string.IsNullOrEmpty(Model.GhiChu) ? "Không có yêu cầu đặc biệt nào." : Model.GhiChu)
+                </p>
+            </div>
+
+            <div class="d-none d-md-block" style="width: 1px; height: 80px; background: rgba(255,255,255,0.1); margin: 0 30px;"></div>
+
+            <div class="text-md-end text-start min-width-250">
+                <span class="text-muted fw-normal mb-1 d-block" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <i class="bi bi-wallet2 me-2" style="color: #20c997;"></i> TỔNG THANH TOÁN
+                </span>
+                <div class="dropup d-inline-block">
+                    <span class="text-success fs-2 fw-bold dropdown-toggle price-element"
+                          data-bs-toggle="dropdown"
+                          data-base-price="@tongTien"
+                          style="cursor: pointer;">
+                        @tongTien.ToString("N0") VNĐ
+                    </span>
+                    <ul class="dropdown-menu dropdown-menu-dark shadow-lg mb-2">
+                        <li><a class="dropdown-item currency-option" href="javascript:void(0)" data-currency="VND">🇻🇳 VNĐ</a></li>
+                        <li><a class="dropdown-item currency-option" href="javascript:void(0)" data-currency="USD">🇺🇸 USD</a></li>
+                        <li><a class="dropdown-item currency-option" href="javascript:void(0)" data-currency="EUR">🇪🇺 EUR</a></li>
+                    </ul>
+                </div>
+                <div class="text-muted fs-6 fw-bold mt-1">/ @soNgayO đêm</div>
+            </div>
+
+        </div>
+    </div>
+</div>
+ @section Scripts {
+    <script src="~/js/share/doitien.js"></script>
+
+    <script>
+        setTimeout(function() {
+            var headerLabel = document.getElementById('roomDetailModalLabel');
+            var hiddenTitle = document.getElementById('hidden-modal-title');
+            if (headerLabel && hiddenTitle) {
+                headerLabel.innerHTML = hiddenTitle.innerHTML;
+            }
+        }, 100);
+    </script>
+}

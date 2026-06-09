@@ -1,0 +1,121 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DoAn_HotelBooking</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/DoAn_HotelBooking.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/_Layout.css" />
+</head>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<body class="d-flex flex-column min-vh-100">
+    @{
+        var quyen = Context.Session.GetString("QuyenHan");
+        var maKS = Context.Session.GetString("MaKhachSan");
+        var maTK = Context.Session.GetInt32("ID");
+        var ten = Context.Session.GetString("HoVaTen");
+    }
+
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm custom-navbar">
+            <div class="container-fluid">
+                <a class="navbar-brand text-primary" asp-area="" asp-controller="Home" asp-action="Index">
+                    E-HOTEL
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Privacy">Liên hệ</a>
+                        </li>
+
+                        <!-- Khách hàng -->
+                        @if (quyen == "Khách hàng")
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-light"
+                                   asp-controller="DatPhongs"
+                                   asp-action="Index"
+                                   asp-route-id="@maTK">
+                                    Đặt phòng của tôi
+                                </a>
+                            </li>
+                        }
+
+                        <li class="nav-item">
+                            <a class="nav-link text-light" asp-controller="KhachSans" asp-action="BanDo">Bản đồ khách sạn</a>
+                        </li>
+                    </ul>
+
+                    <!-- Đăng ký / Đăng nhập -->
+                    <ul class="navbar-nav">
+                        @if (string.IsNullOrEmpty(ten))
+                        {
+                            <!-- Khi chưa đăng nhập -->
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-controller="DangKy_DangNhap" asp-action="DangNhap">Đăng nhập</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <!-- Khi đã đăng nhập -->
+                            <li class="nav-item d-flex align-items-center">
+                                <a href="javascript:void(0);"
+                                   class="nav-link text-light"
+                                   onclick="showDetail(
+                                       @maTK,
+                                       '@Url.Action("DetailsJson", "TaiKhoans")',
+                                       '@quyen',
+                                       ''
+                                   )">
+                                    @ten
+                                </a>
+                                <span class="text-light mx-2">|</span>
+                                <a class="nav-link text-light" href="javascript:void(0)" onclick="confirmLogoutSwal('@Url.Action("DangXuat", "DangKy_DangNhap")')">
+                                    Đăng xuất
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main" class="container flex-grow-1 pb-3">
+        @RenderBody()
+    </main>
+
+    <input type="hidden" id="successMessage" value="@TempData["SuccessMessage"]" />
+    <input type="hidden" id="errorMessage" value="@TempData["ErrorMessage"]" />
+
+    @await Html.PartialAsync("_Footer")
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/share/doimatkhau.js"></script>
+    <script src="~/js/share/dangxuat.js"></script>
+    <script src="~/js/share/thongtinchitiet.js"></script>
+    <script src="~/js/share/success.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

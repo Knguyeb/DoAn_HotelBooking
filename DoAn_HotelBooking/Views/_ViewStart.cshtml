@@ -1,0 +1,28 @@
+﻿@{
+    var quyen = Context.Session.GetString("QuyenHan");
+    var controllerName = ViewContext.RouteData.Values["Controller"]?.ToString();
+
+    var adminControllers = new List<string>
+    {
+        "Home",
+        "KhachSans",
+        "TaiKhoans",
+        "Phongs",
+        "DatPhongs",
+        "BaoCao",
+        "Admin"
+    };
+
+    if (quyen == "Admin" && adminControllers.Contains(controllerName))
+    {
+        Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    }
+    else if ((quyen == "Quản lý" || quyen == "Nhân viên") && adminControllers.Contains(controllerName))
+    {
+        Layout = "~/Views/Shared/_LayoutQLNV.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+}

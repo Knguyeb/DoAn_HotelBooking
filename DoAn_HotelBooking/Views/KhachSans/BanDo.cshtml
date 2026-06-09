@@ -1,0 +1,107 @@
+﻿@model IEnumerable<DoAn_HotelBooking.Models.KhachSan>
+
+@{
+    ViewData["Title"] = "Bản đồ khách sạn";
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<link href="~/css/khachsan/bando.css" rel="stylesheet" asp-append-version="true" />
+
+<div class="container mt-4 mb-5">
+    <div class="map-header text-center mb-4">
+        <h1 class="fw-bold">
+            <i class="fas fa-map-marked-alt text-warning me-2"></i> Bản Đồ Khách Sạn
+        </h1>
+        <p class="text-muted">Khám phá các vị trí khách sạn tuyệt vời của chúng tôi</p>
+    </div>
+
+    <div class="map-container">
+        <div id="map"></div>
+    </div>
+</div>
+
+<script>
+    // ✅ Khởi tạo bản đồ
+    var map = L.map('map').setView([10.762622, 106.660172], 6);
+
+    // ✅ TRỞ VỀ NỀN TRẮNG BÌNH THƯỜNG (OpenStreetMap Default)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    // ✅ Thiết kế Marker
+    const customIcon = L.divIcon({
+        className: 'custom-div-icon',
+                html: `
+                    <div style="display: flex; flex-direction: column; align-items: center; filter: drop-shadow(0px 5px 10px rgba(255, 69, 0, 0.6));">
+                        <div style="background-color: #FF4500; width: 40px; height: 40px; border-radius: 50%; border: 3px solid #FFF; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px;">
+                            <i class="  fas fa-hotel"></i>
+                        </div>
+                        <div style="width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 12px solid #FFF; margin-top: -2px;"></div>
+                    </div>
+                `,
+                iconSize: [40, 52],
+                iconAnchor: [20, 52],
+                popupAnchor: [0, -45]
+            });
+
+    // ✅ Lấy dữ liệu từ Model
+    var hotels = [
+        @foreach (var ks in Model)
+        {
+                <text>
+                {
+                    "ten": "@Html.Raw(ks.TenKhachSan)",
+                    "diachi": "@Html.Raw(ks.DiaChi)",
+                    "vido": "@(ks.ViDo ?? "")",
+                    "kinhdo": "@(ks.KinhDo ?? "")"
+                },
+                </text>
+        }
+    ];
+
+    var validMarkers = [];
+
+    // ✅ Lặp qua dữ liệu và ghim marker giống các trang khác
+    hotels.forEach(h => {
+        if (h.vido && h.kinhdo) {
+            const lat = parseFloat(h.vido.toString().replace(',', '.'));
+            const lon = parseFloat(h.kinhdo.toString().replace(',', '.'));
+
+            if (!isNaN(lat) && !isNaN(lon)) {
+
+                // Sử dụng chính xác cấu trúc popup bạn cung cấp
+                const marker = L.marker([lat, lon], {icon: customIcon})
+                    .addTo(map)
+                    .bindPopup(`
+                        <div style="text-align:center; padding: 10px 5px 15px 5px;">
+                           <strong style="font-size:16px; color: #FF4500; display:block; margin-bottom: 5px;">${h.ten}</strong>
+                           <span style="font-size:13px; color: #fff; display:block; margin-bottom: 8px;">${h.diachi}</span>
+
+                            <!-- Nút Chỉ đường Google Maps đã được đẩy xuống một chút -->
+                            <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}"
+                               target="_blank"
+                               style="display: inline-block; margin-top: 12px; background: #FF4500; color: #fff; padding: 8px 18px; border-radius: 20px; text-decoration: none; font-size: 13px; font-weight: 600; box-shadow: 0 4px 10px rgba(255, 69, 0, 0.4);">
+                                <i class="fas fa-directions me-1"></i> Chỉ đường
+                            </a>
+                        </div>
+                    `);
+
+                validMarkers.push(marker);
+            }
+        }
+    });
+
+    // Tự động căn bản đồ để gom tất cả marker vào chung một khung hình
+    if (validMarkers.length > 0) {
+        var group = L.featureGroup(validMarkers);
+        map.fitBounds(group.getBounds().pad(0.1));
+
+        // Gọi openPopup() cho marker đầu tiên (nếu muốn)
+        // validMarkers[0].openPopup();
+    }
+</script>

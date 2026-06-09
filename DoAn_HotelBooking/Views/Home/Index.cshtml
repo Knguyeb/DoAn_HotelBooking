@@ -1,0 +1,167 @@
+﻿@model IEnumerable<DoAn_HotelBooking.Models.KhachSan>
+
+@{
+    ViewData["Title"] = "Trang Chủ";
+}
+
+<link rel="stylesheet" href="~/css/Home.css" asp-append-version="true" />
+
+<!-- Khu vực Hero Banner sang trọng -->
+<div class="hero-banner">
+    <div class="hero-content text-center">
+        <h1 class="hero-title">E-HOTEL</h1>
+        <p class="hero-subtitle">Tìm kiếm không gian hoàn hảo cho kỳ nghỉ của bạn</p>
+
+        <!-- Đã dọn dẹp form bị lặp div -->
+        <form asp-controller="Home" asp-action="Index" method="get" class="search-form mx-auto" style="max-width: 600px; position: relative; z-index: 1000;">
+            <div class="search-input-wrapper" style="position: relative; z-index: 1001;">
+                <i class="fas fa-search search-icon" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); z-index: 10; color: #FF4500; font-size: 1.2rem;"></i>
+
+                <input type="text" id="liveSearchInput"
+                       name="search"
+                       value="@ViewBag.Search"
+                       class="txtSearch form-control shadow-lg"
+                       placeholder="Bạn muốn đến đâu?"
+                       style="padding-left: 55px; border-radius: 30px; height: 55px; font-size: 1.1rem;"
+                       autocomplete="off" />
+
+                <div id="searchDropdown" class="search-dropdown d-none">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lưới danh sách khách sạn mặc định -->
+<!-- Lưới danh sách khách sạn mặc định -->
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mt-4">
+    @foreach (var ks in Model)
+    {
+        <div class="col">
+            <div class="card h-100 hotel-card">
+
+                <!-- KHU VỰC HÌNH ẢNH CÓ CHỨA NHÃN ĐÁNH GIÁ -->
+                <div class="card-img-wrapper">
+                    @{
+                        var firstImg = (ks.HinhAnh ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim();
+                        string imgSrc = string.IsNullOrEmpty(firstImg) ? Url.Content("~/Images/no-image.png") :
+                        (firstImg.StartsWith("/") ? Url.Content("~" + firstImg) : Url.Content("~/Images/" + firstImg));
+                    }
+                    <img src="@imgSrc" class="card-img-top" alt="@ks.TenKhachSan" />
+
+                    <!-- Nhãn Đánh Giá ở góc trên bên phải -->
+                    <div class="rating-badge">
+                        @* 
+                           LƯU Ý: Giả sử bạn đã tính điểm trung bình và gán vào thuộc tính ks.TrungBinhSao.
+                           Nếu bạn chưa làm bước tính điểm ở Controller, bạn có thể để tạm một số cố định (ví dụ: 5.0) để xem trước giao diện.
+                        *@
+                        @if (ks.TrungBinhSao > 0)
+                        {
+                            <span><i class="fas fa-star me-1"></i> @ks.TrungBinhSao.ToString("0.0")</span>
+                        }
+                        else
+                        {
+                            <span class="text-white" style="font-size: 0.8rem; font-weight: normal;">Chưa có đánh giá</span>
+                        }
+                    </div>
+                </div>
+
+                <!-- KHU VỰC THÔNG TIN BÊN DƯỚI -->
+                <div class="card-body d-flex flex-column text-center">
+                    <h5 class="hotel-title fw-bold">@ks.TenKhachSan</h5>
+                    <p class="card-text hotel-address mb-4">
+                        <i class="fas fa-map-marker-alt text-danger me-1"></i> @ks.DiaChi
+                    </p>
+                    <a asp-controller="KhachSans" asp-action="Details" asp-route-id="@ks.MaKhachSan" class="btn btnChiTiet mt-auto">
+                        Xem chi tiết <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    }
+</div>
+
+<!-- PHÂN TRANG -->
+@if (ViewBag.TotalPages > 1)
+{
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+            {
+                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                    <a class="page-link" asp-route-page="@i" asp-route-search="@ViewBag.Search">@i</a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/Share/Delete.js"></script>
+    <script src="~/js/Share/Success.js"></script>
+    <script src="~/js/share/scrolltop.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            let delayTimer;
+            const $searchInput = $('#liveSearchInput');
+            const $dropdown = $('#searchDropdown');
+
+            // 1. Khi gõ phím
+            $searchInput.on('input', function () {
+                clearTimeout(delayTimer);
+                let searchText = $(this).val().trim();
+
+                if (searchText === "") {
+                    $dropdown.addClass('d-none').html('');
+                    return;
+                }
+
+                // Chờ 300ms sau khi ngừng gõ mới tìm (giảm tải máy chủ)
+                delayTimer = setTimeout(function() {
+                    $.ajax({
+                        url: '@Url.Action("SearchSuggestions", "Home")',
+                        type: 'GET',
+                        data: { search: searchText },
+                        success: function (data) {
+                            if(data && data.length > 0) {
+                                let html = '';
+                                // Tạo danh sách thẻ HTML từ dữ liệu JSON
+                                data.forEach(item => {
+                                    html += `
+                                        <a href="/KhachSans/Details/${item.id}" class="search-dropdown-item">
+                                            <img src="${item.image}" alt="${item.name}" onerror="this.src='/Images/no-image.png'" />
+                                            <div>
+                                                <div class="fw-bold mb-1">${item.name}</div>
+                                                <small style="color: #B0B0B0;"><i class="fas fa-map-marker-alt text-danger me-1"></i> ${item.address}</small>
+                                            </div>
+                                        </a>
+                                    `;
+                                });
+                                $dropdown.html(html).removeClass('d-none');
+                            } else {
+                                $dropdown.html('<div class="p-3 text-center text-muted">Không tìm thấy khách sạn nào.</div>').removeClass('d-none');
+                            }
+                        }
+                    });
+                }, 300);
+            });
+
+            // 2. Ẩn dropdown khi click chuột ra ngoài
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('.search-input-wrapper').length) {
+                    $dropdown.addClass('d-none');
+                }
+            });
+
+            // 3. Hiện lại dropdown nếu click lại vào ô search và đã có kết quả
+            $searchInput.on('focus', function () {
+                if ($(this).val().trim() !== "" && $dropdown.html().trim() !== "") {
+                    $dropdown.removeClass('d-none');
+                }
+            });
+        });
+    </script>
+}

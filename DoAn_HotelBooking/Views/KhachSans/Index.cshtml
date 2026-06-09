@@ -1,0 +1,175 @@
+﻿@model IEnumerable<DoAn_HotelBooking.Models.KhachSan>
+@{
+    ViewData["Title"] = "Quản lý khách sạn";
+}
+
+<link rel="stylesheet" href="~/css/KhachSan/Index.css" asp-append-version="true" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+<div class="container-fluid fade-in-up mt-4">
+    @Html.AntiForgeryToken()
+
+    <!-- ================= THỐNG KÊ & TIÊU ĐỀ ================= -->
+    <div class="row mb-4 g-3 align-items-stretch">
+        <div class="col-md-4">
+            <div class="stat-card h-100 d-flex align-items-center">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #FFD700, #FF4500);">
+                    <i class="bi bi-buildings-fill"></i>
+                </div>
+                <div class="stat-info">
+                    <h6>Tổng Khách Sạn</h6>
+                    <h3 id="totalCount">@Model.Count()</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="stat-card h-100 d-flex align-items-center justify-content-between">
+                <div>
+                    <h2 class="page-title mb-1">DANH MỤC KHÁCH SẠN</h2>
+                    <p class="text-secondary mb-0 small">Quản lý đối tác và chi nhánh khách sạn trên hệ thống</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a asp-action="Create" class="btn btn-primary-luxury text-decoration-none">
+                        <i class="bi bi-plus-lg me-1"></i> Thêm mới
+                    </a>
+                    <a asp-action="ExportExcelAll" class="btn btn-excel-luxury text-decoration-none">
+                        <i class="bi bi-file-earmark-excel me-1"></i> Xuất Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= KHU VỰC BẢNG DỮ LIỆU ================= -->
+    <div class="glass-container">
+        <!-- Thanh công cụ -->
+        <div class="toolbar-wrapper mb-3">
+            <div class="search-box-luxury">
+                <i class="bi bi-search"></i>
+                <input type="text" id="searchHotel" placeholder="Tìm kiếm tên, địa chỉ, SĐT..." autocomplete="off">
+            </div>
+        </div>
+
+        <!-- Bảng -->
+        <div class="table-responsive">
+            <table class="table custom-table align-middle" id="hotelTable">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width: 5%">#</th>
+                        <th class="text-start">Thông tin khách sạn</th>
+                        <th class="text-center">Số điện thoại</th>
+                        <th class="text-center">Tác vụ quản lý</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int i = 1;
+                    }
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="text-center text-muted fw-bold">@i</td>
+                            <td class="text-start">
+                                <div class="fw-bold" style="color: var(--yellow); font-size: 1.05rem; letter-spacing: 0.5px;">
+                                    <i class="bi bi-building me-2"></i>@item.TenKhachSan
+                                </div>
+                                <div class="text-muted small mt-1">
+                                    <i class="bi bi-geo-alt me-1"></i>@item.DiaChi
+                                </div>
+                            </td>
+                            <td class="text-center fw-semibold">
+                                <i class="bi bi-telephone text-success me-1"></i> @item.SoDienThoai
+                            </td>
+                            <td>
+                                <!-- Bộ nút tác vụ Icon -->
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a asp-action="Edit" asp-route-id="@item.MaKhachSan" asp-route-returnUrl="@Url.Action("Index", "KhachSans")" class="btn btn-icon-luxury btn-warning-glow" title="Sửa thông tin">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+
+                                    <a asp-action="Details" asp-route-id="@item.MaKhachSan" asp-route-returnUrl="@Url.Action("Index", "KhachSans")" class="btn btn-icon-luxury btn-info-glow" title="Chi tiết">
+                                        <i class="bi bi-info-circle"></i>
+                                    </a>
+
+                                    <button class="btn btn-icon-luxury btn-danger-glow" onclick="confirmDelete('@item.MaKhachSan')" title="Xóa">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+
+                                    <!-- Nút điều hướng liên kết -->
+                                    <div style="width: 1px; background: rgba(255,255,255,0.1); margin: 0 4px;"></div>
+
+                                    <a asp-controller="Phongs" asp-action="Index" asp-route-id="@item.MaKhachSan" class="btn btn-icon-luxury btn-orange-glow" title="Quản lý Phòng">
+                                        <i class="bi bi-door-open"></i>
+                                    </a>
+
+                                    <a asp-controller="TaiKhoans" asp-action="Index" asp-route-maKhachSan="@item.MaKhachSan" class="btn btn-icon-luxury btn-primary-glow" title="Quản lý Tài khoản">
+                                        <i class="bi bi-person-badge"></i>
+                                    </a>
+
+                                    <a asp-controller="DatPhongs" asp-action="HoaDon" asp-route-maKhachSan="@item.MaKhachSan" class="btn btn-icon-luxury btn-success-glow" title="Hóa đơn">
+                                        <i class="bi bi-receipt-cutoff"></i>
+                                    </a>
+                                </div>
+
+                                <form id="deleteForm-@item.MaKhachSan" method="post" asp-action="Delete" asp-route-id="@item.MaKhachSan" style="display:none;">
+                                    @Html.AntiForgeryToken()
+                                </form>
+                            </td>
+                        </tr>
+                        i++;
+                    }
+                </tbody>
+            </table>
+
+            <!-- Hiển thị khi không có kết quả -->
+            <div id="noResults" class="text-center py-5" style="display: none;">
+                <div class="mb-3">
+                    <i class="bi bi-search" style="font-size: 3rem; color: var(--yellow); opacity: 0.5;"></i>
+                </div>
+                <h5 class="text-light">Không tìm thấy khách sạn nào</h5>
+                <p class="text-secondary">Vui lòng thử lại với từ khóa khác.</p>
+                <!-- Sửa dòng này -->
+                <button type="button" onclick="pageConfig.clearSearch()" class="btn btn-outline-warning mt-2 rounded-pill px-4">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Hiển thị tất cả
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer Bảng & Phân trang -->
+        <div class="table-footer d-flex justify-content-between align-items-center mt-auto pt-3" style="border-top: 1px solid var(--border-color)">
+            <span class="text-secondary small">Đang hiển thị <strong id="visibleCount" class="text-light">0</strong> khách sạn</span>
+            <ul id="pagination" class="pagination-luxury">
+                <!-- Nút phân trang sẽ được render bằng JS -->
+            </ul>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <input type="hidden" id="successMessage" value="@TempData["SuccessMessage"]" />
+    <input type="hidden" id="errorMessage" value="@TempData["ErrorMessage"]" />
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/Share/Delete.js" asp-append-version="true"></script>
+    <script src="~/js/Share/Success.js" asp-append-version="true"></script>
+    <script src="~/js/Share/PhanTrang.js" asp-append-version="true"></script>
+
+    <script>
+        // Khai báo biến toàn cục để nút "Hiển thị tất cả" có thể gọi được
+        var pageConfig;
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // Khởi tạo và truyền các ID tương ứng trên giao diện hiện tại
+            pageConfig = new TablePaginator({
+                tableId: 'hotelTable',
+                searchInputId: 'searchHotel',
+                paginationId: 'pagination',
+                visibleCountId: 'visibleCount',
+                noResultsId: 'noResults',
+                rowsPerPage: 10
+            });
+        });
+    </script>
+}

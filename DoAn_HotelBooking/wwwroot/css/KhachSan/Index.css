@@ -1,0 +1,340 @@
+﻿:root {
+    --bg-dark: #121212;
+    --bg-surface: #1e1e24;
+    --border-color: rgba(255, 215, 0, 0.15); /* Viền ánh vàng */
+    --text-main: #ffffff;
+    --text-muted: #a0a0a0;
+    --yellow: #FFD700;
+    --orange: #FF4500;
+}
+
+/* Hiệu ứng xuất hiện */
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ================= STAT CARDS ================= */
+.stat-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(255, 215, 0, 0.1);
+    }
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: white;
+    margin-right: 20px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}
+
+.stat-info h6 {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+
+.stat-info h3 {
+    color: var(--text-main);
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.page-title {
+    color: var(--yellow);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+/* ================= NÚT BẤM (BUTTONS) ================= */
+.btn-primary-luxury {
+    background: linear-gradient(135deg, var(--yellow), #e6c200);
+    color: #111;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+    .btn-primary-luxury:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
+        color: #000;
+    }
+
+.btn-excel-luxury {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+    .btn-excel-luxury:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.5);
+        color: white;
+    }
+
+/* ================= KÍNH BỌC BẢNG (GLASS CONTAINER) ================= */
+.glass-container {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* ================= THANH TÌM KIẾM ================= */
+.search-box-luxury {
+    position: relative;
+    max-width: 400px;
+}
+
+    .search-box-luxury i {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--yellow);
+        font-size: 1.1rem;
+    }
+
+    .search-box-luxury input {
+        width: 100%;
+        padding: 12px 16px 12px 45px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        color: var(--text-main);
+        transition: all 0.3s;
+    }
+
+        .search-box-luxury input:focus {
+            outline: none;
+            border-color: var(--yellow);
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+/* ================= BẢNG DỮ LIỆU ================= */
+.custom-table {
+    width: 100%;
+    color: var(--text-main);
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+    .custom-table thead th {
+        background: rgba(0, 0, 0, 0.4);
+        color: var(--text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+        padding: 16px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .custom-table tbody td {
+        padding: 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        vertical-align: middle;
+    }
+
+    .custom-table tbody tr {
+        transition: background-color 0.2s;
+    }
+
+        .custom-table tbody tr:hover {
+            background-color: rgba(255, 215, 0, 0.03);
+        }
+
+/* ================= ICON BUTTONS TÁC VỤ ================= */
+.btn-icon-luxury {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    color: var(--text-main);
+    transition: all 0.3s;
+    background: rgba(0, 0, 0, 0.2);
+    text-decoration: none;
+}
+
+.btn-warning-glow {
+    color: var(--yellow);
+    border-color: rgba(255, 215, 0, 0.3);
+}
+
+    .btn-warning-glow:hover {
+        background: var(--yellow);
+        color: #000;
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+    }
+
+.btn-info-glow {
+    color: #0dcaf0;
+    border-color: rgba(13, 202, 240, 0.3);
+}
+
+    .btn-info-glow:hover {
+        background: #0dcaf0;
+        color: #000;
+        box-shadow: 0 0 15px rgba(13, 202, 240, 0.4);
+    }
+
+.btn-danger-glow {
+    color: #dc3545;
+    border-color: rgba(220, 53, 69, 0.3);
+}
+
+    .btn-danger-glow:hover {
+        background: #dc3545;
+        color: #fff;
+        box-shadow: 0 0 15px rgba(220, 53, 69, 0.4);
+    }
+
+.btn-orange-glow {
+    color: var(--orange);
+    border-color: rgba(255, 69, 0, 0.3);
+}
+
+    .btn-orange-glow:hover {
+        background: var(--orange);
+        color: #fff;
+        box-shadow: 0 0 15px rgba(255, 69, 0, 0.4);
+    }
+
+.btn-primary-glow {
+    color: #0d6efd;
+    border-color: rgba(13, 110, 253, 0.3);
+}
+
+    .btn-primary-glow:hover {
+        background: #0d6efd;
+        color: #fff;
+        box-shadow: 0 0 15px rgba(13, 110, 253, 0.4);
+    }
+
+.btn-success-glow {
+    color: #198754;
+    border-color: rgba(25, 135, 84, 0.3);
+}
+
+    .btn-success-glow:hover {
+        background: #198754;
+        color: #fff;
+        box-shadow: 0 0 15px rgba(25, 135, 84, 0.4);
+    }
+
+/* ================= PHÂN TRANG (LUXURY) ================= */
+.pagination-luxury {
+    display: flex;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+    .pagination-luxury .page-item .page-link {
+        background-color: var(--surface-bg, #32323b);
+        color: var(--white, #fff);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: none;
+    }
+
+        .pagination-luxury .page-item .page-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: var(--yellow, #FFD700);
+            color: var(--yellow, #FFD700);
+        }
+
+    .pagination-luxury .page-item.active .page-link {
+        background-color: var(--orange, #FF4500);
+        color: #fff;
+        border-color: var(--orange, #FF4500);
+        box-shadow: 0 0 10px rgba(255, 69, 0, 0.5);
+    }
+
+    .pagination-luxury .page-item.disabled .page-link {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: transparent;
+    }
+
+/* =========================================
+   7. HIỆU ỨNG POPUP (MODAL) CHI TIẾT PHÒNG
+   ========================================= */
+.modal-backdrop.show {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    opacity: 1 !important;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+.custom-modal-bg {
+    background-color: #242526 !important;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
+}
+
+/* ==============================================================
+   VŨ KHÍ HẠNG NẶNG: TÀNG HÌNH MỌI THANH CUỘN KHI MODAL MỞ
+   (Xóa bỏ triệt để thanh cuộn thừa)
+   ============================================================== */
+body.modal-open,
+body.modal-open * {
+    scrollbar-width: none !important; /* Cho Firefox */
+    -ms-overflow-style: none !important; /* Cho Edge cũ / IE */
+}
+
+    body.modal-open::-webkit-scrollbar,
+    body.modal-open *::-webkit-scrollbar {
+        display: none !important; /* Cho Chrome, Safari, Edge mới, Cốc Cốc */
+    }

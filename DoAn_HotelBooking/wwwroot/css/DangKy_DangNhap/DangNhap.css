@@ -1,0 +1,248 @@
+﻿/* ================== FONT + RESET ================== */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ================== TOÀN TRANG ================== */
+body {
+    color: #fff; /* chữ trắng cho toàn bộ trang */
+    display: flex;
+    justify-content: center; /* canh giữa ngang */
+    align-items: center; /* canh giữa dọc */
+    min-height: 100vh; /* full màn hình */
+    background: #25252b; /* nền xám đậm */
+}
+
+/* ================== KHUNG NGOÀI (CONTAINER) ================== */
+.container {
+    position: relative;
+    width: 750px;
+    height: 450px;
+    border: 2px solid #e46033;
+    box-shadow: 0 0 25px #e46033;
+    overflow: hidden;
+}
+
+    /* ================== FORM LOGIN ================== */
+    .container .form-box {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 50%; /* chiếm nửa trái */
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        padding: 0 40px;
+    }
+
+.form-box h2 {
+    font-size: 32px;
+    text-align: center;
+}
+
+/* ==== Ô INPUT ==== */
+.form-box .input-box {
+    position: relative;
+    width: 100%;
+    height: 50px;
+    margin-top: 25px;
+}
+
+.input-box input {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    color: #fff;
+    font-weight: 600;
+    border-bottom: 2px solid #fff;
+    padding-right: 30px; /* chừa chỗ cho icon */
+    transition: .5s;
+}
+
+    /* hiệu ứng khi focus hoặc có dữ liệu */
+    .input-box input:focus,
+    .input-box input:valid {
+        border-bottom: 2px solid #e46033;
+    }
+
+/* label trong input */
+.input-box label {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: #aaa;
+    transition: .5s;
+}
+
+/* label nhảy lên khi nhập */
+.input-box input:focus ~ label,
+.input-box input:valid ~ label {
+    top: -5px;
+    color: #e46033;
+}
+
+/* icon trong input */
+.input-box box-icon {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    font-size: 18px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #fff;
+}
+
+/* icon đổi màu khi nhập */
+.input-box input:focus ~ box-icon,
+.input-box input:valid ~ box-icon {
+    color: #e46033;
+}
+
+/* ================== NÚT LOGIN ================== */
+.btnDangNhap {
+    position: relative;
+    width: 100%;
+    height: 45px;
+    margin-top: 25px;
+    background: transparent;
+    border-radius: 40px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    border: 2px solid #e46033;
+    overflow: hidden;
+    z-index: 1;
+    color: #fff;
+}
+
+    .btnDangNhap::before {
+        content: "";
+        position: absolute;
+        height: 300%;
+        width: 100%;
+        background: linear-gradient(#25252b, #e46033, #25252b, #e46033);
+        top: -100%;
+        left: 0;
+        z-index: -1;
+        transition: .5s;
+    }
+
+    .btnDangNhap:hover:before {
+        top: 0;
+    }
+
+/* ================== NÚT GOOGLE ================== */
+.btn-google {
+    position: relative;
+    width: 100%;
+    height: 45px;
+    margin-top: 20px;
+    background: #4285F4; /* nền xanh Google mặc định */
+    border-radius: 40px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    border: 2px solid #4285F4;
+    overflow: hidden;
+    z-index: 1;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+    .btn-google::before {
+        content: "";
+        position: absolute;
+        height: 300%;
+        width: 100%;
+        background: linear-gradient(#25252b, #4285F4, #25252b, #4285F4);
+        top: -100%;
+        left: 0;
+        z-index: -1;
+        transition: .5s;
+    }
+
+    .btn-google:hover::before {
+        top: 0; /* hover thì trượt xuống */
+    }
+
+    .btn-google i {
+        margin-right: 8px;
+        font-size: 18px;
+    }
+
+/* ================== LINK ĐĂNG KÝ ================== */
+.regi-link {
+    font-size: 14px;
+    text-align: center;
+    margin: 40px 0 10px;
+}
+
+    .regi-link a {
+        text-decoration: none;
+        color: #e46033;
+        font-weight: 600;
+    }
+
+        .regi-link a:hover {
+            text-decoration: underline;
+        }
+
+/* ================== PHẦN CHÀO MỪNG (WELCOME) ================== */
+.info-content {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 50%; /* chiếm nửa phải */
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    text-align: right;
+    padding: 0 40px 60px 150px;
+}
+
+    .info-content h2 {
+        text-transform: uppercase;
+        font-size: 36px;
+        line-height: 1.3;
+    }
+
+    .info-content p {
+        font-size: 16px;
+    }
+
+/* ================== NỀN TRANG TRÍ (HÌNH CONG) ================== */
+.container .curved-shape {
+    position: absolute;
+    right: 0;
+    top: -5px;
+    height: 600px;
+    width: 850px;
+    background: linear-gradient(45deg, #25252b, #e46033);
+    transform: rotate(10deg) skewY(40deg);
+    transform-origin: bottom right;
+}
+
+.container .curved-shape2 {
+    position: absolute;
+    left: 250px;
+    top: 100%;
+    height: 700px;
+    width: 850px;
+    background: #25252b;
+    border-top: 3px solid #e46033;
+}
