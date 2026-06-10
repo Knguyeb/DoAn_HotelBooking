@@ -147,8 +147,6 @@ namespace DoAn_HotelBooking.Controllers
             // ✅ 2. Bỏ quyền của khách hàng, chỉ xử lý Quản lý/Nhân viên và Admin
             if (quyen == "Quản lý" || quyen == "Nhân viên")
             {
-                // Nếu có truyền maKhachSan (từ danh sách khách sạn) → dùng cái đó
-                // Nếu không → dùng mã trong Session (quản lý đang đăng nhập)
                 maKS_DangXem = !string.IsNullOrEmpty(maKhachSan) ? maKhachSan : maKhachSan_Session;
 
                 if (!string.IsNullOrEmpty(maKS_DangXem))
@@ -164,7 +162,6 @@ namespace DoAn_HotelBooking.Controllers
             }
             else if (!string.IsNullOrEmpty(maKhachSan))
             {
-                // Trường hợp Admin xem một khách sạn cụ thể thông qua mã truyền vào
                 maKS_DangXem = maKhachSan;
 
                 tenKS = await _context.KhachSan
@@ -177,12 +174,68 @@ namespace DoAn_HotelBooking.Controllers
             }
             else
             {
-                // Admin xem tất cả hóa đơn của hệ thống
                 ViewBag.KhachSan = "Tất cả";
             }
 
-            var hoaDonList = await query.OrderByDescending(d => d.NgayTao).ToListAsync();
-            return View(hoaDonList);
+            // ✅ 3. Lấy dữ liệu thô từ Database lên trước
+            var hoaDonList = await query.ToListAsync();
+
+            // ✅ 4. THỰC HIỆN GOM NHÓM BẰNG KIỂU DỮ LIỆU VÔ DANH (DYNAMIC)
+            var userGroupedList = hoaDonList
+                .Where(d => d.TaiKhoan != null)
+                .GroupBy(d => d.MaTaiKhoan) // Gom nhóm các hóa đơn có cùng ID Khách Hàng
+                .Select(g => {
+                    var taiKhoan = g.First().TaiKhoan;
+
+                    // Tính tổng tiền của khách hàng đó
+                    decimal totalAmount = g.Sum(item => {
+                        int soNgayO = (item.NgayTraPhong - item.NgayNhanPhong).Days;
+                        if (soNgayO <= 0) soNgayO = 1;
+                        return (item.Phong?.GiaPhong ?? 0) * soNgayO;
+                    });
+
+                    // Ép kiểu sang (dynamic) để không cần tạo class mới
+                    return (dynamic)new
+                    {
+                        TaiKhoanId = g.Key,
+                        TenKhachHang = taiKhoan?.HoVaTen ?? "Khách ẩn danh",
+                        TenDangNhap = taiKhoan?.TenDangNhap ?? "",
+                        SoDienThoai = taiKhoan?.SoDienThoai ?? "Chưa có",
+                        Email = taiKhoan?.Email ?? "",
+                        TongTienTichLuy = totalAmount,
+                        SoLuongHoaDon = g.Count()
+                    };
+                })
+                .OrderByDescending(u => u.TongTienTichLuy) // Sắp xếp khách VIP mua nhiều lên đầu
+                .ToList();
+
+            // Trả về danh sách dynamic cho View
+            return View(userGroupedList);
+        }
+
+        // GET: DatPhongs/ChiTietHoaDonKhach/5
+        public async Task<IActionResult> ChiTietHoaDonKhach(int id)
+        {
+            // Lấy danh sách hóa đơn chi tiết của người này
+            var chiTietHoaDon = await _context.DatPhong
+                .Include(d => d.Phong)
+                    .ThenInclude(p => p.KhachSan)
+                .Include(d => d.TaiKhoan)
+                .Where(d => d.TaiKhoan.ID == id && d.TrangThaiDatPhong == "Hoàn thành" && d.TrangThaiThanhToan == "Đã thanh toán")
+                .OrderByDescending(d => d.NgayTao)
+                .ToListAsync();
+
+            // Lấy tên khách hàng để truyền ra View làm tiêu đề
+            if (chiTietHoaDon.Any())
+            {
+                ViewBag.TenKhachHang = chiTietHoaDon.First().TaiKhoan?.HoVaTen;
+            }
+            else
+            {
+                ViewBag.TenKhachHang = "Khách hàng";
+            }
+
+            return View(chiTietHoaDon);
         }
 
         // GET: DatPhongs/DetailsPartial/5
