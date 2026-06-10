@@ -57,7 +57,9 @@ namespace DoAn_HotelBooking.Controllers
 
             query = query.Where(d =>
                 d.TrangThaiDatPhong != "Đang lưu trú" &&
-                d.TrangThaiDatPhong != "Đã trả phòng"
+                d.TrangThaiDatPhong != "Đã trả phòng" &&
+                d.TrangThaiDatPhong != "Đã thanh toán" &&
+                d.TrangThaiDatPhong != "Hoàn thành"
             );
 
             // --- Sắp xếp theo ngày tạo (mới nhất lên đầu) ---
