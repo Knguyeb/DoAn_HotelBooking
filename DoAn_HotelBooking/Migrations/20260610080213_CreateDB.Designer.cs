@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DoAn_HotelBooking.Migrations
 {
     [DbContext(typeof(DoAn_HotelBookingContext))]
-    [Migration("20260508073854_CreateDB")]
+    [Migration("20260610080213_CreateDB")]
     partial class CreateDB
     {
         /// <inheritdoc />
@@ -210,6 +210,9 @@ namespace DoAn_HotelBooking.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+
+                    b.Property<int>("DiemTichLuy")
+                        .HasColumnType("int");
 
                     b.Property<string>("Email")
                         .IsRequired()

@@ -22,6 +22,8 @@ namespace DoAn_HotelBooking.Controllers
         private readonly DoAn_HotelBookingContext _context;
         private readonly IConfiguration _configuration;
 
+        private const decimal SO_TIEN_QUY_DOI_DIEM = 100000; // 100.000 VNĐ = 1 điểm
+
         public DatPhongsController(DoAn_HotelBookingContext context, IConfiguration configuration)
         {
             _context = context;
@@ -56,10 +58,9 @@ namespace DoAn_HotelBooking.Controllers
             }
 
             query = query.Where(d =>
-                d.TrangThaiDatPhong != "Đang lưu trú" &&
-                d.TrangThaiDatPhong != "Đã trả phòng" &&
-                d.TrangThaiDatPhong != "Đã thanh toán" &&
-                d.TrangThaiDatPhong != "Hoàn thành"
+                d.TrangThaiDatPhong == "Chờ xác nhận" ||
+                d.TrangThaiDatPhong == "Đã xác nhận" ||
+                d.TrangThaiDatPhong == "Đã hủy"
             );
 
             // --- Sắp xếp theo ngày tạo (mới nhất lên đầu) ---
@@ -303,18 +304,62 @@ namespace DoAn_HotelBooking.Controllers
         }
 
         // 3. Hàm xử lý khi trên Điện thoại khách bấm nút "Xác nhận Thanh toán"
+        // 3. Hàm xử lý khi trên Điện thoại khách bấm nút "Xác nhận Thanh toán"
         [HttpPost]
         public async Task<IActionResult> XacNhanTuDienThoai(int id)
         {
-            var datPhong = await _context.DatPhong.FindAsync(id);
+            // Bổ sung thêm .ThenInclude(p => p.KhachSan) để lấy tên khách sạn phục vụ gửi email
+            var datPhong = await _context.DatPhong
+                .Include(dp => dp.Phong)
+                    .ThenInclude(p => p.KhachSan)
+                .Include(dp => dp.TaiKhoan)
+                .FirstOrDefaultAsync(dp => dp.ID == id);
+
             if (datPhong != null)
             {
                 // Đồng bộ cả 2 trạng thái khi khách bấm xác nhận trên điện thoại
                 datPhong.TrangThaiDatPhong = "Đã thanh toán";
                 datPhong.TrangThaiThanhToan = "Đã thanh toán";
 
+                // 🌟 LOGIC TÍCH ĐIỂM
+                int soNgayO = (datPhong.NgayTraPhong - datPhong.NgayNhanPhong).Days;
+                if (soNgayO <= 0) soNgayO = 1;
+                decimal tongTien = (datPhong.Phong?.GiaPhong ?? 0) * soNgayO;
+
+                int diemDuocCong = 0;
+                if (datPhong.TaiKhoan != null)
+                {
+                    diemDuocCong = (int)(tongTien / SO_TIEN_QUY_DOI_DIEM);
+                    datPhong.TaiKhoan.DiemTichLuy += diemDuocCong;
+                }
+
                 _context.Update(datPhong);
                 await _context.SaveChangesAsync();
+
+                // 📧 GỬI EMAIL BIÊN LAI KHI THANH TOÁN QUA ĐIỆN THOẠI THÀNH CÔNG
+                if (!string.IsNullOrEmpty(datPhong.TaiKhoan?.Email))
+                {
+                    string subject = $"[{datPhong.Phong?.KhachSan?.TenKhachSan}] Biên lai thanh toán điện tử (Mobile)";
+
+                    string extraInfo = $@"
+<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Thời gian lưu trú:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>{datPhong.NgayNhanPhong:dd/MM/yyyy} đến {datPhong.NgayTraPhong:dd/MM/yyyy}</td></tr>
+<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Tổng tiền:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef; font-weight: bold;'>{tongTien:N0} VNĐ</td></tr>
+<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Điểm thưởng tích lũy:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef; color: #ffc107; font-weight: bold;'>+ {diemDuocCong} điểm</td></tr>
+<tr><td style='padding: 12px 0 0 0;'><b>Trạng thái:</b></td><td style='padding: 12px 0 0 0;'><span style='background-color: #198754; color: white; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold;'>ĐÃ THANH TOÁN QUA DI ĐỘNG</span></td></tr>";
+
+                    string body = TaoNoiDungEmail(
+                        datPhong,
+                        mauChuDao: "#198754", // Màu xanh lá chủ đạo cho thanh toán thành công
+                        tieuDe: "BIÊN LAI THANH TOÁN TRỰC TUYẾN",
+                        loiNhanChinh: "Hệ thống điện tử đã ghi nhận khoản giao dịch trực tuyến thành công từ thiết bị di động của Quý khách. Dưới đây là biên lai thanh toán chi tiết:",
+                        thongTinBoSung: extraInfo,
+                        loiChaoKet: "Cảm ơn Quý khách đã sử dụng phương thức thanh toán tiện lợi của hệ thống. Kính chúc Quý khách có một kỳ nghỉ thật tuyệt vời và trọn vẹn!"
+                    );
+
+                    // Gọi hàm gửi mail bất đồng bộ
+                    await SendEmailAsync(datPhong.TaiKhoan.Email, subject, body);
+                }
+
                 return Json(new { success = true });
             }
             return Json(new { success = false });
@@ -637,22 +682,33 @@ namespace DoAn_HotelBooking.Controllers
                 _context.Update(datPhong.Phong);
             }
 
+            // 🌟 LOGIC TÍCH ĐIỂM TẠI QUẦY LỄ TÂN
+            int soNgayO = (datPhong.NgayTraPhong - datPhong.NgayNhanPhong).Days;
+            if (soNgayO <= 0) soNgayO = 1;
+            decimal tongTien = (datPhong.Phong?.GiaPhong ?? 0) * soNgayO;
+
+            int diemDuocCong = 0;
+            if (datPhong.TaiKhoan != null)
+            {
+                // Sử dụng biến chung và ép kiểu về int
+                diemDuocCong = (int)(tongTien / SO_TIEN_QUY_DOI_DIEM);
+                datPhong.TaiKhoan.DiemTichLuy += diemDuocCong;
+            }
+
             _context.Update(datPhong);
             await _context.SaveChangesAsync();
 
-            // 📧 GỬI EMAIL THANH TOÁN
-            // (Trong hàm ThanhToan, thay thế phần gửi email cũ bằng đoạn này)
+            // 📧 GỬI EMAIL THANH TOÁN KÈM THÔNG TIN ĐIỂM THƯỞNG
             if (!string.IsNullOrEmpty(datPhong.TaiKhoan?.Email))
             {
-                int soNgayO = (datPhong.NgayTraPhong - datPhong.NgayNhanPhong).Days;
-                if (soNgayO <= 0) soNgayO = 1;
-                decimal tongTien = (datPhong.Phong?.GiaPhong ?? 0) * soNgayO;
-
                 string subject = $"[{datPhong.Phong?.KhachSan?.TenKhachSan}] Biên lai thanh toán điện tử";
+
+                // Thêm dòng hiển thị số điểm nhận được vào bảng chi tiết hóa đơn trong Email
                 string extraInfo = $@"
-        <tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Thời gian lưu trú:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>{datPhong.NgayNhanPhong:dd/MM/yyyy} đến {datPhong.NgayTraPhong:dd/MM/yyyy}</td></tr>
-        <tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Tổng tiền:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef; font-weight: bold;'>{tongTien:N0} VNĐ</td></tr>
-        <tr><td style='padding: 12px 0 0 0;'><b>Trạng thái:</b></td><td style='padding: 12px 0 0 0;'><span style='background-color: #198754; color: white; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold;'>ĐÃ THANH TOÁN</span></td></tr>";
+<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Thời gian lưu trú:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>{datPhong.NgayNhanPhong:dd/MM/yyyy} đến {datPhong.NgayTraPhong:dd/MM/yyyy}</td></tr>
+<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Tổng tiền:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef; font-weight: bold;'>{tongTien:N0} VNĐ</td></tr>
+<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Điểm thưởng tích lũy:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef; color: #ffc107; font-weight: bold;'>+ {diemDuocCong} điểm</td></tr>
+<tr><td style='padding: 12px 0 0 0;'><b>Trạng thái:</b></td><td style='padding: 12px 0 0 0;'><span style='background-color: #198754; color: white; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold;'>ĐÃ THANH TOÁN</span></td></tr>";
 
                 string body = TaoNoiDungEmail(
                     datPhong,
@@ -666,7 +722,8 @@ namespace DoAn_HotelBooking.Controllers
                 await SendEmailAsync(datPhong.TaiKhoan.Email, subject, body);
             }
 
-            TempData["SuccessMessage"] = "Đã thanh toán và gửi email biên lai!";
+            // Cập nhật câu thông báo hiển thị trên giao diện quản lý
+            TempData["SuccessMessage"] = $"Đã thanh toán! Khách hàng được tích lũy thêm {diemDuocCong} điểm.";
             return RedirectToAction(nameof(DangLuuTru));
         }
 

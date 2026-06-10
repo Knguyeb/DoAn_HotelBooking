@@ -37,6 +37,8 @@ namespace DoAn_HotelBooking.Models
         [Display(Name = "QUYỀN HẠN")]
         public string QuyenHan { get; set; } = "Khách hàng"; // Mặc định là Khách Hàng
 
+        public int DiemTichLuy { get; set; } = 0;
+
         [Display(Name = "KHÁCH SẠN")]
         // Liên kết với khách sạn
         [ForeignKey("KhachSan")]

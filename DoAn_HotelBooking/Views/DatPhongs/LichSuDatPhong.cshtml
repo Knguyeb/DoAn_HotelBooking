@@ -6,18 +6,19 @@
     // --- TÍNH TOÁN THỐNG KÊ ---
     int totalCards = Model.Count();
     decimal totalPaid = 0;
+    int totalPoints = 0; // Thêm biến tính tổng điểm
 
     @foreach (var item in Model)
     {
-        // Chỉ tính các đơn đã thanh toán
+        // Chỉ tính tiền và điểm cho các đơn đã thanh toán
         if (item.TrangThaiThanhToan == "Đã thanh toán")
         {
             int soNgay = (item.NgayTraPhong - item.NgayNhanPhong).Days;
+            if (soNgay <= 0) soNgay = 1;
 
-            if (soNgay <= 0)
-                soNgay = 1;
-
-            totalPaid += (item.Phong?.GiaPhong ?? 0) * soNgay;
+            decimal tien = (item.Phong?.GiaPhong ?? 0) * soNgay;
+            totalPaid += tien;
+            totalPoints += (int)(tien / 100000); // Cộng dồn điểm
         }
     }
 }
@@ -29,9 +30,7 @@
 <div class="container-fluid fade-in-up mt-4">
     @Html.AntiForgeryToken()
 
-    <!-- ================= THỐNG KÊ & TIÊU ĐỀ ================= -->
     <div class="row mb-4 g-3 align-items-stretch">
-        <!-- Cột trái: Kích thước col-md-4 -->
         <div class="col-md-4">
             <div class="stat-card h-100 d-flex align-items-center">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #FFD700, #FF4500);">
@@ -44,33 +43,51 @@
             </div>
         </div>
 
-        <!-- Cột phải: Kích thước col-md-8 -->
         <div class="col-md-8">
             <div class="stat-card h-100 d-flex align-items-center justify-content-between flex-wrap gap-3">
-                <!-- Tiêu đề -->
                 <div>
                     <h2 class="page-title mb-1">LỊCH SỬ ĐẶT PHÒNG</h2>
-                    <p class="text-secondary mb-0 small">Quản lý và theo dõi danh sách các đơn đặt phòng của bạn</p>
-                </div>
 
-                <!-- Khu vực chứa Tổng tiền và Nút bấm -->
-                <div class="d-flex align-items-center gap-4">
-                    <!-- Tổng tiền -->
-                    <div class="text-end d-none d-sm-block" style="border-right: 1px solid rgba(255,255,255,0.1); padding-right: 1.5rem;">
-                        <span class="small text-muted text-uppercase fw-bold"><i class="bi bi-wallet2 me-1"></i>Đã thanh toán</span>
-                        <div class="fs-4 fw-bold mt-1" style="color: #20c997;">@totalPaid.ToString("N0") đ</div>
+                    <div class="mt-2">
+                        <span class="badge rounded-pill px-2 py-1"
+                              style="
+                font-size: 0.75rem;
+                color: #FF4500;
+                border: 1px solid #FF4500;
+                background-color: rgba(255, 69, 0, 0.1);">
+                            <i class="bi bi-star-fill me-1"></i>
+                            Điểm tích lũy: @totalPoints pt
+                        </span>
                     </div>
 
-                    <!-- Nút bấm -->
-                    <a asp-controller="Home" asp-action="Index" class="btn btn-primary-luxury text-decoration-none text-nowrap">
+                    <p class="text-secondary mb-0 small mt-2">
+                        Quản lý và theo dõi danh sách các đơn đặt phòng của bạn
+                    </p>
+                </div>
+
+                <div class="d-flex align-items-center gap-4">
+
+                    <div class="text-end d-none d-sm-block">
+                        <span class="small text-muted text-uppercase fw-bold"">
+                            <i class="bi bi-wallet2 me-1"></i>Đã thanh toán
+                        </span>
+
+                        <div class="fs-4 fw-bold mt-1" style="color: #20c997;">
+                            @totalPaid.ToString("N0") đ
+                        </div>
+                    </div>
+
+                    <a asp-controller="Home"
+                       asp-action="Index"
+                       class="btn btn-primary-luxury text-decoration-none text-nowrap">
                         <i class="bi bi-search-heart me-1"></i> Khám phá
                     </a>
+
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ================= KHU VỰC NỘI DUNG ================= -->
     @if (!Model.Any())
     {
         <div class="text-center py-5 glass-container">
@@ -84,7 +101,6 @@
     else
     {
         <div class="glass-container p-4">
-            <!-- Thanh tìm kiếm (Hỗ trợ phantrang.js) -->
             <div class="toolbar-wrapper mb-4">
                 <div class="search-box-luxury">
                     <i class="bi bi-search"></i>
@@ -92,17 +108,13 @@
                 </div>
             </div>
 
-            <!-- "Bảng" dữ liệu ảo để xài phantrang.js nhưng hiển thị dạng Card lưới -->
             <table id="bookingTable" class="w-100" style="border-collapse: collapse; background: transparent;">
                 <tbody class="row g-3 align-items-stretch m-0 w-100">
                     @foreach (var item in Model)
                     {
-                        <!-- Biến dòng <tr> thành 1 phần tử lưới col-xl-4 -->
                         <tr class="col-xl-4 col-lg-6 col-md-12 d-block" style="border: none; background: transparent; padding-left: calc(var(--bs-gutter-x) * .5); padding-right: calc(var(--bs-gutter-x) * .5);">
                             <td class="d-block w-100 h-100 p-0" style="border: none;">
-                                <!-- Nội dung Card Thực Sự -->
                                 <div class="stat-card h-100 d-flex flex-column">
-                                    <!-- Header thông tin ngày đặt & Trạng thái -->
                                     <div class="d-flex justify-content-between align-items-center mb-3 pb-3" style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
                                         <span class="small" style="color: var(--text-muted);">
                                             <i class="bi bi-clock-history me-1"></i> @item.NgayTao.ToString("dd/MM/yyyy HH:mm")
@@ -120,7 +132,7 @@
                                                 <i class="bi bi-check-circle me-1"></i>@item.TrangThaiDatPhong
                                             </span>
                                         }
-                                        else if (item.TrangThaiDatPhong == "Đã thanh toán")
+                                        else if (item.TrangThaiDatPhong == "Đã thanh toán" || item.TrangThaiDatPhong == "Hoàn thành")
                                         {
                                             <span class="badge fw-bold px-3 py-2 rounded-pill" style="background-color: #198754; color: #fff;">
                                                 <i class="bi bi-check2-all me-1"></i>@item.TrangThaiDatPhong
@@ -132,12 +144,6 @@
                                                 <i class="bi bi-x-circle me-1"></i>@item.TrangThaiDatPhong
                                             </span>
                                         }
-                                        else if (item.TrangThaiDatPhong == "Hoàn thành")
-                                        {
-                                            <span class="badge fw-bold px-3 py-2 rounded-pill" style="background-color: #0d6efd; color: #fff;">
-                                                <i class="bi bi-clipboard-check me-1"></i>@item.TrangThaiDatPhong
-                                            </span>
-                                        }
                                         else
                                         {
                                             <span class="badge fw-bold px-3 py-2 rounded-pill" style="background-color: #6c757d; color: #fff;">
@@ -146,30 +152,51 @@
                                         }
                                     </div>
 
-                                    <!-- Thông tin phòng -->
                                     <h5 class="fw-bold mb-4 text-uppercase" style="color: var(--yellow); letter-spacing: 0.5px; font-size: 1.15rem;">
                                         <i class="bi bi-building-fill-check me-2"></i>@(item.Phong?.KhachSan?.TenKhachSan ?? "Khách sạn")
                                     </h5>
 
                                     <div class="row mb-3 flex-grow-1">
-                                        <div class="col-6">
+                                        <div class="col-5">
                                             <p class="mb-1 small" style="color: var(--text-muted);">Số phòng</p>
                                             <p class="fw-bold mb-0" style="color: var(--text-main); font-size: 1.1rem;">
                                                 <i class="bi bi-door-open text-secondary me-1"></i> @item.Phong?.SoPhong
                                             </p>
                                         </div>
-                                        <div class="col-6 text-end">
+                                        <div class="col-7 text-end">
                                             @{
                                                 int soNgayO = (item.NgayTraPhong - item.NgayNhanPhong).Days;
                                                 if (soNgayO <= 0) soNgayO = 1;
                                                 decimal tongTien = (item.Phong?.GiaPhong ?? 0) * soNgayO;
+
+                                                // TÍNH TOÁN ĐIỂM CỦA HÓA ĐƠN NÀY
+                                                int diemThuong = (int)(tongTien / 100000);
                                             }
                                             <p class="mb-1 small" style="color: var(--text-muted);">Tổng thanh toán</p>
-                                            <p class="fw-bold mb-0 fs-5" style="color: #20c997;">@tongTien.ToString("N0") đ</p>
+                                            <p class="fw-bold mb-0 fs-5 lh-1" style="color: #20c997;">@tongTien.ToString("N0") đ</p>
+
+                                            @if (diemThuong > 0)
+                                            {
+                                                if (item.TrangThaiThanhToan == "Đã thanh toán")
+                                                {
+                                                    <div class="mt-2">
+                                                        <span class="badge border border-warning text-warning rounded-pill px-2 py-1" style="font-size: 0.75rem; background-color: rgba(255, 193, 7, 0.1);" title="Điểm nhận được sau khi thanh toán">
+                                                            <i class="bi bi-star me-1"></i>Dự kiến +@diemThuong điểm
+                                                        </span>
+                                                    </div>
+                                                }
+                                                else if (item.TrangThaiDatPhong != "Đã hủy")
+                                                {
+                                                    <div class="mt-2">
+                                                        <span class="badge border border-warning text-warning rounded-pill px-2 py-1" style="font-size: 0.75rem; background-color: rgba(255, 193, 7, 0.1);" title="Điểm nhận được sau khi thanh toán">
+                                                            <i class="bi bi-star me-1"></i>Dự kiến +@diemThuong điểm
+                                                        </span>
+                                                    </div>
+                                                }
+                                            }
                                         </div>
                                     </div>
 
-                                    <!-- Box Ngày nhận - Trả -->
                                     <div class="d-flex align-items-center justify-content-between p-3 rounded-3 mb-4 mt-auto" style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.05);">
                                         <div class="text-center">
                                             <span class="d-block small" style="color: var(--text-muted);">Nhận phòng</span>
@@ -182,12 +209,9 @@
                                         </div>
                                     </div>
 
-                                    <!-- Nút chức năng -->
                                     <div class="d-flex justify-content-end gap-2 border-top pt-3" style="border-color: rgba(255,255,255,0.05) !important;">
-
                                         @if (item.TrangThaiDatPhong == "Chờ xác nhận")
                                         {
-                                            <!-- Nút Hủy đơn -->
                                             <form asp-action="HuyDatPhong" asp-controller="DatPhongs" method="post" class="d-inline huyForm">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@item.ID" />
@@ -196,43 +220,23 @@
                                                 </button>
                                             </form>
                                         }
-                                        else if (
-                                            (item.TrangThaiDatPhong == "Đã xác nhận"
-                                            || item.TrangThaiDatPhong == "Đang lưu trú")
-                                            && item.TrangThaiThanhToan != "Đã thanh toán"
-                                        )
+                                        else if ((item.TrangThaiDatPhong == "Đã xác nhận" || item.TrangThaiDatPhong == "Đang lưu trú") && item.TrangThaiThanhToan != "Đã thanh toán")
                                         {
-                                            <button type="button"
-                                                    class="btn btn-icon-luxury btn-success-glow"
-                                                    title="Thanh toán QR"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#dynamicAjaxModal"
-                                                    data-title="Thanh toán đơn #@item.ID"
-                                                    data-url="@Url.Action("ThanhToanQRPartial", "DatPhongs", new { id = item.ID })">
-
+                                            <button type="button" class="btn btn-icon-luxury btn-success-glow" title="Thanh toán QR" data-bs-toggle="modal" data-bs-target="#dynamicAjaxModal" data-title="Thanh toán đơn #@item.ID" data-url="@Url.Action("ThanhToanQRPartial", "DatPhongs", new { id = item.ID })">
                                                 <i class="bi bi-qr-code-scan"></i>
                                             </button>
                                         }
                                         else if (item.TrangThaiDatPhong == "Đã hủy")
                                         {
-                                            <!-- Nút Xóa lịch sử (Chỉ hiện khi Đã hủy) -->
                                             <button type="button" class="btn btn-icon-luxury btn-danger-glow" onclick="confirmDelete('@item.ID')" title="Xóa lịch sử này">
                                                 <i class="bi bi-trash-fill"></i>
                                             </button>
-
-                                            <!-- Form ẩn để delete.js gọi tới -->
                                             <form id="deleteForm-@item.ID" method="post" asp-action="Delete" asp-controller="DatPhongs" asp-route-id="@item.ID" style="display:none;">
                                                 @Html.AntiForgeryToken()
                                             </form>
                                         }
 
-                                        <!-- Nút Chi tiết (Luôn hiển thị) -->
-                                        <button type="button" class="btn btn-icon-luxury btn-info-glow"
-                                                title="Chi tiết đơn"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#dynamicAjaxModal"
-                                                data-title="Chi tiết mã đơn #@item.ID"
-                                                data-url="@Url.Action("DetailsPartial", "DatPhongs", new { id = item.ID })">
+                                        <button type="button" class="btn btn-icon-luxury btn-info-glow" title="Chi tiết đơn" data-bs-toggle="modal" data-bs-target="#dynamicAjaxModal" data-title="Chi tiết mã đơn #@item.ID" data-url="@Url.Action("DetailsPartial", "DatPhongs", new { id = item.ID })">
                                             <i class="bi bi-info-circle"></i>
                                         </button>
                                     </div>
@@ -243,7 +247,6 @@
                 </tbody>
             </table>
 
-            <!-- Hiển thị khi tìm kiếm không có kết quả -->
             <div id="noResults" class="text-center py-5" style="display: none;">
                 <div class="mb-3">
                     <i class="bi bi-search" style="font-size: 3rem; color: var(--yellow); opacity: 0.5;"></i>
@@ -254,12 +257,9 @@
                 </button>
             </div>
 
-            <!-- Footer: Phân trang -->
             <div class="table-footer d-flex justify-content-between align-items-center mt-3 pt-3" style="border-top: 1px solid var(--border-color)">
                 <span class="text-secondary small">Đang hiển thị <strong id="visibleCount" class="text-light">0</strong> đơn</span>
-                <ul id="pagination" class="pagination-luxury m-0">
-                    <!-- Nút phân trang sẽ được render tự động -->
-                </ul>
+                <ul id="pagination" class="pagination-luxury m-0"></ul>
             </div>
         </div>
     }
@@ -268,23 +268,18 @@
 <div class="modal fade" id="dynamicAjaxModal" tabindex="-1" aria-labelledby="dynamicAjaxModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content custom-modal-bg text-light" style="border: 1px solid rgba(255, 215, 0, 0.2); border-radius: 15px;">
-
             <div class="modal-header border-bottom-0 pb-0">
                 <h5 class="modal-title text-warning fw-bold" id="dynamicAjaxModalLabel">
                     <div class="spinner-border spinner-border-sm text-warning me-2" role="status"></div> Đang tải...
                 </h5>
                 <button type="button" class="btn-close btn-close-white opacity-75" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-
-            <div class="modal-body pt-3 pb-4">
-            </div>
-
+            <div class="modal-body pt-3 pb-4"></div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <!-- Các script cũ của bạn giữ nguyên -->
     <input type="hidden" id="successMessage" value="@TempData["SuccessMessage"]" />
     <input type="hidden" id="errorMessage" value="@TempData["ErrorMessage"]" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -294,42 +289,23 @@
     <script src="~/js/Share/DoiTien.js" asp-append-version="true"></script>
     <script src="~/js/Share/PopUpDetails.js" asp-append-version="true"></script>
 
-    <!-- THÊM ĐOẠN CODE NÀY ĐỂ XỬ LÝ QUÉT THANH TOÁN -->
     <script>
         let checkPaymentInterval;
-
-        // Lắng nghe sự kiện ngay khi Popup vừa hiển thị lên
         document.getElementById('dynamicAjaxModal').addEventListener('shown.bs.modal', function (event) {
-            // Lấy nút bấm "Thanh toán QR" mà người dùng vừa click
             let button = event.relatedTarget;
             if (!button) return;
-
             let url = button.getAttribute('data-url');
-
-            // Nếu người dùng đang mở Popup Thanh Toán
             if (url && url.includes('ThanhToanQRPartial')) {
-
-                // Lấy ID đơn hàng từ URL (Cắt lấy đoạn cuối cùng của /DatPhongs/ThanhToanQRPartial/5)
                 let donHangId = url.split('/').pop();
-
-                // Xóa vòng lặp cũ (nếu có) để tránh lỗi gọi đè nhau
                 if (checkPaymentInterval) clearInterval(checkPaymentInterval);
-
-                // Bắt đầu vòng lặp quét 2 giây 1 lần
                 checkPaymentInterval = setInterval(function () {
-                    // Tạo url kiểm tra, thêm time để chống trình duyệt cache lại kết quả
                     let checkUrl = `/DatPhongs/KiemTraTrangThai?id=${donHangId}&t=${new Date().getTime()}`;
-
                     fetch(checkUrl, { cache: 'no-store' })
                         .then(res => res.json())
                         .then(data => {
-                            // Bắt cả trường hợp JSON viết hoa/thường chữ d
                             let isPaid = data.daThanhToan || data.DaThanhToan;
-
                             if (isPaid === true || String(isPaid).toLowerCase() === 'true') {
-                                clearInterval(checkPaymentInterval); // Dừng quét ngay lập tức
-
-                                // Tìm thẻ trạng thái trong Popup và đổi sang Thành Công
+                                clearInterval(checkPaymentInterval);
                                 const statusContainer = document.getElementById('paymentStatusContainer');
                                 if (statusContainer) {
                                     statusContainer.innerHTML = `
@@ -338,8 +314,6 @@
                                             <span class="text-success fw-bold">Đã thanh toán thành công!</span>
                                         </div>`;
                                 }
-
-                                // Đợi 2 giây sau đó tự động tắt Popup và F5 lại trang để hiện trạng thái mới
                                 setTimeout(() => {
                                     const modalEl = document.getElementById('dynamicAjaxModal');
                                     const modalInstance = bootstrap.Modal.getInstance(modalEl);
@@ -352,15 +326,10 @@
                 }, 2000);
             }
         });
-
-        // Dọn dẹp: Khi người dùng bấm dấu X tắt Popup đi thì phải dừng việc quét lại
         document.getElementById('dynamicAjaxModal').addEventListener('hidden.bs.modal', function () {
-            if (checkPaymentInterval) {
-                clearInterval(checkPaymentInterval);
-            }
+            if (checkPaymentInterval) clearInterval(checkPaymentInterval);
         });
     </script>
-
     <script>
         var pageConfig;
         document.addEventListener("DOMContentLoaded", function () {
@@ -373,26 +342,18 @@
                     rowsPerPage: 9
                 });
             }
-        });
-    </script>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
             const searchInput = document.getElementById('searchBooking');
             const rows = document.querySelectorAll('#bookingTable tbody tr');
             const visibleCountEl = document.getElementById('visibleCount');
             const noResultsEl = document.getElementById('noResults');
             const paginationEl = document.getElementById('pagination');
-
             function removeAccents(str) {
                 return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
             }
-
             if (searchInput) {
                 searchInput.addEventListener('input', function () {
                     let keyword = removeAccents(this.value.toLowerCase().trim());
                     let count = 0;
-
                     rows.forEach(row => {
                         let textContent = removeAccents(row.innerText.toLowerCase());
                         if (textContent.includes(keyword)) {
@@ -404,9 +365,7 @@
                             row.classList.add('d-none');
                         }
                     });
-
                     if (visibleCountEl) visibleCountEl.innerText = count;
-
                     if (count === 0) {
                         noResultsEl.style.display = 'block';
                         if (paginationEl) paginationEl.style.display = 'none';
@@ -414,21 +373,14 @@
                         noResultsEl.style.display = 'none';
                         if (paginationEl) paginationEl.style.display = (keyword === '') ? 'flex' : 'none';
                     }
-
                     if (keyword === '' && typeof pageConfig !== 'undefined' && typeof pageConfig.clearSearch === 'function') {
                         pageConfig.clearSearch();
                     }
                 });
             }
-        });
-    </script>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
             document.querySelectorAll(".btnHuyDon").forEach(button => {
                 button.addEventListener("click", function () {
                     const form = this.closest("form");
-
                     Swal.fire({
                         title: 'Bạn muốn hủy đặt phòng?',
                         text: "Thao tác này không thể hoàn tác!",
@@ -440,9 +392,7 @@
                         cancelButtonText: 'Quay lại',
                         background: '#1e1e24',
                         color: '#ffffff',
-                        customClass: {
-                            popup: 'custom-modal-bg'
-                        }
+                        customClass: { popup: 'custom-modal-bg' }
                     }).then((result) => {
                         if (result.isConfirmed) {
                             Swal.fire({

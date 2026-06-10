@@ -65,6 +65,7 @@ namespace DoAn_HotelBooking.Migrations
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     SoDienThoai = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     QuyenHan = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DiemTichLuy = table.Column<int>(type: "int", nullable: false),
                     MaKhachSan = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
