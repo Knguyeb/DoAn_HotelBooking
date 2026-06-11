@@ -20,6 +20,43 @@
             totalPoints += (int)(tien / 100000); // Cộng dồn điểm
         }
     }
+
+    // Khởi tạo mặc định
+    string colorHex = "#f8f9fa";
+    string glowClass = "";
+    string iconClass = "bi-star-fill";
+    string tenHang = ViewBag.TenHang as string ?? "";
+
+    if (tenHang.Contains("Đồng", StringComparison.OrdinalIgnoreCase))
+    {
+        colorHex = "#CD7F32";
+        glowClass = "glow-dong";
+        iconClass = "bi-award-fill";
+    }
+    else if (tenHang.Contains("Bạc", StringComparison.OrdinalIgnoreCase))
+    {
+        colorHex = "#C0C0C0";
+        glowClass = "glow-bac";
+        iconClass = "bi-award-fill";
+    }
+    else if (tenHang.Contains("Vàng", StringComparison.OrdinalIgnoreCase))
+    {
+        colorHex = "#FFD700";
+        glowClass = "glow-vang";
+        iconClass = "bi-award-fill";
+    }
+    else if (tenHang.Contains("Bạch kim", StringComparison.OrdinalIgnoreCase) || tenHang.Contains("Platinum", StringComparison.OrdinalIgnoreCase))
+    {
+        colorHex = "#00CFFF";
+        glowClass = "glow-bachkim";
+        iconClass = "bi-gem";
+    }
+    else if (tenHang.Contains("Kim cương", StringComparison.OrdinalIgnoreCase) || tenHang.Contains("Diamond", StringComparison.OrdinalIgnoreCase))
+    {
+        colorHex = "transparent"; // Màu kim cương được CSS gradient lo
+        glowClass = "glow-kimcuong";
+        iconClass = "bi-gem";
+    }
 }
 
 <link rel="stylesheet" href="~/css/KhachSan/Index.css" asp-append-version="true" />
@@ -49,6 +86,62 @@
         color: #fff;
         box-shadow: 0 0 15px rgba(255, 215, 0, 0.5); /* Phát sáng viền ngoài */
         transform: translateX(-4px); /* Hiệu ứng lùi nhẹ sang trái cực xịn */
+    }
+
+    /* Hiệu ứng dịch chuyển khung nền liên tục từ trái qua phải dùng chung */
+    @@keyframes flowLeftToRight {
+        0% {
+            background-position: 100% 0;
+        }
+
+        100% {
+            background-position: 0% 0;
+        }
+    }
+
+    /* 🥉 Hạng Đồng (#CD7F32) */
+    .glow-dong {
+        box-shadow: 0 0 6px rgba(205, 127, 50, 0.5) !important;
+        background-image: linear-gradient(to right, rgba(205, 127, 50, 0.1), rgba(205, 127, 50, 0.4), rgba(205, 127, 50, 0.1), rgba(205, 127, 50, 0.4)) !important;
+        background-size: 300% 100% !important;
+        animation: flowLeftToRight 3s linear infinite !important;
+    }
+
+    /* 🥈 Hạng Bạc (#C0C0C0) */
+    .glow-bac {
+        box-shadow: 0 0 10px rgba(192, 192, 192, 0.7) !important;
+        background-image: linear-gradient(to right, rgba(192, 192, 192, 0.1), rgba(192, 192, 192, 0.5), rgba(192, 192, 192, 0.1), rgba(192, 192, 192, 0.5)) !important;
+        background-size: 300% 100% !important;
+        animation: flowLeftToRight 3s linear infinite !important;
+    }
+
+    /* 🥇 Hạng Vàng (#FFD700) */
+    .glow-vang {
+        box-shadow: 0 0 16px rgba(255, 215, 0, 0.85) !important;
+        text-shadow: 0 0 4px rgba(255, 215, 0, 0.6) !important;
+        background-image: linear-gradient(to right, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.4), rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.4)) !important;
+        background-size: 300% 100% !important;
+        animation: flowLeftToRight 3s linear infinite !important;
+    }
+
+    /* 💠 Hạng Bạch Kim (#00CFFF) */
+    .glow-bachkim {
+        box-shadow: 0 0 22px rgba(0, 207, 255, 0.9) !important;
+        text-shadow: 0 0 6px rgba(0, 207, 255, 0.7) !important;
+        background-image: linear-gradient(to right, rgba(0, 207, 255, 0.1), rgba(0, 207, 255, 0.4), rgba(0, 207, 255, 0.1), rgba(0, 207, 255, 0.4)) !important;
+        background-size: 300% 100% !important;
+        animation: flowLeftToRight 3s linear infinite !important;
+    }
+
+    /* 💎 Hạng Kim Cương (Tím - Xanh) */
+    .glow-kimcuong {
+        box-shadow: 0 0 30px rgba(138, 43, 226, 0.8), inset 0 0 15px rgba(0, 207, 255, 0.5) !important;
+        color: #00CFFF !important;
+        text-shadow: 0 0 8px rgba(138, 43, 226, 0.9) !important;
+        border: 1px solid #9b4dff !important;
+        background-image: linear-gradient(to right, rgba(138, 43, 226, 0.15), rgba(0, 207, 255, 0.4), rgba(138, 43, 226, 0.15), rgba(0, 207, 255, 0.4)) !important;
+        background-size: 300% 100% !important;
+        animation: flowLeftToRight 3.5s linear infinite !important;
     }
 </style>
 
@@ -82,9 +175,22 @@
                         </p>
                         <div class="mt-2">
                             <span class="badge rounded-pill px-2 py-1"
-                                  style="font-size: 0.75rem; color: #FF4500; border: 1px solid #FF4500; background-color: rgba(255, 69, 0, 0.1);">
+                                  style="font-size:0.75rem;
+                 color:#FF4500;
+                 border:1px solid #FF4500;
+                 background-color:rgba(255,69,0,0.1);">
                                 <i class="bi bi-star-fill me-1"></i>
-                                Điểm tích lũy: @totalPoints pt
+                                Điểm tích lũy: @ViewBag.DiemTichLuy pt
+                            </span>
+
+                            <span class="badge rounded-pill px-2 py-1 @glowClass"
+                                  style="
+        font-size: 0.75rem;
+        color: @colorHex;
+        border: 1px solid @colorHex;
+        transition: all 0.3s ease;">
+                                <i class="bi @iconClass me-1"></i>
+                                Hạng: @tenHang
                             </span>
                         </div>
                     </div>

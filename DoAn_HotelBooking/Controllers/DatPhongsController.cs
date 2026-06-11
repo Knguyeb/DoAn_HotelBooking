@@ -242,23 +242,34 @@ namespace DoAn_HotelBooking.Controllers
         // GET: DatPhongs/ChiTietHoaDonKhach/5
         public async Task<IActionResult> ChiTietHoaDonKhach(int id)
         {
-            // Lấy danh sách hóa đơn chi tiết của người này
-            var chiTietHoaDon = await _context.DatPhong
-                .Include(d => d.Phong)
-                    .ThenInclude(p => p.KhachSan)
-                .Include(d => d.TaiKhoan)
-                .Where(d => d.TaiKhoan.ID == id && d.TrangThaiDatPhong == "Hoàn thành" && d.TrangThaiThanhToan == "Đã thanh toán")
+            string quyen = HttpContext.Session.GetString("QuyenHan");
+            string maKhachSan = HttpContext.Session.GetString("MaKhachSan");
+
+            var query = _context.DatPhong
+             .Include(d => d.Phong)
+                 .ThenInclude(p => p.KhachSan)
+             .Include(d => d.TaiKhoan)
+                 .ThenInclude(t => t.HangThanhVien)
+             .Where(d =>
+                 d.TaiKhoan.ID == id &&
+                 d.TrangThaiDatPhong == "Hoàn thành" &&
+                 d.TrangThaiThanhToan == "Đã thanh toán");  
+
+            // Chỉ lọc hóa đơn theo khách sạn
+            if (quyen != "Admin")
+            {
+                query = query.Where(d => d.Phong.MaKhachSan == maKhachSan);
+            }
+
+            var chiTietHoaDon = await query
                 .OrderByDescending(d => d.NgayTao)
                 .ToListAsync();
 
-            // Lấy tên khách hàng để truyền ra View làm tiêu đề
             if (chiTietHoaDon.Any())
             {
                 ViewBag.TenKhachHang = chiTietHoaDon.First().TaiKhoan?.HoVaTen;
-            }
-            else
-            {
-                ViewBag.TenKhachHang = "Khách hàng";
+                ViewBag.DiemTichLuy = chiTietHoaDon.First().TaiKhoan?.DiemTichLuy ?? 0;
+                ViewBag.TenHang = chiTietHoaDon.First().TaiKhoan?.HangThanhVien?.TenHang ?? "Thành viên mới";
             }
 
             return View(chiTietHoaDon);
