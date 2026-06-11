@@ -495,6 +495,45 @@ namespace DoAn_HotelBooking.Data
                     );
                 }
 
+                // Seed hạng thành viên
+                if (!context.HangThanhVien.Any())
+                {
+                    context.HangThanhVien.AddRange(
+                        new HangThanhVien
+                        {
+                            TenHang = "Đồng",
+                            MocDiemToiThieu = 1,
+                            TyLeGiamGia = 0
+                        },
+                        new HangThanhVien
+                        {
+                            TenHang = "Bạc",
+                            MocDiemToiThieu = 100,
+                            TyLeGiamGia = 3
+                        },
+                        new HangThanhVien
+                        {
+                            TenHang = "Vàng",
+                            MocDiemToiThieu = 500,
+                            TyLeGiamGia = 5
+                        },
+                        new HangThanhVien
+                        {
+                            TenHang = "Bạch Kim",
+                            MocDiemToiThieu = 1000,
+                            TyLeGiamGia = 8
+                        },
+                        new HangThanhVien
+                        {
+                            TenHang = "Kim Cương",
+                            MocDiemToiThieu = 2000,
+                            TyLeGiamGia = 15
+                        }
+                    );
+
+                    context.SaveChanges();
+                }
+
                 context.SaveChanges();
             }
         }

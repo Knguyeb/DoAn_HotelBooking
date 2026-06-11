@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using DoAn_HotelBooking.Data;
+using DoAn_HotelBooking.Helpers;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 
@@ -38,7 +39,9 @@ builder.Services.AddAuthentication(options =>
     options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
     options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
 });
-    
+
+builder.Services.AddScoped<ThangHangHelper>();
+
 var app = builder.Build();
 
 // ==========================================

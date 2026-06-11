@@ -1,5 +1,6 @@
 ﻿using DoAn_HotelBooking.Data;
 using DoAn_HotelBooking.Models;
+using DoAn_HotelBooking.Helpers;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -24,10 +26,13 @@ namespace DoAn_HotelBooking.Controllers
 
         private const decimal SO_TIEN_QUY_DOI_DIEM = 100000; // 100.000 VNĐ = 1 điểm
 
-        public DatPhongsController(DoAn_HotelBookingContext context, IConfiguration configuration)
+        private readonly ThangHangHelper _thangHangHelper;
+
+        public DatPhongsController(DoAn_HotelBookingContext context, IConfiguration configuration, ThangHangHelper thangHangHelper)
         {
             _context = context;
             _configuration = configuration;
+            _thangHangHelper = thangHangHelper;
         }
 
         // GET: DatPhongs
@@ -84,6 +89,26 @@ namespace DoAn_HotelBooking.Controllers
             if (quyen != "Khách hàng" || !taiKhoanId.HasValue)
             {
                 return RedirectToAction("DangNhap", "TaiKhoans"); // Đổi lại tên Action/Controller đăng nhập của bạn nếu khác
+            }
+
+            // --- BỔ SUNG LẤY THÔNG TIN HẠNG THÀNH VIÊN ---
+            var taiKhoan = await _context.TaiKhoan
+                .Include(t => t.HangThanhVien)
+                .FirstOrDefaultAsync(t => t.ID == taiKhoanId.Value);
+
+            if (taiKhoan != null)
+            {
+                // 1. GỌI HÀM KIỂM TRA VÀ NÂNG HẠNG Ở ĐÂY (TRƯỚC KHI GÁN VIEWBAG)
+                await _thangHangHelper.KiemTraVaNangHangAsync(taiKhoan);
+
+                // 2. SAU KHI NÂNG HẠNG XONG MỚI GÁN VÀO VIEWBAG ĐỂ HIỂN THỊ
+                ViewBag.TenHang = taiKhoan.HangThanhVien != null ? taiKhoan.HangThanhVien.TenHang : "Thành viên mới";
+                ViewBag.DiemTichLuy = taiKhoan.DiemTichLuy;
+            }
+            else
+            {
+                ViewBag.TenHang = "Không xác định";
+                ViewBag.DiemTichLuy = 0;
             }
 
             // Lấy danh sách đơn đặt phòng của riêng khách hàng này
@@ -304,7 +329,6 @@ namespace DoAn_HotelBooking.Controllers
         }
 
         // 3. Hàm xử lý khi trên Điện thoại khách bấm nút "Xác nhận Thanh toán"
-        // 3. Hàm xử lý khi trên Điện thoại khách bấm nút "Xác nhận Thanh toán"
         [HttpPost]
         public async Task<IActionResult> XacNhanTuDienThoai(int id)
         {
@@ -335,6 +359,8 @@ namespace DoAn_HotelBooking.Controllers
 
                 _context.Update(datPhong);
                 await _context.SaveChangesAsync();
+
+                await _thangHangHelper.KiemTraVaNangHangAsync(datPhong.TaiKhoan);
 
                 // 📧 GỬI EMAIL BIÊN LAI KHI THANH TOÁN QUA ĐIỆN THOẠI THÀNH CÔNG
                 if (!string.IsNullOrEmpty(datPhong.TaiKhoan?.Email))
@@ -414,8 +440,6 @@ namespace DoAn_HotelBooking.Controllers
         }
 
         // POST: DatPhongs/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(DatPhong datPhong)
@@ -478,8 +502,6 @@ namespace DoAn_HotelBooking.Controllers
         }
 
         // POST: DatPhongs/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ID,NgayTao,NgayNhanPhong,NgayTraPhong,SoNguoi,TongTien,TrangThaiDatPhong,GhiChu,MaTaiKhoan,MaPhong")] DatPhong datPhong)
@@ -697,6 +719,8 @@ namespace DoAn_HotelBooking.Controllers
 
             _context.Update(datPhong);
             await _context.SaveChangesAsync();
+
+            await _thangHangHelper.KiemTraVaNangHangAsync(datPhong.TaiKhoan);
 
             // 📧 GỬI EMAIL THANH TOÁN KÈM THÔNG TIN ĐIỂM THƯỞNG
             if (!string.IsNullOrEmpty(datPhong.TaiKhoan?.Email))
@@ -971,18 +995,15 @@ namespace DoAn_HotelBooking.Controllers
             return $@"
     <div style='font-family: ""Segoe UI"", Tahoma, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 650px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);'>
         
-        <!-- Header -->
         <div style='background-color: {mauChuDao}; padding: 30px 20px; text-align: center;'>
             <h1 style='color: #ffffff; margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px;'>{tenKhachSan}</h1>
             <p style='color: rgba(255,255,255,0.85); margin: 8px 0 0 0; font-size: 15px; font-weight: 500;'>{tieuDe}</p>
         </div>
         
-        <!-- Body -->
         <div style='padding: 30px 25px;'>
             <p style='font-size: 16px; margin-top: 0;'>Kính gửi Quý khách <b>{tenKhachHang}</b>,</p>
             <p style='font-size: 15px;'>{loiNhanChinh}</p>
             
-            <!-- Box Chi tiết -->
             <div style='background-color: #f8f9fa; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 5px solid {mauChuDao};'>
                 <h3 style='margin-top: 0; color: #333; font-size: 16px; border-bottom: 1px solid #e0e0e0; padding-bottom: 12px; margin-bottom: 15px;'>
                     THÔNG TIN ĐẶT PHÒNG <span style='float: right; color: {mauChuDao};'>#{maDatPhong}</span>
@@ -1009,7 +1030,6 @@ namespace DoAn_HotelBooking.Controllers
             </div>
         </div>
         
-        <!-- Footer -->
         <div style='background-color: #2c3e50; padding: 25px 20px; text-align: center; color: #adb5bd; font-size: 13px;'>
             <p style='margin: 0 0 8px 0; font-size: 15px; color: #ffffff;'><b>{tenKhachSan}</b></p>
             <p style='margin: 0 0 6px 0;'>📍 Địa chỉ: {diaChi}</p>
