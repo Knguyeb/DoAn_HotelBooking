@@ -1,7 +1,9 @@
 ﻿@model DoAn_HotelBooking.Models.DatPhong
 @{
     Layout = null; // Không dùng Layout chung của web để làm full màn hình điện thoại
-    decimal tongTien = (Model.Phong?.GiaPhong ?? 0) * (Model.NgayTraPhong - Model.NgayNhanPhong).Days;
+
+    // ✅ ĐÃ SỬA: Lấy trực tiếp tổng tiền từ Database (đã trừ tiền giảm)
+    decimal tongTien = Model.TongTien;
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -43,6 +45,12 @@
         <div class="bg-dark p-3 rounded-3 mb-4 text-start" style="border: 1px dashed rgba(255,255,255,0.2);">
             <p class="mb-1 text-muted">Mã đơn: <strong class="text-white float-end">#@Model.ID</strong></p>
             <p class="mb-1 text-muted">Khách hàng: <strong class="text-white float-end">@Model.TaiKhoan?.HoVaTen</strong></p>
+
+            @if (Model.TienGiam > 0)
+            {
+                <p class="mb-1 text-muted mt-2">Ưu đãi hạng: <strong class="text-warning float-end">-@Model.TienGiam.ToString("N0") đ</strong></p>
+            }
+
             <p class="mb-0 text-muted mt-2 border-top pt-2 border-secondary">
                 Số tiền cần trả: <strong class="text-success fs-4 float-end">@tongTien.ToString("N0") đ</strong>
             </p>

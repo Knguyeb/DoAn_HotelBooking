@@ -164,6 +164,7 @@ namespace DoAn_HotelBooking.Migrations
                     NgayTraPhong = table.Column<DateTime>(type: "datetime2", nullable: false),
                     SoNguoi = table.Column<int>(type: "int", nullable: false),
                     TongTien = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TienGiam = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     TrangThaiDatPhong = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TrangThaiThanhToan = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     GhiChu = table.Column<string>(type: "nvarchar(max)", nullable: true),

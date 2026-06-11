@@ -12,10 +12,8 @@
         // Chỉ tính tiền và điểm cho các đơn đã thanh toán
         if (item.TrangThaiThanhToan == "Đã thanh toán")
         {
-            int soNgay = (item.NgayTraPhong - item.NgayNhanPhong).Days;
-            if (soNgay <= 0) soNgay = 1;
-
-            decimal tien = (item.Phong?.GiaPhong ?? 0) * soNgay;
+            // ✅ ĐÃ SỬA: Lấy trực tiếp TongTien đã lưu trong DB
+            decimal tien = item.TongTien;
             totalPaid += tien;
             totalPoints += (int)(tien / 100000); // Cộng dồn điểm
         }
@@ -71,22 +69,22 @@
         width: 45px;
         height: 45px;
         border-radius: 50%;
-        background: rgba(255, 215, 0, 0.1); /* Nền vàng kim cực nhạt */
-        border: 1px solid rgba(255, 215, 0, 0.4); /* Viền vàng kim bán trong suốt */
+        background: rgba(255, 215, 0, 0.1);
+        border: 1px solid rgba(255, 215, 0, 0.4);
         color: var(--yellow, #ffc107);
         font-size: 1.25rem;
         transition: all 0.3s ease;
         text-decoration: none;
-        backdrop-filter: blur(5px); /* Hiệu ứng kính mờ */
+        backdrop-filter: blur(5px);
     }
 
-    .btn-back-luxury:hover {
-        background: rgba(255, 215, 0, 0.25);
-        border-color: rgba(255, 215, 0, 0.8);
-        color: #fff;
-        box-shadow: 0 0 15px rgba(255, 215, 0, 0.5); /* Phát sáng viền ngoài */
-        transform: translateX(-4px); /* Hiệu ứng lùi nhẹ sang trái cực xịn */
-    }
+        .btn-back-luxury:hover {
+            background: rgba(255, 215, 0, 0.25);
+            border-color: rgba(255, 215, 0, 0.8);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+            transform: translateX(-4px);
+        }
 
     /* Hiệu ứng dịch chuyển khung nền liên tục từ trái qua phải dùng chung */
     @@keyframes flowLeftToRight {
@@ -99,7 +97,6 @@
         }
     }
 
-    /* 🥉 Hạng Đồng (#CD7F32) */
     .glow-dong {
         box-shadow: 0 0 6px rgba(205, 127, 50, 0.5) !important;
         background-image: linear-gradient(to right, rgba(205, 127, 50, 0.1), rgba(205, 127, 50, 0.4), rgba(205, 127, 50, 0.1), rgba(205, 127, 50, 0.4)) !important;
@@ -107,7 +104,6 @@
         animation: flowLeftToRight 3s linear infinite !important;
     }
 
-    /* 🥈 Hạng Bạc (#C0C0C0) */
     .glow-bac {
         box-shadow: 0 0 10px rgba(192, 192, 192, 0.7) !important;
         background-image: linear-gradient(to right, rgba(192, 192, 192, 0.1), rgba(192, 192, 192, 0.5), rgba(192, 192, 192, 0.1), rgba(192, 192, 192, 0.5)) !important;
@@ -115,7 +111,6 @@
         animation: flowLeftToRight 3s linear infinite !important;
     }
 
-    /* 🥇 Hạng Vàng (#FFD700) */
     .glow-vang {
         box-shadow: 0 0 16px rgba(255, 215, 0, 0.85) !important;
         text-shadow: 0 0 4px rgba(255, 215, 0, 0.6) !important;
@@ -124,7 +119,6 @@
         animation: flowLeftToRight 3s linear infinite !important;
     }
 
-    /* 💠 Hạng Bạch Kim (#00CFFF) */
     .glow-bachkim {
         box-shadow: 0 0 22px rgba(0, 207, 255, 0.9) !important;
         text-shadow: 0 0 6px rgba(0, 207, 255, 0.7) !important;
@@ -133,7 +127,6 @@
         animation: flowLeftToRight 3s linear infinite !important;
     }
 
-    /* 💎 Hạng Kim Cương (Tím - Xanh) */
     .glow-kimcuong {
         box-shadow: 0 0 30px rgba(138, 43, 226, 0.8), inset 0 0 15px rgba(0, 207, 255, 0.5) !important;
         color: #00CFFF !important;
@@ -198,7 +191,7 @@
                 <div class="d-flex align-items-center justify-content-center gap-4">
                     <div class="text-end">
                         <span class="text-secondary small d-block mb-1">Tổng chi tiêu</span>
-                        <strong class="text-success fs-4" id="tongCongTop">0 VNĐ</strong>
+                        <strong class="text-success fs-4" id="tongCongTop" data-base-price="0">0 đ</strong>
                     </div>
                     <div style="width: 1px; height: 40px; background: rgba(255,255,255,0.1);"></div>
                     <a href="javascript:location.reload();" class="btn btn-primary-luxury text-decoration-none">
@@ -238,7 +231,9 @@
                     {
                         int soNgayO = (item.NgayTraPhong - item.NgayNhanPhong).Days;
                         if (soNgayO <= 0) soNgayO = 1;
-                        decimal tongTien = (item.Phong?.GiaPhong ?? 0) * soNgayO;
+
+                        // ✅ ĐÃ SỬA: Lấy TongTien lưu trong Database
+                        decimal tongTien = item.TongTien;
 
                         <tr data-tongtien="@tongTien">
                             <td class="text-center text-muted fw-bold">@(stt++)</td>
@@ -260,8 +255,16 @@
                                 <div class="text-warning mt-1" style="font-size: 0.75rem;">(@soNgayO ngày)</div>
                             </td>
 
-                            <td class="text-center fw-bold text-success fs-6">
-                                @tongTien.ToString("N0") VNĐ
+                            <td class="text-center">
+                                <div class="fw-bold text-success fs-6" data-base-price="@tongTien">
+                                    @tongTien.ToString("N0") VNĐ
+                                </div>
+                                @if (item.TienGiam > 0)
+                                {
+                                    <div class="text-warning mt-1" style="font-size: 0.75rem;">
+                                        <i class="bi bi-tag-fill me-1"></i>Đã giảm @item.TienGiam.ToString("N0") đ
+                                    </div>
+                                }
                             </td>
 
                             <td class="text-center">
@@ -364,6 +367,7 @@
             };
         });
 
+        // ✅ ĐÃ SỬA: Hàm tính tổng hỗ trợ đổi ngoại tệ
         function updateTongDoanhThu() {
             const filter = document.getElementById("searchHoaDon").value.toLowerCase().trim();
             const rows = document.querySelectorAll("#hoaDonTable tbody tr");
@@ -375,7 +379,17 @@
                 }
             });
 
-            document.getElementById("tongCongTop").textContent = total.toLocaleString('vi-VN') + ' VNĐ';
+            const tongCongEl = document.getElementById("tongCongTop");
+            tongCongEl.setAttribute("data-base-price", total); // Gắn base-price để JS nhận dạng
+
+            // Nếu đang chọn hệ tiền tệ khác VNĐ thì lấy tỉ giá nhân lên
+            if (window.formatCurrency && window.currentRates && window.currentSelectedCurrency) {
+                let rate = window.currentRates[window.currentSelectedCurrency] || 1;
+                let convertedPrice = total * rate;
+                tongCongEl.innerHTML = window.formatCurrency(convertedPrice, window.currentSelectedCurrency);
+            } else {
+                tongCongEl.innerHTML = total.toLocaleString('vi-VN') + ' đ';
+            }
         }
     </script>
 }

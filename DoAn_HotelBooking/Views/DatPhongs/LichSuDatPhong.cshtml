@@ -13,12 +13,9 @@
         // Chỉ tính tiền và điểm cho các đơn đã thanh toán
         if (item.TrangThaiThanhToan == "Đã thanh toán")
         {
-            int soNgay = (item.NgayTraPhong - item.NgayNhanPhong).Days;
-            if (soNgay <= 0) soNgay = 1;
-
-            decimal tien = (item.Phong?.GiaPhong ?? 0) * soNgay;
-            totalPaid += tien;
-            totalPoints += (int)(tien / 100000); // Cộng dồn điểm
+            // ✅ ĐÃ SỬA: Lấy trực tiếp TongTien từ Database (đã trừ tiền giảm)
+            totalPaid += item.TongTien;
+            totalPoints += (int)(item.TongTien / 100000); // Cộng dồn điểm
         }
     }
 
@@ -174,7 +171,7 @@
                 <div class="d-flex align-items-center gap-4">
 
                     <div class="text-end d-none d-sm-block">
-                        <span class="small text-muted text-uppercase fw-bold"">
+                        <span class="small text-muted text-uppercase fw-bold" ">
                             <i class="bi bi-wallet2 me-1"></i>Đã thanh toán
                         </span>
 
@@ -271,15 +268,19 @@
                                         </div>
                                         <div class="col-7 text-end">
                                             @{
-                                                int soNgayO = (item.NgayTraPhong - item.NgayNhanPhong).Days;
-                                                if (soNgayO <= 0) soNgayO = 1;
-                                                decimal tongTien = (item.Phong?.GiaPhong ?? 0) * soNgayO;
-
-                                                // TÍNH TOÁN ĐIỂM CỦA HÓA ĐƠN NÀY
+                                                // ✅ ĐÃ SỬA: Lấy giá trị trực tiếp từ Database
+                                                decimal tongTien = item.TongTien;
                                                 int diemThuong = (int)(tongTien / 100000);
                                             }
                                             <p class="mb-1 small" style="color: var(--text-muted);">Tổng thanh toán</p>
                                             <p class="fw-bold mb-0 fs-5 lh-1" style="color: #20c997;">@tongTien.ToString("N0") đ</p>
+
+                                            @if (item.TienGiam > 0)
+                                            {
+                                                <p class="mb-0 mt-1 small" style="color: #FFD700; font-size: 0.75rem;">
+                                                    <i class="bi bi-tag-fill"></i> Đã tiết kiệm @item.TienGiam.ToString("N0") đ
+                                                </p>
+                                            }
 
                                             @if (diemThuong > 0)
                                             {

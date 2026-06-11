@@ -65,6 +65,7 @@ namespace DoAn_HotelBooking.Controllers
             query = query.Where(d =>
                 d.TrangThaiDatPhong == "Chờ xác nhận" ||
                 d.TrangThaiDatPhong == "Đã xác nhận" ||
+                d.TrangThaiDatPhong == "Đã thanh toán" ||
                 d.TrangThaiDatPhong == "Đã hủy"
             );
 
@@ -167,8 +168,8 @@ namespace DoAn_HotelBooking.Controllers
             string quyen = HttpContext.Session.GetString("QuyenHan");
             string maKhachSan_Session = HttpContext.Session.GetString("MaKhachSan");
 
-            string tenKS = null; // tên khách sạn để hiển thị tiêu đề
-            string maKS_DangXem = null; // Mã KS thực sự dùng để lọc
+            string tenKS = null;
+            string maKS_DangXem = null;
 
             // ✅ 2. Bỏ quyền của khách hàng, chỉ xử lý Quản lý/Nhân viên và Admin
             if (quyen == "Quản lý" || quyen == "Nhân viên")
@@ -210,15 +211,12 @@ namespace DoAn_HotelBooking.Controllers
             var userGroupedList = hoaDonList
                 .Where(d => d.TaiKhoan != null)
                 .GroupBy(d => d.MaTaiKhoan) // Gom nhóm các hóa đơn có cùng ID Khách Hàng
-                .Select(g => {
+                .Select(g =>
+                {
                     var taiKhoan = g.First().TaiKhoan;
 
-                    // Tính tổng tiền của khách hàng đó
-                    decimal totalAmount = g.Sum(item => {
-                        int soNgayO = (item.NgayTraPhong - item.NgayNhanPhong).Days;
-                        if (soNgayO <= 0) soNgayO = 1;
-                        return (item.Phong?.GiaPhong ?? 0) * soNgayO;
-                    });
+                    // ✅ ĐÃ SỬA: Lấy tổng cột TongTien (chính là số tiền khách thực trả sau khi đã giảm giá)
+                    decimal totalAmount = g.Sum(item => item.TongTien);
 
                     // Ép kiểu sang (dynamic) để không cần tạo class mới
                     return (dynamic)new
@@ -253,7 +251,7 @@ namespace DoAn_HotelBooking.Controllers
              .Where(d =>
                  d.TaiKhoan.ID == id &&
                  d.TrangThaiDatPhong == "Hoàn thành" &&
-                 d.TrangThaiThanhToan == "Đã thanh toán");  
+                 d.TrangThaiThanhToan == "Đã thanh toán");
 
             // Chỉ lọc hóa đơn theo khách sạn
             if (quyen != "Admin")
@@ -410,12 +408,20 @@ namespace DoAn_HotelBooking.Controllers
 
             if (userId != null)
             {
-                var taiKhoan = _context.TaiKhoan.FirstOrDefault(t => t.ID == userId);
+                // 🌟 BỔ SUNG: Dùng Include để kết nối bảng TaiKhoan với bảng HangThanhVien
+                var taiKhoan = _context.TaiKhoan
+                    .Include(t => t.HangThanhVien)
+                    .FirstOrDefault(t => t.ID == userId);
+
                 if (taiKhoan != null)
                 {
                     ViewBag.MaTaiKhoan = taiKhoan.ID;
                     ViewBag.TenKhachHang = taiKhoan.HoVaTen;
                     ViewBag.SoDienThoai = taiKhoan.SoDienThoai;
+
+                    // 🌟 LẤY HẠNG VÀ TỶ LỆ GIẢM GIÁ TRUYỀN RA VIEW
+                    ViewBag.TenHang = taiKhoan.HangThanhVien?.TenHang ?? "Thành viên mới";
+                    ViewBag.TyLeGiamGia = taiKhoan.HangThanhVien?.TyLeGiamGia ?? 0;
                 }
             }
             else
@@ -463,34 +469,57 @@ namespace DoAn_HotelBooking.Controllers
                 ViewBag.Error = string.Join(" | ", errors);
 
                 // Nạp lại dữ liệu ViewBag để không mất khi hiển thị lại form
-                var phong = await _context.Phong.Include(p => p.KhachSan)
+                var phongHienTai = await _context.Phong.Include(p => p.KhachSan)
                     .FirstOrDefaultAsync(p => p.ID == datPhong.MaPhong);
-                if (phong != null)
+                if (phongHienTai != null)
                 {
-                    ViewBag.TenKhachSan = phong.KhachSan?.TenKhachSan;
-                    ViewBag.SoPhong = phong.SoPhong;
-                    ViewBag.MaPhong = phong.ID;
-                    ViewBag.GiaPhong = phong.GiaPhong;
+                    ViewBag.TenKhachSan = phongHienTai.KhachSan?.TenKhachSan;
+                    ViewBag.SoPhong = phongHienTai.SoPhong;
+                    ViewBag.MaPhong = phongHienTai.ID;
+                    ViewBag.GiaPhong = phongHienTai.GiaPhong;
                 }
 
-                var taiKhoan = await _context.TaiKhoan.FirstOrDefaultAsync(t => t.ID == datPhong.MaTaiKhoan);
-                if (taiKhoan != null)
+                var taiKhoanHienTai = await _context.TaiKhoan
+                    .FirstOrDefaultAsync(t => t.ID == datPhong.MaTaiKhoan);
+                if (taiKhoanHienTai != null)
                 {
-                    ViewBag.TenKhachHang = taiKhoan.HoVaTen;
-                    ViewBag.SoDienThoai = taiKhoan.SoDienThoai;
-                    ViewBag.MaTaiKhoan = taiKhoan.ID;
+                    ViewBag.TenKhachHang = taiKhoanHienTai.HoVaTen;
+                    ViewBag.SoDienThoai = taiKhoanHienTai.SoDienThoai;
+                    ViewBag.MaTaiKhoan = taiKhoanHienTai.ID;
                 }
 
                 return View(datPhong);
             }
 
+            // --- 🌟 XỬ LÝ KHI MODEL HỢP LỆ VÀ BẮT ĐẦU TẠO ĐƠN ĐẶT PHÒNG ---
+
+            // 1. Tìm thông tin tài khoản và hạng thành viên để lấy tỷ lệ giảm giá
+            var taiKhoan = await _context.TaiKhoan
+                .Include(t => t.HangThanhVien)
+                .FirstOrDefaultAsync(t => t.ID == datPhong.MaTaiKhoan);
+
+            if (taiKhoan?.HangThanhVien != null)
+            {
+                // Tính số tiền được giảm dựa theo % của hạng (Ví dụ: 5%, 10%)
+                decimal tienGiam = datPhong.TongTien * (decimal)(taiKhoan.HangThanhVien.TyLeGiamGia / 100);
+
+                datPhong.TienGiam = tienGiam;
+                datPhong.TongTien -= tienGiam; // Khấu trừ thẳng vào tổng tiền phải trả
+            }
+            else
+            {
+                datPhong.TienGiam = 0; // Không có hạng hoặc lỗi thì mặc định giảm 0đ
+            }
+
+            // 2. Thiết lập các thông tin mặc định còn lại
             datPhong.TrangThaiDatPhong = "Chờ xác nhận";
             datPhong.NgayTao = DateTime.Now;
 
+            // 3. Lưu vào Cơ sở dữ liệu
             _context.DatPhong.Add(datPhong);
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Đặt phòng thành công!";
+            TempData["SuccessMessage"] = "Đặt phòng thành công! Hạng thành viên của bạn đã được áp dụng ưu đãi.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -632,14 +661,14 @@ namespace DoAn_HotelBooking.Controllers
             // Check-out xong thường chuyển hướng về trang Hóa Đơn hoặc danh sách lịch sử
             return RedirectToAction(nameof(HoaDon));
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> XacNhan(int id)
         {
-            // Lấy bản ghi đặt phòng kèm thông tin Khách hàng và Khách sạn để gửi Mail
+            // ✅ ĐÃ SỬA: Bổ sung ThenInclude để lấy thông tin Hạng Thành Viên cho mẫu Email
             var datPhong = await _context.DatPhong
                 .Include(dp => dp.TaiKhoan)
+                    .ThenInclude(t => t.HangThanhVien)
                 .Include(dp => dp.Phong)
                     .ThenInclude(p => p.KhachSan)
                 .FirstOrDefaultAsync(dp => dp.ID == id);
@@ -661,19 +690,31 @@ namespace DoAn_HotelBooking.Controllers
             await _context.SaveChangesAsync();
 
             // 📧 GỬI EMAIL XÁC NHẬN
-            // (Trong hàm XacNhan, thay thế phần gửi email cũ bằng đoạn này)
             if (!string.IsNullOrEmpty(datPhong.TaiKhoan?.Email))
             {
                 int soNgayO = (datPhong.NgayTraPhong - datPhong.NgayNhanPhong).Days;
                 if (soNgayO <= 0) soNgayO = 1;
-                decimal tongTien = (datPhong.Phong?.GiaPhong ?? 0) * soNgayO;
+
+                // ✅ ĐÃ SỬA: Lấy chính xác tổng tiền thực tế và giá gốc để hiển thị minh bạch
+                decimal tongTienThucTe = datPhong.TongTien;
+                decimal giaGoc = (datPhong.Phong?.GiaPhong ?? 0) * soNgayO;
 
                 string subject = $"[{datPhong.Phong?.KhachSan?.TenKhachSan}] Xác nhận đơn đặt phòng thành công";
+
                 string extraInfo = $@"
         <tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Số khách lưu trú:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>{datPhong.SoNguoi} người</td></tr>
         <tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Giờ nhận phòng:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>Từ 14:00 - {datPhong.NgayNhanPhong:dd/MM/yyyy}</td></tr>
-        <tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Giờ trả phòng:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>Trước 12:00 - {datPhong.NgayTraPhong:dd/MM/yyyy}</td></tr>
-        <tr><td style='padding: 12px 0 0 0; color: #333;'><b>Tổng thanh toán:</b></td><td style='padding: 12px 0 0 0; color: #dc3545; font-weight: bold; font-size: 16px;'>{tongTien:N0} VNĐ</td></tr>";
+        <tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Giờ trả phòng:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>Trước 12:00 - {datPhong.NgayTraPhong:dd/MM/yyyy} ({soNgayO} đêm)</td></tr>
+        <tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Giá phòng gốc:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef; text-decoration: line-through; color: #6c757d;'>{giaGoc:N0} VNĐ</td></tr>";
+
+                // Chỉ hiển thị dòng ưu đãi nếu số tiền giảm lớn hơn 0
+                if (datPhong.TienGiam > 0)
+                {
+                    extraInfo += $@"<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Ưu đãi hạng thẻ:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef; color: #dc3545; font-weight: bold;'>-{datPhong.TienGiam:N0} VNĐ</td></tr>";
+                }
+
+                extraInfo += $@"
+        <tr><td style='padding: 12px 0 0 0; color: #333;'><b>Tổng thanh toán:</b></td><td style='padding: 12px 0 0 0; color: #198754; font-weight: bold; font-size: 16px;'>{tongTienThucTe:N0} VNĐ</td></tr>";
 
                 string body = TaoNoiDungEmail(
                     datPhong,
@@ -718,13 +759,16 @@ namespace DoAn_HotelBooking.Controllers
             // 🌟 LOGIC TÍCH ĐIỂM TẠI QUẦY LỄ TÂN
             int soNgayO = (datPhong.NgayTraPhong - datPhong.NgayNhanPhong).Days;
             if (soNgayO <= 0) soNgayO = 1;
-            decimal tongTien = (datPhong.Phong?.GiaPhong ?? 0) * soNgayO;
+
+            // ✅ ĐÃ SỬA: Lấy tiền từ DB để tính điểm chuẩn xác
+            decimal tongTienThucTe = datPhong.TongTien;
+            decimal giaGoc = (datPhong.Phong?.GiaPhong ?? 0) * soNgayO;
 
             int diemDuocCong = 0;
             if (datPhong.TaiKhoan != null)
             {
-                // Sử dụng biến chung và ép kiểu về int
-                diemDuocCong = (int)(tongTien / SO_TIEN_QUY_DOI_DIEM);
+                // Tính điểm dựa trên TỔNG TIỀN THỰC TRẢ
+                diemDuocCong = (int)(tongTienThucTe / SO_TIEN_QUY_DOI_DIEM);
                 datPhong.TaiKhoan.DiemTichLuy += diemDuocCong;
             }
 
@@ -738,12 +782,20 @@ namespace DoAn_HotelBooking.Controllers
             {
                 string subject = $"[{datPhong.Phong?.KhachSan?.TenKhachSan}] Biên lai thanh toán điện tử";
 
-                // Thêm dòng hiển thị số điểm nhận được vào bảng chi tiết hóa đơn trong Email
+                // ✅ ĐÃ SỬA: Ghi rõ giá gốc, tiền ưu đãi hạng và tổng thực trả
                 string extraInfo = $@"
-<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Thời gian lưu trú:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>{datPhong.NgayNhanPhong:dd/MM/yyyy} đến {datPhong.NgayTraPhong:dd/MM/yyyy}</td></tr>
-<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Tổng tiền:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef; font-weight: bold;'>{tongTien:N0} VNĐ</td></tr>
+<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Thời gian lưu trú:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>{datPhong.NgayNhanPhong:dd/MM/yyyy} đến {datPhong.NgayTraPhong:dd/MM/yyyy} ({soNgayO} đêm)</td></tr>
+<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Giá phòng gốc:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef; text-decoration: line-through; color: #6c757d;'>{giaGoc:N0} VNĐ</td></tr>";
+
+                if (datPhong.TienGiam > 0)
+                {
+                    extraInfo += $@"<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Ưu đãi hạng thẻ:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef; color: #dc3545; font-weight: bold;'>-{datPhong.TienGiam:N0} VNĐ</td></tr>";
+                }
+
+                extraInfo += $@"
+<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Tổng thanh toán:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef; color: #198754; font-weight: bold; font-size: 16px;'>{tongTienThucTe:N0} VNĐ</td></tr>
 <tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Điểm thưởng tích lũy:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef; color: #ffc107; font-weight: bold;'>+ {diemDuocCong} điểm</td></tr>
-<tr><td style='padding: 12px 0 0 0;'><b>Trạng thái:</b></td><td style='padding: 12px 0 0 0;'><span style='background-color: #198754; color: white; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold;'>ĐÃ THANH TOÁN</span></td></tr>";
+<tr><td style='padding: 12px 0 0 0;'><b>Trạng thái đơn:</b></td><td style='padding: 12px 0 0 0;'><span style='background-color: #198754; color: white; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold;'>XÁC NHẬN ĐÃ THANH TOÁN</span></td></tr>";
 
                 string body = TaoNoiDungEmail(
                     datPhong,
@@ -820,12 +872,13 @@ namespace DoAn_HotelBooking.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-
         [HttpGet]
         public async Task<IActionResult> XuatHoaDonPDF(int id)
         {
+            // ✅ ĐÃ SỬA: Bổ sung ThenInclude để lấy thông tin Hạng Thành Viên
             var datPhong = await _context.DatPhong
                 .Include(dp => dp.TaiKhoan)
+                    .ThenInclude(t => t.HangThanhVien)
                 .Include(dp => dp.Phong)
                     .ThenInclude(p => p.KhachSan)
                 .FirstOrDefaultAsync(dp => dp.ID == id);
@@ -835,7 +888,12 @@ namespace DoAn_HotelBooking.Controllers
 
             int soNgayO = (datPhong.NgayTraPhong - datPhong.NgayNhanPhong).Days;
             if (soNgayO <= 0) soNgayO = 1;
-            decimal tongTien = (datPhong.Phong?.GiaPhong ?? 0) * soNgayO;
+
+            // ✅ ĐÃ SỬA: Lấy chính xác dữ liệu tiền tệ từ Database để in ra PDF
+            decimal giaGoc = (datPhong.Phong?.GiaPhong ?? 0) * soNgayO;
+            decimal tienGiam = datPhong.TienGiam;
+            decimal tongTienThucTe = datPhong.TongTien;
+            string tenHang = datPhong.TaiKhoan?.HangThanhVien?.TenHang ?? "Thành viên mới";
 
             // --- Thư mục lưu PDF ---
             string folderPath = @"D:\DoAnTongHop\ASP.NET\HoaDonPDF";
@@ -867,8 +925,8 @@ namespace DoAn_HotelBooking.Controllers
                 Font titleFont = new Font(bf, 20, Font.BOLD, new BaseColor(0, 102, 204));
                 Font blackFont = new Font(bf, 12, Font.NORMAL, new BaseColor(0, 0, 0));
                 Font boldFont = new Font(bf, 12, Font.BOLD, new BaseColor(0, 102, 204));
-                Font redFont = new Font(bf, 12, Font.BOLD, new BaseColor(255, 0, 0));
-                Font greenFont = new Font(bf, 14, Font.BOLD, new BaseColor(0, 128, 0));
+                Font redFont = new Font(bf, 12, Font.BOLD, new BaseColor(220, 53, 69)); // Màu đỏ cho phần giảm giá
+                Font greenFont = new Font(bf, 14, Font.BOLD, new BaseColor(25, 135, 84)); // Màu xanh lá cho tổng tiền
 
                 // --- Tiêu đề ---
                 var title = new Paragraph("HÓA ĐƠN ĐẶT PHÒNG", titleFont)
@@ -879,7 +937,7 @@ namespace DoAn_HotelBooking.Controllers
                 doc.Add(title);
 
                 // --- Ngày xuất ---
-                var ngayXuat = new Paragraph($"Ngày xuất hóa đơn: {DateTime.Now:dd/MM/yyyy HH:mm}", redFont)
+                var ngayXuat = new Paragraph($"Mã đơn: #{datPhong.ID} | Ngày xuất: {DateTime.Now:dd/MM/yyyy HH:mm}", blackFont)
                 {
                     Alignment = Element.ALIGN_RIGHT,
                     SpacingAfter = 15f
@@ -889,29 +947,39 @@ namespace DoAn_HotelBooking.Controllers
                 // --- Thông tin khách hàng ---
                 doc.Add(new Paragraph("THÔNG TIN KHÁCH HÀNG", boldFont) { SpacingAfter = 5f });
                 doc.Add(new Paragraph($"Họ và tên: {datPhong.TaiKhoan?.HoVaTen ?? "Không rõ"}", blackFont));
-                doc.Add(new Paragraph($"Email: {datPhong.TaiKhoan?.Email ?? "Không có"}", blackFont));
                 doc.Add(new Paragraph($"SĐT: {datPhong.TaiKhoan?.SoDienThoai ?? "Không có"}", blackFont));
+                doc.Add(new Paragraph($"Email: {datPhong.TaiKhoan?.Email ?? "Không có"}", blackFont));
+                doc.Add(new Paragraph($"Hạng thẻ: {tenHang}", boldFont)); // Nhấn mạnh hạng thẻ của khách
                 doc.Add(new Paragraph(" ", blackFont));
 
                 // --- Thông tin phòng & khách sạn ---
                 doc.Add(new Paragraph("THÔNG TIN PHÒNG & KHÁCH SẠN", boldFont) { SpacingAfter = 5f });
                 doc.Add(new Paragraph($"Khách sạn: {datPhong.Phong?.KhachSan?.TenKhachSan ?? "Không rõ"}", blackFont));
                 doc.Add(new Paragraph($"Số phòng: {(datPhong.Phong?.SoPhong.ToString() ?? "")}", blackFont));
-                doc.Add(new Paragraph($"Giá phòng: {(datPhong.Phong?.GiaPhong ?? 0).ToString("N0", CultureInfo.InvariantCulture)} VNĐ", blackFont));
+                doc.Add(new Paragraph($"Giá phòng / đêm: {(datPhong.Phong?.GiaPhong ?? 0).ToString("N0", CultureInfo.InvariantCulture)} VNĐ", blackFont));
                 doc.Add(new Paragraph(" ", blackFont));
 
                 // --- Thời gian lưu trú ---
                 doc.Add(new Paragraph("THỜI GIAN LƯU TRÚ", boldFont) { SpacingAfter = 5f });
                 doc.Add(new Paragraph($"Ngày nhận: {datPhong.NgayNhanPhong:dd/MM/yyyy}", blackFont));
                 doc.Add(new Paragraph($"Ngày trả: {datPhong.NgayTraPhong:dd/MM/yyyy}", blackFont));
-                doc.Add(new Paragraph($"Số ngày ở: {soNgayO} ngày", blackFont));
+                doc.Add(new Paragraph($"Tổng số đêm: {soNgayO} đêm", blackFont));
                 doc.Add(new Paragraph(" ", blackFont));
 
+                // --- Chi tiết thanh toán (Đã sửa lại để hiển thị tiền giảm) ---
+                doc.Add(new Paragraph("CHI TIẾT THANH TOÁN", boldFont) { SpacingAfter = 5f });
+                doc.Add(new Paragraph($"Tạm tính: {giaGoc.ToString("N0", CultureInfo.InvariantCulture)} VNĐ", blackFont));
+
+                if (tienGiam > 0)
+                {
+                    doc.Add(new Paragraph($"Ưu đãi hạng ({tenHang}): -{tienGiam.ToString("N0", CultureInfo.InvariantCulture)} VNĐ", redFont));
+                }
+
                 // --- Tổng tiền ---
-                var tongTienPara = new Paragraph($"TỔNG TIỀN: {tongTien.ToString("N0", CultureInfo.InvariantCulture)} VNĐ", greenFont)
+                var tongTienPara = new Paragraph($"TỔNG TIỀN PHẢI TRẢ: {tongTienThucTe.ToString("N0", CultureInfo.InvariantCulture)} VNĐ", greenFont)
                 {
                     Alignment = Element.ALIGN_RIGHT,
-                    SpacingBefore = 10f,
+                    SpacingBefore = 15f,
                     SpacingAfter = 15f
                 };
                 doc.Add(tongTienPara);
@@ -996,6 +1064,9 @@ namespace DoAn_HotelBooking.Controllers
             string tenKhachHang = datPhong.TaiKhoan?.HoVaTen ?? "Quý khách";
             string soPhong = datPhong.Phong?.SoPhong.ToString() ?? "Chưa rõ";
 
+            // 🌟 BỔ SUNG: Đọc tên hạng thành viên của khách hàng để tôn vinh trong Email
+            string tenHang = datPhong.TaiKhoan?.HangThanhVien?.TenHang ?? "Thành viên mới";
+
             // Tạo mã đặt phòng chuyên nghiệp (VD: BK001024)
             string maDatPhong = "BK" + datPhong.ID.ToString("D6");
 
@@ -1004,51 +1075,51 @@ namespace DoAn_HotelBooking.Controllers
             string sdt = datPhong.Phong?.KhachSan?.SoDienThoai ?? "Hotline: 1900 xxxx";
 
             return $@"
-    <div style='font-family: ""Segoe UI"", Tahoma, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 650px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);'>
+<div style='font-family: ""Segoe UI"", Tahoma, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 650px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);'>
+    
+    <div style='background-color: {mauChuDao}; padding: 30px 20px; text-align: center;'>
+        <h1 style='color: #ffffff; margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px;'>{tenKhachSan}</h1>
+        <p style='color: rgba(255,255,255,0.85); margin: 8px 0 0 0; font-size: 15px; font-weight: 500;'>{tieuDe}</p>
+    </div>
+    
+    <div style='padding: 30px 25px;'>
+        <p style='font-size: 16px; margin-top: 0;'>Kính gửi Quý khách <b>{tenKhachHang}</b> <span style='font-size: 12px; background-color: rgba(255,215,0,0.15); color: #d4af37; padding: 3px 10px; border-radius: 20px; margin-left: 6px; border: 1px solid #d4af37; font-weight: bold;'>🎖️ Hạng {tenHang}</span>,</p>
+        <p style='font-size: 15px;'>{loiNhanChinh}</p>
         
-        <div style='background-color: {mauChuDao}; padding: 30px 20px; text-align: center;'>
-            <h1 style='color: #ffffff; margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px;'>{tenKhachSan}</h1>
-            <p style='color: rgba(255,255,255,0.85); margin: 8px 0 0 0; font-size: 15px; font-weight: 500;'>{tieuDe}</p>
+        <div style='background-color: #f8f9fa; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 5px solid {mauChuDao};'>
+            <h3 style='margin-top: 0; color: #333; font-size: 16px; border-bottom: 1px solid #e0e0e0; padding-bottom: 12px; margin-bottom: 15px;'>
+                THÔNG TIN ĐẶT PHÒNG <span style='float: right; color: {mauChuDao};'>#{maDatPhong}</span>
+            </h3>
+            
+            <table style='width: 100%; font-size: 15px; color: #444; border-collapse: collapse;'>
+                <tr>
+                    <td style='padding: 8px 0; width: 40%; border-bottom: 1px dashed #e9ecef;'><b>Khách sạn:</b></td>
+                    <td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>{tenKhachSan}</td>
+                </tr>
+                <tr>
+                    <td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Hạng/Số phòng:</b></td>
+                    <td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>{soPhong}</td>
+                </tr>
+                {thongTinBoSung}
+            </table>
         </div>
         
-        <div style='padding: 30px 25px;'>
-            <p style='font-size: 16px; margin-top: 0;'>Kính gửi Quý khách <b>{tenKhachHang}</b>,</p>
-            <p style='font-size: 15px;'>{loiNhanChinh}</p>
-            
-            <div style='background-color: #f8f9fa; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 5px solid {mauChuDao};'>
-                <h3 style='margin-top: 0; color: #333; font-size: 16px; border-bottom: 1px solid #e0e0e0; padding-bottom: 12px; margin-bottom: 15px;'>
-                    THÔNG TIN ĐẶT PHÒNG <span style='float: right; color: {mauChuDao};'>#{maDatPhong}</span>
-                </h3>
-                
-                <table style='width: 100%; font-size: 15px; color: #444; border-collapse: collapse;'>
-                    <tr>
-                        <td style='padding: 8px 0; width: 40%; border-bottom: 1px dashed #e9ecef;'><b>Khách sạn:</b></td>
-                        <td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>{tenKhachSan}</td>
-                    </tr>
-                    <tr>
-                        <td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Hạng/Số phòng:</b></td>
-                        <td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>{soPhong}</td>
-                    </tr>
-                    {thongTinBoSung}
-                </table>
-            </div>
-            
-            <p style='font-size: 15px;'>{loiChaoKet}</p>
-            
-            <div style='margin-top: 35px; font-size: 15px;'>
-                <p style='margin: 0;'>Trân trọng,</p>
-                <p style='margin: 5px 0 0 0; font-weight: bold; color: {mauChuDao};'>Ban Giám Đốc & Đội ngũ {tenKhachSan}</p>
-            </div>
-        </div>
+        <p style='font-size: 15px;'>{loiChaoKet}</p>
         
-        <div style='background-color: #2c3e50; padding: 25px 20px; text-align: center; color: #adb5bd; font-size: 13px;'>
-            <p style='margin: 0 0 8px 0; font-size: 15px; color: #ffffff;'><b>{tenKhachSan}</b></p>
-            <p style='margin: 0 0 6px 0;'>📍 Địa chỉ: {diaChi}</p>
-            <p style='margin: 0 0 15px 0;'>📞 Điện thoại: {sdt}</p>
-            <hr style='border: none; border-top: 1px solid #4a5b6c; margin: 0 0 15px 0;' />
-            <p style='margin: 0; font-style: italic;'>Email này được tạo tự động từ hệ thống. Quý khách vui lòng không trả lời trực tiếp.</p>
+        <div style='margin-top: 35px; font-size: 15px;'>
+            <p style='margin: 0;'>Trân trọng,</p>
+            <p style='margin: 5px 0 0 0; font-weight: bold; color: {mauChuDao};'>Ban Giám Đốc & Đội ngũ {tenKhachSan}</p>
         </div>
-    </div>";
+    </div>
+    
+    <div style='background-color: #2c3e50; padding: 25px 20px; text-align: center; color: #adb5bd; font-size: 13px;'>
+        <p style='margin: 0 0 8px 0; font-size: 15px; color: #ffffff;'><b>{tenKhachSan}</b></p>
+        <p style='margin: 0 0 6px 0;'>📍 Địa chỉ: {diaChi}</p>
+        <p style='margin: 0 0 15px 0;'>📞 Điện thoại: {sdt}</p>
+        <hr style='border: none; border-top: 1px solid #4a5b6c; margin: 0 0 15px 0;' />
+        <p style='margin: 0; font-style: italic;'>Email này được tạo tự động từ hệ thống. Quý khách vui lòng không trả lời trực tiếp.</p>
+    </div>
+</div>";
         }
     }
 }

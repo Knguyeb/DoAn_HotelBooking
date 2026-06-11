@@ -30,6 +30,10 @@ namespace DoAn_HotelBooking.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal TongTien { get; set; }
 
+        [Display(Name = "TIỀN GIẢM")]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal TienGiam { get; set; }
+
         [Required]
         [Display(Name = "TRẠNG THÁI ĐẶT PHÒNG")]
         public string TrangThaiDatPhong { get; set; } = "Chờ xác nhận";

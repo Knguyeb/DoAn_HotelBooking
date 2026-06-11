@@ -104,6 +104,9 @@ namespace DoAn_HotelBooking.Migrations
                     b.Property<int>("SoNguoi")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("TienGiam")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<decimal>("TongTien")
                         .HasColumnType("decimal(18,2)");
 

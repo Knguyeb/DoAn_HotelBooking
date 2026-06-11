@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DoAn_HotelBooking.Migrations
 {
     [DbContext(typeof(DoAn_HotelBookingContext))]
-    [Migration("20260611002528_CreateDB")]
+    [Migration("20260611045136_CreateDB")]
     partial class CreateDB
     {
         /// <inheritdoc />
@@ -106,6 +106,9 @@ namespace DoAn_HotelBooking.Migrations
 
                     b.Property<int>("SoNguoi")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("TienGiam")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("TongTien")
                         .HasColumnType("decimal(18,2)");

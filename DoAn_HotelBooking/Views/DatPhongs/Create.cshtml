@@ -3,6 +3,10 @@
 
 @{
     ViewData["Title"] = "Thêm đặt phòng";
+
+    decimal giaGoc = ViewBag.GiaPhong != null ? (decimal)ViewBag.GiaPhong : 0;
+    decimal tyLeGiam = ViewBag.TyLeGiamGia != null ? (decimal)ViewBag.TyLeGiamGia : 0;
+    decimal giaDaGiam = giaGoc - (giaGoc * tyLeGiam / 100);
 }
 
 <!-- Import Thư viện -->
@@ -61,7 +65,8 @@
             <input type="hidden" asp-for="NgayTao" value="@DateTime.Now" />
 
             <!-- Biến lưu giá cơ sở bằng VND để script tính toán -->
-            <input type="hidden" id="GiaTien" value="@(ViewBag.GiaPhong ?? 0)" />
+            <input type="hidden" id="GiaTien" value="@giaGoc" />
+            <input type="hidden" id="TyLeGiamGia" value="@tyLeGiam" />
 
             <!-- Row stretch để 2 cột luôn bằng chiều cao nhau -->
             <div class="row g-5 align-items-stretch">
@@ -99,10 +104,15 @@
 
                         <div class="d-flex justify-content-between pt-2 align-items-center">
                             <span class="text-muted"><i class="bi bi-cash-coin me-2"></i>Giá phòng / đêm</span>
-                            <!-- Đã thêm data-base-price để file js tự bắt và tự quy đổi -->
-                            <span class="text-success fw-bold fs-5" data-base-price="@ViewBag.GiaPhong">
-                                @(ViewBag.GiaPhong != null ? ((decimal)ViewBag.GiaPhong).ToString("N0", new CultureInfo("vi-VN")) + " đ" : "0 đ")
-                            </span>
+                            <div class="text-end">
+                                @if (tyLeGiam > 0)
+                                {
+                                    <span class="text-secondary text-decoration-line-through small me-2">@giaGoc.ToString("N0") đ</span>
+                                }
+                                <span class="text-success fw-bold fs-5" data-base-price="@giaDaGiam">
+                                    @giaDaGiam.ToString("N0") đ
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -227,12 +237,14 @@
             function tinhTongTien() {
                 let nhan = document.getElementById("NgayNhanPhong").value;
                 let tra = document.getElementById("NgayTraPhong").value;
-                let giaTien = parseFloat(document.getElementById("GiaTien").value);
+                let giaTienGoc = parseFloat(document.getElementById("GiaTien").value) || 0;
+                let tyLeGiam = parseFloat(document.getElementById("TyLeGiamGia").value) || 0;
 
-                let tongTienVND = 0;
+                let tongTienGoc = 0;
+                let tongTienThanhToan = 0;
 
                 // Nếu đã chọn đủ ngày và giá tiền hợp lệ
-                if (nhan && tra && !isNaN(giaTien)) {
+                if (nhan && tra && !isNaN(giaTienGoc)) {
                     let d1 = new Date(nhan);
                     let d2 = new Date(tra);
 
@@ -251,23 +263,26 @@
 
                     let soNgay = (d2 - d1) / (1000 * 60 * 60 * 24);
                     if (soNgay === 0) soNgay = 1; // Nhận và trả trong ngày tính là 1 đêm
-                    tongTienVND = giaTien * soNgay;
+
+                    // Tính toán
+                    tongTienGoc = giaTienGoc * soNgay;
+                    tongTienThanhToan = tongTienGoc - (tongTienGoc * tyLeGiam / 100);
                 }
 
-                // A. Lưu tiền VNĐ vào thẻ input ẩn để gửi về Server (Controller)
-                document.getElementById("TongTienInput").value = tongTienVND;
+                // A. Lưu tiền GỐC vào thẻ input ẩn để Backend xử lý việc tạo TienGiam
+                document.getElementById("TongTienInput").value = tongTienGoc;
 
-                // B. Cập nhật thẻ data-base-price để file DoiTien.js quét được
+                // B. Hiển thị TỔNG TIỀN ĐÃ GIẢM cho khách hàng xem trên giao diện
                 let displayElement = document.getElementById("TongTienDisplay");
-                displayElement.setAttribute("data-base-price", tongTienVND);
+                displayElement.setAttribute("data-base-price", tongTienThanhToan);
 
                 // C. Tự động format ngay lập tức dựa trên biến toàn cục của DoiTien.js
                 if (window.formatCurrency && window.currentRates && window.currentSelectedCurrency) {
                     let rate = window.currentRates[window.currentSelectedCurrency] || 1;
-                    let convertedPrice = tongTienVND * rate;
+                    let convertedPrice = tongTienThanhToan * rate;
                     displayElement.innerHTML = window.formatCurrency(convertedPrice, window.currentSelectedCurrency);
                 } else {
-                    displayElement.innerHTML = tongTienVND.toLocaleString("vi-VN") + " đ";
+                    displayElement.innerHTML = tongTienThanhToan.toLocaleString("vi-VN") + " đ";
                 }
             }
 
