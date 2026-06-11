@@ -39,6 +39,11 @@ namespace DoAn_HotelBooking.Models
 
         public int DiemTichLuy { get; set; } = 0;
 
+        [Display(Name = "HẠNG THÀNH VIÊN")]
+        [ForeignKey("HangThanhVien")]
+        public int? MaHang { get; set; } // Có thể để nullable hoặc set mặc định ID của hạng thấp nhất
+        public HangThanhVien? HangThanhVien { get; set; }
+
         [Display(Name = "KHÁCH SẠN")]
         // Liên kết với khách sạn
         [ForeignKey("KhachSan")]

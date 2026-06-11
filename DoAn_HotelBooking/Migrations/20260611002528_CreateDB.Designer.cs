@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DoAn_HotelBooking.Migrations
 {
     [DbContext(typeof(DoAn_HotelBookingContext))]
-    [Migration("20260610080213_CreateDB")]
+    [Migration("20260611002528_CreateDB")]
     partial class CreateDB
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace DoAn_HotelBooking.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.19")
+                .HasAnnotation("ProductVersion", "8.0.23")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -127,6 +127,29 @@ namespace DoAn_HotelBooking.Migrations
                     b.ToTable("DatPhong");
                 });
 
+            modelBuilder.Entity("DoAn_HotelBooking.Models.HangThanhVien", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+
+                    b.Property<int>("MocDiemToiThieu")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TenHang")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("TyLeGiamGia")
+                        .HasColumnType("float");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("HangThanhVien");
+                });
+
             modelBuilder.Entity("DoAn_HotelBooking.Models.KhachSan", b =>
                 {
                     b.Property<string>("MaKhachSan")
@@ -222,6 +245,9 @@ namespace DoAn_HotelBooking.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("MaHang")
+                        .HasColumnType("int");
+
                     b.Property<string>("MaKhachSan")
                         .HasColumnType("nvarchar(450)");
 
@@ -241,6 +267,8 @@ namespace DoAn_HotelBooking.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("ID");
+
+                    b.HasIndex("MaHang");
 
                     b.HasIndex("MaKhachSan");
 
@@ -318,11 +346,22 @@ namespace DoAn_HotelBooking.Migrations
 
             modelBuilder.Entity("DoAn_HotelBooking.Models.TaiKhoan", b =>
                 {
+                    b.HasOne("DoAn_HotelBooking.Models.HangThanhVien", "HangThanhVien")
+                        .WithMany("TaiKhoans")
+                        .HasForeignKey("MaHang");
+
                     b.HasOne("DoAn_HotelBooking.Models.KhachSan", "KhachSan")
                         .WithMany("TaiKhoans")
                         .HasForeignKey("MaKhachSan");
 
+                    b.Navigation("HangThanhVien");
+
                     b.Navigation("KhachSan");
+                });
+
+            modelBuilder.Entity("DoAn_HotelBooking.Models.HangThanhVien", b =>
+                {
+                    b.Navigation("TaiKhoans");
                 });
 
             modelBuilder.Entity("DoAn_HotelBooking.Models.KhachSan", b =>

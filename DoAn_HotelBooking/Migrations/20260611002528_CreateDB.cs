@@ -12,6 +12,21 @@ namespace DoAn_HotelBooking.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "HangThanhVien",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TenHang = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MocDiemToiThieu = table.Column<int>(type: "int", nullable: false),
+                    TyLeGiamGia = table.Column<double>(type: "float", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HangThanhVien", x => x.ID);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "KhachSan",
                 columns: table => new
                 {
@@ -66,11 +81,17 @@ namespace DoAn_HotelBooking.Migrations
                     SoDienThoai = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     QuyenHan = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DiemTichLuy = table.Column<int>(type: "int", nullable: false),
+                    MaHang = table.Column<int>(type: "int", nullable: true),
                     MaKhachSan = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_TaiKhoan", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_TaiKhoan_HangThanhVien_MaHang",
+                        column: x => x.MaHang,
+                        principalTable: "HangThanhVien",
+                        principalColumn: "ID");
                     table.ForeignKey(
                         name: "FK_TaiKhoan_KhachSan_MaKhachSan",
                         column: x => x.MaKhachSan,
@@ -202,6 +223,11 @@ namespace DoAn_HotelBooking.Migrations
                 column: "MaKhachSan");
 
             migrationBuilder.CreateIndex(
+                name: "IX_TaiKhoan_MaHang",
+                table: "TaiKhoan",
+                column: "MaHang");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TaiKhoan_MaKhachSan",
                 table: "TaiKhoan",
                 column: "MaKhachSan");
@@ -230,6 +256,9 @@ namespace DoAn_HotelBooking.Migrations
 
             migrationBuilder.DropTable(
                 name: "TaiKhoan");
+
+            migrationBuilder.DropTable(
+                name: "HangThanhVien");
 
             migrationBuilder.DropTable(
                 name: "KhachSan");

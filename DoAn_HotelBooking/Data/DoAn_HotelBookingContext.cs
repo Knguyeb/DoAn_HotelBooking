@@ -20,5 +20,6 @@ namespace DoAn_HotelBooking.Data
         public DbSet<DoAn_HotelBooking.Models.DatPhong> DatPhong { get; set; } = default!;
         public DbSet<DoAn_HotelBooking.Models.DanhGiaKS> DanhGiaKS { get; set; } = default!;
         public DbSet<DoAn_HotelBooking.Models.DanhGiaPhong> DanhGiaPhong { get; set; } = default!;
+        public DbSet<DoAn_HotelBooking.Models.HangThanhVien> HangThanhVien { get; set; } = default!;
     }
 }
