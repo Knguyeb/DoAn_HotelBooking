@@ -357,12 +357,16 @@ namespace DoAn_HotelBooking.Controllers
                 // 🌟 LOGIC TÍCH ĐIỂM
                 int soNgayO = (datPhong.NgayTraPhong - datPhong.NgayNhanPhong).Days;
                 if (soNgayO <= 0) soNgayO = 1;
-                decimal tongTien = (datPhong.Phong?.GiaPhong ?? 0) * soNgayO;
+
+                // ✅ ĐÃ SỬA: Lấy tiền từ DB để tính điểm và gửi Email chuẩn xác
+                decimal tongTienThucTe = datPhong.TongTien;
+                decimal giaGoc = (datPhong.Phong?.GiaPhong ?? 0) * soNgayO;
 
                 int diemDuocCong = 0;
                 if (datPhong.TaiKhoan != null)
                 {
-                    diemDuocCong = (int)(tongTien / SO_TIEN_QUY_DOI_DIEM);
+                    // Tính điểm dựa trên TỔNG TIỀN THỰC TRẢ
+                    diemDuocCong = (int)(tongTienThucTe / SO_TIEN_QUY_DOI_DIEM);
                     datPhong.TaiKhoan.DiemTichLuy += diemDuocCong;
                 }
 
@@ -376,9 +380,19 @@ namespace DoAn_HotelBooking.Controllers
                 {
                     string subject = $"[{datPhong.Phong?.KhachSan?.TenKhachSan}] Biên lai thanh toán điện tử (Mobile)";
 
+                    // ✅ ĐÃ SỬA: Ghi rõ giá gốc, tiền ưu đãi hạng và tổng thực trả
                     string extraInfo = $@"
-<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Thời gian lưu trú:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>{datPhong.NgayNhanPhong:dd/MM/yyyy} đến {datPhong.NgayTraPhong:dd/MM/yyyy}</td></tr>
-<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Tổng tiền:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef; font-weight: bold;'>{tongTien:N0} VNĐ</td></tr>
+<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Thời gian lưu trú:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>{datPhong.NgayNhanPhong:dd/MM/yyyy} đến {datPhong.NgayTraPhong:dd/MM/yyyy} ({soNgayO} đêm)</td></tr>
+<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Giá phòng gốc:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef; text-decoration: line-through; color: #6c757d;'>{giaGoc:N0} VNĐ</td></tr>";
+
+                    // Nếu có giảm giá thì hiển thị
+                    if (datPhong.TienGiam > 0)
+                    {
+                        extraInfo += $@"<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Ưu đãi hạng thẻ:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef; color: #dc3545; font-weight: bold;'>-{datPhong.TienGiam:N0} VNĐ</td></tr>";
+                    }
+
+                    extraInfo += $@"
+<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Tổng thanh toán:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef; color: #198754; font-weight: bold; font-size: 16px;'>{tongTienThucTe:N0} VNĐ</td></tr>
 <tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Điểm thưởng tích lũy:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef; color: #ffc107; font-weight: bold;'>+ {diemDuocCong} điểm</td></tr>
 <tr><td style='padding: 12px 0 0 0;'><b>Trạng thái:</b></td><td style='padding: 12px 0 0 0;'><span style='background-color: #198754; color: white; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold;'>ĐÃ THANH TOÁN QUA DI ĐỘNG</span></td></tr>";
 
