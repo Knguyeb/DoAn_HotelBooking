@@ -1,0 +1,482 @@
+﻿:root {
+    --orange: #FF4500;
+    --dark-orange: #CC3700;
+    --aqua-dark: #26C6DA;
+    --dark-red: #8B2E1F;
+    --dark-bg: #25252b;
+    --white: #FFFFFF;
+    --gray-light: #B0B0B0;
+    --yellow: #FFD700;
+    --button-hover: #FF6B35;
+    --button-active: #E63E00;
+    /* MÀU MỚI: Bề mặt nổi (Surface) và viền mờ */
+    --surface-bg: #32323b;
+    --border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Nền toàn trang */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: var(--dark-bg) !important;
+    color: var(--white);
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden; /* Ngăn scroll ngang */
+}
+
+    /* Layout flex */
+    body.d-flex {
+        display: flex !important;
+        flex-direction: column !important;
+        min-height: 100vh !important;
+    }
+
+main {
+    flex-grow: 1 !important;
+}
+
+    main.container {
+        padding-top: 0.5rem !important; /* Đã kéo nội dung lên gần sát Navbar */
+        max-width: 98%;
+    }
+
+/* --------------------------------------
+   GIAO DIỆN QUẢN TRỊ (ADMIN & NHÂN VIÊN)
+   -------------------------------------- */
+.admin-container {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* Sidebar với hiệu ứng Gradient */
+.admin-sidebar {
+    width: 280px;
+    background: linear-gradient(180deg, var(--dark-red) 0%, #1a0805 100%);
+    border-right: 1px solid var(--border-color);
+    position: fixed;
+    top: 0;
+    left: -280px; /* Ẩn mặc định */
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 2000; /* Luôn nằm trên cùng */
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 4px 0 15px rgba(0,0,0,0.5);
+}
+
+    .admin-sidebar.show {
+        left: 0; /* Hiện ra khi có class 'show' */
+    }
+
+/* Lớp phủ làm mờ (Overlay) */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1500;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+    .sidebar-overlay.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+.admin-main {
+    flex: 1;
+    margin-left: 0 !important;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+    transition: filter 0.3s ease;
+}
+
+.sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+    text-align: center;
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.sidebar-brand {
+    color: var(--yellow) !important;
+    font-weight: bold;
+    font-size: 1.5rem;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.sidebar-menu {
+    padding-top: 1.5rem;
+}
+
+.nav-item-sidebar {
+    margin: 0.5rem 1rem;
+}
+
+.nav-link-sidebar {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 0.9rem 1.2rem !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+}
+
+    .nav-link-sidebar:hover {
+        background-color: rgba(255, 255, 255, 0.08);
+        color: var(--yellow) !important;
+        border-left: 3px solid var(--yellow);
+        transform: translateX(4px);
+    }
+
+    .nav-link-sidebar.active {
+        background-color: var(--orange);
+        color: var(--white) !important;
+        border-left: 3px solid var(--yellow);
+        box-shadow: 0 4px 10px rgba(255, 69, 0, 0.3);
+    }
+
+    .nav-link-sidebar i {
+        width: 22px;
+        text-align: center;
+        font-size: 1.1rem;
+    }
+
+/* Header Admin sang trọng - ĐÃ TRẢ LẠI MÀU CAM */
+.admin-header {
+    background: var(--orange);
+    box-shadow: 0 4px 12px rgba(255, 69, 0, 0.3);
+    padding: 0.8rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 900;
+    min-height: 72px;
+    width: 100%;
+}
+
+/* Nút Toggle màu trắng mờ nổi bật trên nền cam */
+.header-toggle-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    color: #fff;
+    border-radius: 8px;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+    .header-toggle-btn:hover {
+        background: #fff;
+        color: var(--orange);
+        transform: translateY(-2px);
+    }
+
+/* Class bọc các bảng biểu, form dữ liệu (Card) */
+.admin-card {
+    background-color: var(--surface-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+    .admin-card:hover {
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    }
+
+.admin-card-header {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+    color: var(--yellow);
+    font-weight: bold;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* --------------------------------------
+   CÁC THÀNH PHẦN WEBSITE KHÁCH HÀNG
+   -------------------------------------- */
+.custom-navbar {
+    background: var(--orange);
+    box-shadow: 0 2px 10px var(--orange);
+    padding: 0.5rem 0;
+}
+
+.navbar-brand {
+    color: var(--yellow) !important;
+    font-weight: bold !important;
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    margin-right: 1rem;
+}
+
+    .navbar-brand:hover {
+        color: var(--yellow) !important;
+        background-color: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+.nav-link {
+    color: var(--white) !important;
+    transition: all 0.3s ease;
+    padding: 0.6rem 1.2rem !important;
+    margin: 0 0.2rem;
+    border-radius: 6px;
+    font-weight: 500;
+    position: relative;
+    border: 1px solid transparent;
+    background-color: transparent;
+}
+
+    .nav-link:hover {
+        background-color: var(--button-hover);
+        color: var(--white) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-link:active {
+        background-color: var(--button-active);
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .nav-link::after {
+        display: none;
+    }
+
+.navbar-nav .nav-item:last-child {
+    margin-left: 1rem;
+    padding-left: 1rem;
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+    .navbar-nav .nav-item:last-child .nav-link {
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        font-weight: 600;
+    }
+
+        .navbar-nav .nav-item:last-child .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-color: var(--yellow);
+        }
+
+    .navbar-nav .nav-item:last-child .text-light.mx-2 {
+        color: rgba(255, 255, 255, 0.5) !important;
+        font-weight: 300;
+    }
+
+/* Footer */
+.footer {
+    border-top: 2px solid var(--white) !important;
+    background-color: var(--dark-red) !important;
+    color: var(--white) !important;
+    padding: 2rem 0 1rem 0;
+    margin-top: auto;
+}
+
+.footer-columns {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.footer-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.footer-tagline {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--yellow);
+    margin: 0;
+    font-style: italic;
+    text-align: center;
+}
+
+.footer-contact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+    .footer-contact p {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .footer-contact i {
+        color: var(--yellow);
+        width: 16px;
+    }
+
+.footer-social {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 0.5rem;
+}
+
+    .footer-social a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 35px;
+        height: 35px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        transition: all 0.3s ease;
+        color: var(--white) !important;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+
+        .footer-social a:hover {
+            background: var(--yellow);
+            color: var(--dark-orange) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+.footer-column h5 {
+    color: var(--yellow);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.footer-divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--yellow), transparent);
+    margin: 1rem 0;
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 1rem;
+}
+
+.footer-copyright {
+    font-size: 0.9rem;
+    color: var(--white);
+    margin: 0;
+    opacity: 0.9;
+}
+
+.navbar-toggler {
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    padding: 0.25rem 0.5rem;
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+.nav-link.active {
+    background-color: var(--button-hover);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 768px) {
+    .navbar-nav {
+        gap: 0.5rem;
+        padding: 1rem 0;
+    }
+
+    .nav-link {
+        padding: 0.8rem 1rem !important;
+        margin: 0.1rem 0;
+        text-align: center;
+    }
+
+    .navbar-nav .nav-item:last-child {
+        border-left: none;
+        padding-left: 0;
+        margin-left: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.3);
+        padding-top: 1rem;
+        margin-top: 0.5rem;
+    }
+
+        .navbar-nav .nav-item:last-child .nav-link {
+            justify-content: center;
+        }
+}
+
+.container-fluid {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+@keyframes pulse-glow {
+    0% {
+        box-shadow: 0 0 5px var(--yellow);
+    }
+
+    50% {
+        box-shadow: 0 0 15px var(--yellow);
+    }
+
+    100% {
+        box-shadow: 0 0 5px var(--yellow);
+    }
+}
+
+.navbar-brand.loading {
+    animation: pulse-glow 2s infinite;
+}
+
+.nav-link, .navbar-brand, .footer a {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

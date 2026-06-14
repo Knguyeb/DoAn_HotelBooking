@@ -1,0 +1,145 @@
+﻿@model IEnumerable<DoAn_HotelBooking.Models.TaiKhoan>
+
+@{
+    ViewData["Title"] = "Quản lý tài khoản";
+}
+
+<link rel="stylesheet" href="~/css/KhachSan/Index.css" asp-append-version="true" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    var quyenHan = HttpContextAccessor.HttpContext.Session.GetString("QuyenHan");
+}
+
+<div class="container-fluid fade-in-up mt-4">
+    @Html.AntiForgeryToken()
+
+    <!-- ================= THỐNG KÊ & TIÊU ĐỀ ================= -->
+    <div class="row mb-4 g-3 align-items-stretch">
+        <div class="col-md-4">
+            <div class="stat-card h-100 d-flex align-items-center">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #00d2ff, #3a7bd5);">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div class="stat-info">
+                    <h6>Tổng Tài Khoản</h6>
+                    <h3 id="totalCount">@Model.Count()</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="stat-card h-100 d-flex align-items-center justify-content-between">
+                <div>
+                    <h2 class="page-title mb-1">QUẢN LÝ TÀI KHOẢN</h2>
+                    <p class="text-secondary mb-0 small">
+                        <i class="bi bi-diagram-3-fill me-1"></i> Phạm vi: <strong class="text-light">@(ViewBag.CurrentKhachSan ?? "Toàn bộ hệ thống")</strong>
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a asp-controller="TaiKhoans" asp-action="Create"
+                       asp-route-maKhachSan="@ViewBag.MaKhachSan"
+                       asp-route-returnUrl="@(ViewBag.FromHotel == true && ViewBag.MaKhachSan != null ? Url.Action("Index", "TaiKhoans", new { maKhachSan = ViewBag.MaKhachSan }) : Url.Action("Index", "TaiKhoans"))"
+                       class="btn btn-primary-luxury text-decoration-none">
+                        <i class="bi bi-person-plus-fill me-1"></i> Thêm tài khoản
+                    </a>
+
+                    @if (quyenHan == "Admin" || quyenHan == "Quản lý")
+                    {
+                        <a asp-action="ExportExcel" asp-route-role="All" asp-route-maKhachSan="@ViewBag.MaKhachSan" class="btn btn-excel-luxury text-decoration-none">
+                            <i class="bi bi-file-earmark-excel me-1"></i> Xuất Excel Tổng
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= KHU VỰC RENDER PARTIALS ================= -->
+    <div class="row g-4">
+        @if (quyenHan == "Admin")
+        {
+            if (ViewBag.FromHotel == false)
+            {
+                <!-- Admin xem toàn bộ hệ thống -->
+                <div class="col-12">@await Html.PartialAsync("_AdminPartial", Model)</div>
+                <div class="col-12">@await Html.PartialAsync("_ManagerPartial", Model)</div>
+                <div class="col-12">@await Html.PartialAsync("_EmployeePartial", Model)</div>
+                <div class="col-12">@await Html.PartialAsync("_CustomerPartial", Model)</div>
+            }
+            else
+            {
+                <!-- Admin xem theo khách sạn cụ thể -->
+                <div class="col-12">@await Html.PartialAsync("_ManagerPartial", Model)</div>
+                <div class="col-12">@await Html.PartialAsync("_EmployeePartial", Model)</div>
+            }
+        }
+        else if (quyenHan == "Quản lý" || quyenHan == "Nhân viên")
+        {
+            <!-- Quản lý khách sạn -->
+            <div class="col-12">@await Html.PartialAsync("_ManagerPartial", Model)</div>
+            <div class="col-12">@await Html.PartialAsync("_EmployeePartial", Model)</div>
+            <div class="col-12">@await Html.PartialAsync("_CustomerPartial", Model)</div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <input type="hidden" id="successMessage" value="@TempData["SuccessMessage"]" />
+    <input type="hidden" id="errorMessage" value="@TempData["ErrorMessage"]" />
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/Share/Delete.js"></script>
+    <script src="~/js/Share/Success.js"></script>
+    <script src="~/js/Share/ScrollTop.js"></script>
+    <script src="~/js/Share/PhanTrang.js" asp-append-version="true"></script>
+
+    <!-- Script hiện chi tiết (Đã update Dark Theme) -->
+    <script>
+        function showDetail1(id) {
+            fetch('/TaiKhoans/DetailsJson/' + id)
+                .then(response => {
+                    if (!response.ok) throw new Error("Không tìm thấy dữ liệu");
+                    return response.json();
+                })
+                .then(data => {
+                    let khachSanHtml = "";
+                    if (data.quyenHan !== "Khách hàng") {
+                        khachSanHtml = `<p><b>Khách sạn:</b> <span class="text-warning">${data.khachSan ?? "Chưa phân bổ"}</span></p>`;
+                    }
+
+                    Swal.fire({
+                        title: 'THÔNG TIN TÀI KHOẢN',
+                        html: `
+                            <div class="text-start p-3" style="font-size: 1.1rem; line-height: 1.8;">
+                                <p><i class="bi bi-person-fill text-info me-2"></i><b>Họ và tên:</b> ${data.hoVaTen}</p>
+                                <p><i class="bi bi-fingerprint text-success me-2"></i><b>Tên đăng nhập:</b> ${data.tenDangNhap}</p>
+                                <p><i class="bi bi-envelope-at text-danger me-2"></i><b>Email:</b> ${data.email ?? "Không có"}</p>
+                                <p><i class="bi bi-telephone text-primary me-2"></i><b>SĐT:</b> ${data.soDienThoai ?? "Không có"}</p>
+                                <p><i class="bi bi-shield-lock text-warning me-2"></i><b>Quyền hạn:</b> ${data.quyenHan}</p>
+                                <div class="text-center">
+                                    ${khachSanHtml}
+                                </div>
+                            </div>
+                        `,
+                        icon: 'info',
+                        background: '#1e1e1e',
+                        color: '#ffffff',
+                        confirmButtonColor: '#ffc107',
+                        confirmButtonText: 'Đóng lại'
+                    });
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: error.message,
+                        background: '#1e1e1e',
+                        color: '#ffffff'
+                    });
+                });
+        }
+    </script>
+}

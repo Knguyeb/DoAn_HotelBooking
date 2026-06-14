@@ -1,0 +1,99 @@
+﻿@model DoAn_HotelBooking.Models.TaiKhoan
+
+@{
+    Layout = null; // Không hiện navbar mặc định
+}
+
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+
+<script src="https://unpkg.com/boxicons@2.1.4/dist/boxicons.js"></script>
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="~/css/DangKy_DangNhap/DangNhap.css" />
+
+<div class="container">
+
+    <!-- Hình nền cong bên phải -->
+    <div class="curved-shape"></div>
+
+    <!-- Hình nền cong bên dưới -->
+    <div class="curved-shape2"></div>
+
+    <!-- Form đăng nhập bên trái -->
+    <div class="form-box Login">
+        <h2>Đăng nhập</h2>
+        <form asp-action="DangNhap" asp-controller="DangKy_DangNhap" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="input-box">
+                <input asp-for="TenDangNhap" required />
+                <label>Tên đăng nhập</label>
+                <box-icon name="id-card" color="gray"></box-icon>
+            </div>
+
+            <div class="input-box">
+                <input asp-for="MatKhau" type="password" id="password" required />
+                <label>Mật khẩu</label>
+                <box-icon id="togglePassword" name="lock-alt" color="gray" style="cursor:pointer"></box-icon>
+            </div>
+
+            <script>
+                const passwordInput = document.getElementById("password");
+                const togglePassword = document.getElementById("togglePassword");
+                togglePassword.addEventListener("click", () => {
+                    const type = passwordInput.type === "password" ? "text" : "password";
+                    passwordInput.type = type;
+                    togglePassword.setAttribute("name", type === "text" ? "lock-open-alt" : "lock-alt");
+                });
+            </script>
+
+            <!-- Nút đăng nhập -->
+            <div class="input-box">
+                <button class="btn-base btnDangNhap btn" type="submit">Đăng nhập</button>
+            </div>
+
+            <!-- Link sang trang đăng ký -->
+            <div class="regi-link">
+                <p>
+                    Chưa có tài khoản? <br>
+                    <a class="nav-link text-dark" asp-controller="DangKy_DangNhap" asp-action="DangKy">Đăng ký</a>
+                </p>
+            </div> 
+        </form>
+    </div>
+
+    <!-- Nội dung chào mừng bên phải -->
+    <div class="info-content Login">
+        <h2>WELCOME BACK!</h2>
+        <p>
+            We are happy to have you with us again.
+            If you need anything, we are here to help.
+        </p>
+        <!-- Nút đăng nhập Google -->
+        <div class="input-box">
+            <a class="btn-base btn-google btn" asp-controller="DangKy_DangNhap" asp-action="DangNhapGoogle" asp-route-provider="Google">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512" width="20" height="20">
+                    <path fill="#4285F4" d="M488 261.8c0-17.4-1.6-34.1-4.7-50.2H249v95.1h134.5c-5.8 31.2-23.4 57.6-49.9 75.3v62.7h80.5c47.1-43.4 74.9-107.5 74.9-182.9z" />
+                    <path fill="#34A853" d="M249 492c67.7 0 124.5-22.4 166-60.8l-80.5-62.7c-22.4 15-51 23.8-85.5 23.8-65.7 0-121.3-44.3-141.2-103.9H24.7v65.2C65.9 440.5 151.9 492 249 492z" />
+                    <path fill="#FBBC05" d="M107.8 288.4c-4.8-15-7.6-31.1-7.6-47.4s2.8-32.4 7.6-47.4v-65.2H24.7C9 170.1 0 208.3 0 248.9s9 78.8 24.7 111.5l83.1-65.2z" />
+                    <path fill="#EA4335" d="M249 97.7c36.8 0 69.7 12.7 95.8 37.6l71.5-71.5C373.5 24.5 316.7 0 249 0 151.9 0 65.9 51.5 24.7 137.4l83.1 65.2C127.7 142 183.3 97.7 249 97.7z" />
+                </svg>
+                <span class="divider mx-2">|</span>
+                <span class="text">Google</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="successMessage" value="@TempData["SuccessMessage"]" />
+<input type="hidden" id="errorMessage" value="@TempData["ErrorMessage"]" />
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="~/js/Share/Success.js"></script>

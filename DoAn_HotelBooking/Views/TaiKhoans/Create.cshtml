@@ -1,0 +1,193 @@
+﻿@model DoAn_HotelBooking.Models.TaiKhoan
+
+@{
+    ViewData["Title"] = "Thêm tài khoản mới";
+}
+
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    var quyenHan = HttpContextAccessor.HttpContext.Session.GetString("QuyenHan");
+}
+
+<!-- Import Bootstrap Icons và File CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="~/css/KhachSan/Create.css" asp-append-version="true" />
+
+<div class="container-fluid fade-in-up py-5 px-4">
+
+    <!-- Tiêu đề & Nút Quay lại -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="text-subtitle">QUẢN LÝ TÀI KHOẢN</h4>
+            <h2 class="page-title">THÊM TÀI KHOẢN MỚI</h2>
+        </div>
+        <a class="btn btn-back-luxury" href="@ViewBag.ReturnUrl">
+            <i class="bi bi-arrow-left me-2"></i> Quay lại
+        </a>
+    </div>
+
+    <!-- Form Container -->
+    <div class="glass-form-container">
+        <form asp-action="Create" method="post">
+            <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+
+            <div class="row g-5">
+
+                <!-- CỘT TRÁI: THÔNG TIN CÁ NHÂN -->
+                <div class="col-lg-6">
+                    <h5 class="section-header"><i class="bi bi-person-lines-fill me-2"></i>Thông tin cá nhân</h5>
+
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label asp-for="HoVaTen" class="form-label-luxury">Họ và tên <span class="text-danger">*</span></label>
+                            <div class="input-group luxury-input-group">
+                                <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+                                <input asp-for="HoVaTen" class="form-control" placeholder="Nhập họ tên" />
+                            </div>
+                            <span asp-validation-for="HoVaTen" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Email" class="form-label-luxury">Email <span class="text-danger">*</span></label>
+                            <div class="input-group luxury-input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
+                                <input asp-for="Email" type="email" class="form-control" placeholder="Nhập địa chỉ email" />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="SoDienThoai" class="form-label-luxury">Số điện thoại liên hệ <span class="text-danger">*</span></label>
+                            <div class="input-group luxury-input-group">
+                                <span class="input-group-text"><i class="bi bi-telephone-fill"></i></span>
+                                <input asp-for="SoDienThoai" class="form-control" placeholder="Nhập số điện thoại" />
+                            </div>
+                            <span asp-validation-for="SoDienThoai" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CỘT PHẢI: THÔNG TIN TÀI KHOẢN -->
+                <div class="col-lg-6">
+                    <h5 class="section-header"><i class="bi bi-shield-lock-fill me-2"></i>Thông tin tài khoản</h5>
+
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label asp-for="TenDangNhap" class="form-label-luxury">Tên đăng nhập <span class="text-danger">*</span></label>
+                            <div class="input-group luxury-input-group">
+                                <span class="input-group-text"><i class="bi bi-person-badge-fill"></i></span>
+                                <input asp-for="TenDangNhap" class="form-control" placeholder="Nhập tên đăng nhập" />
+                            </div>
+                            <span asp-validation-for="TenDangNhap" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="MatKhau" class="form-label-luxury">Mật khẩu <span class="text-danger">*</span></label>
+                            <div class="input-group luxury-input-group">
+                                <span class="input-group-text"><i class="bi bi-key-fill"></i></span>
+                                <input asp-for="MatKhau" type="text" class="form-control" placeholder="Nhập mật khẩu" />
+                            </div>
+                            <span asp-validation-for="MatKhau" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="QuyenHan" class="form-label-luxury">Quyền hạn <span class="text-danger">*</span></label>
+                            <div class="input-group luxury-input-group">
+                                <span class="input-group-text"><i class="bi bi-person-gear"></i></span>
+                                <select asp-for="QuyenHan" class="form-control luxury-dropdown" id="QuyenHan">
+                                    <option value="">-- Chọn quyền hạn --</option>
+
+                                    @if (ViewBag.DefaultKhachSan != null)
+                                    {
+                                        <!-- Nếu đi từ khách sạn -->
+                                        @if (quyenHan != "Nhân viên")
+                                        {
+                                            <option value="Quản lý">Quản lý</option>
+                                            <option value="Nhân viên">Nhân viên</option>
+                                            <option value="Khách hàng">Khách hàng</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="Nhân viên">Nhân viên</option>
+                                            <option value="Khách hàng">Khách hàng</option>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <!-- Nếu đi từ ngoài -->
+                                        <option value="Admin">Admin</option>
+                                        <option value="Quản lý">Quản lý</option>
+                                        <option value="Nhân viên">Nhân viên</option>
+                                        <option value="Khách hàng">Khách hàng</option>
+                                    }
+                                </select>
+                            </div>
+                            <span asp-validation-for="QuyenHan" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DÒNG DƯỚI CÙNG (FULL WIDTH): THÔNG TIN KHÁCH SẠN -->
+                <div class="col-12" id="khachSanGroup">
+                    <h5 class="section-header mt-2"><i class="bi bi-building-add me-2"></i>Nơi làm việc / Khách sạn trực thuộc</h5>
+                    <label asp-for="MaKhachSan" class="form-label-luxury">Chọn khách sạn <span class="text-danger">*</span></label>
+
+                    @if (ViewBag.DefaultKhachSan != null)
+                    {
+                        <!-- Nếu thêm từ 1 khách sạn cụ thể -->
+                        <div class="input-group luxury-input-group">
+                            <span class="input-group-text"><i class="bi bi-building-check"></i></span>
+                            <input type="text" class="form-control text-warning fw-bold" readonly value="@ViewBag.DefaultKhachSan.TenKhachSan" />
+                        </div>
+                        <input type="hidden" asp-for="MaKhachSan" value="@ViewBag.DefaultKhachSan.MaKhachSan" />
+                    }
+                    else
+                    {
+                        <!-- Nếu thêm từ danh sách chung thì cho chọn -->
+                        <div class="input-group luxury-input-group">
+                            <span class="input-group-text"><i class="bi bi-building"></i></span>
+                            <select asp-for="MaKhachSan" class="form-control luxury-dropdown" asp-items="ViewBag.MaKhachSan">
+                                <option value="">-- Chọn khách sạn --</option>
+                            </select>
+                        </div>
+                        <span asp-validation-for="MaKhachSan" class="text-danger small"></span>
+                    }
+                </div>
+
+            </div>
+
+            <!-- Nút Lưu -->
+            <div class="form-actions mt-5 pt-4 border-top border-secondary border-opacity-25 text-end">
+                <a class="btn btn-back-luxury" href="@ViewBag.ReturnUrl">
+                    <i class="bi bi-x-lg me-2"></i> Hủy bỏ
+                </a>
+                <button type="submit" class="btn btn-create-luxury">
+                    <i class="bi bi-plus-lg me-2"></i> Khởi tạo Tài khoản
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Ẩn hiện dòng khách sạn -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const quyenHan = document.getElementById("QuyenHan");
+            const khachSanGroup = document.getElementById("khachSanGroup");
+
+            function toggleKhachSan() {
+                if (quyenHan.value === "Khách hàng") {
+                    khachSanGroup.style.display = "none"; // ẩn dòng khách sạn
+                } else {
+                    khachSanGroup.style.display = "block"; // hiện lại dòng khách sạn
+                }
+            }
+
+            if (quyenHan && khachSanGroup) {
+                quyenHan.addEventListener("change", toggleKhachSan);
+                toggleKhachSan(); // chạy khi load lần đầu (Edit / Create)
+            }
+        });
+    </script>
+}

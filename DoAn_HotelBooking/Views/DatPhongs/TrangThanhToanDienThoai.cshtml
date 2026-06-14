@@ -1,0 +1,92 @@
+﻿@model DoAn_HotelBooking.Models.DatPhong
+@{
+    Layout = null; // Không dùng Layout chung của web để làm full màn hình điện thoại
+
+    // ✅ ĐÃ SỬA: Lấy trực tiếp tổng tiền từ Database (đã trừ tiền giảm)
+    decimal tongTien = Model.TongTien;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh Toán Trên Điện Thoại</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            background-color: #121212;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .payment-card {
+            background: #1e1e24;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="payment-card text-center">
+        <i class="bi bi-wallet2 text-warning mb-3" style="font-size: 3rem;"></i>
+        <h4 class="text-warning fw-bold mb-4">MÔ PHỎNG THANH TOÁN</h4>
+
+        <div class="bg-dark p-3 rounded-3 mb-4 text-start" style="border: 1px dashed rgba(255,255,255,0.2);">
+            <p class="mb-1 text-muted">Mã đơn: <strong class="text-white float-end">#@Model.ID</strong></p>
+            <p class="mb-1 text-muted">Khách hàng: <strong class="text-white float-end">@Model.TaiKhoan?.HoVaTen</strong></p>
+
+            @if (Model.TienGiam > 0)
+            {
+                <p class="mb-1 text-muted mt-2">Ưu đãi hạng: <strong class="text-warning float-end">-@Model.TienGiam.ToString("N0") đ</strong></p>
+            }
+
+            <p class="mb-0 text-muted mt-2 border-top pt-2 border-secondary">
+                Số tiền cần trả: <strong class="text-success fs-4 float-end">@tongTien.ToString("N0") đ</strong>
+            </p>
+        </div>
+
+        <button id="btnPay" class="btn btn-success w-100 py-3 rounded-pill fw-bold fs-5 shadow-lg">
+            <i class="bi bi-check2-circle me-2"></i> Xác nhận chuyển tiền
+        </button>
+    </div>
+
+    <script>
+        document.getElementById('btnPay').addEventListener('click', function() {
+            // Bấm nút sẽ gọi API về hệ thống để báo máy tính biết
+            Swal.fire({
+                title: 'Đang xử lý giao dịch...',
+                background: '#1e1e24', color: '#fff',
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            fetch('/DatPhongs/XacNhanTuDienThoai/@Model.ID', { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Chuyển tiền thành công!',
+                            text: 'Vui lòng nhìn lên màn hình máy tính, hệ thống sẽ tự động cập nhật.',
+                            background: '#1e1e24', color: '#fff',
+                            confirmButtonColor: '#20c997'
+                        });
+                        document.getElementById('btnPay').disabled = true;
+                        document.getElementById('btnPay').innerHTML = '<i class="bi bi-check-lg"></i> Đã thanh toán xong';
+                    }
+                });
+        });
+    </script>
+
+</body>
+</html>

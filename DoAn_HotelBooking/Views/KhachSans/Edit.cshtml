@@ -1,0 +1,254 @@
+﻿@model DoAn_HotelBooking.Models.KhachSan
+
+@{
+    ViewData["Title"] = "Cập nhật thông tin";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="~/css/KhachSan/Create.css" asp-append-version="true" />
+
+<div class="container-fluid fade-in-up py-5 px-4">
+
+    <!-- Tiêu đề & Nút Quay lại -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="text-subtitle">QUẢN LÝ KHÁCH SẠN</h4>
+            <h2 class="page-title">CHỈNH SỬA CHI NHÁNH</h2>
+        </div>
+        <a class="btn btn-back-luxury" href="javascript:void(0)" onclick="history.back()">
+            <i class="bi bi-arrow-left me-2"></i> Quay lại
+        </a>
+    </div>
+
+    <!-- Form Container -->
+    <div class="glass-form-container">
+        <form asp-action="Edit" method="post" enctype="multipart/form-data" id="editForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="MaKhachSan" />
+
+            <div class="row g-5">
+
+                <!-- CỘT TRÁI: THÔNG TIN KHÁCH SẠN -->
+                <div class="col-lg-7">
+                    <h5 class="section-header"><i class="bi bi-info-circle-fill me-2"></i>Thông tin chung & Liên hệ</h5>
+
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label asp-for="TenKhachSan" class="form-label-luxury">Tên khách sạn <span class="text-danger">*</span></label>
+                            <div class="input-group luxury-input-group">
+                                <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                <input asp-for="TenKhachSan" class="form-control" required placeholder="Tên chi nhánh..." />
+                            </div>
+                            <span asp-validation-for="TenKhachSan" class="text-danger small fw-bold"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="DiaChi" class="form-label-luxury">Địa chỉ chi tiết <span class="text-danger">*</span></label>
+                            <div class="input-group luxury-input-group">
+                                <span class="input-group-text"><i class="bi bi-geo-alt-fill"></i></span>
+                                <input asp-for="DiaChi" class="form-control" required placeholder="Địa chỉ chi tiết..." />
+                            </div>
+                            <span asp-validation-for="DiaChi" class="text-danger small fw-bold"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="SoDienThoai" class="form-label-luxury">Số điện thoại liên hệ <span class="text-danger">*</span></label>
+                            <div class="input-group luxury-input-group">
+                                <span class="input-group-text"><i class="bi bi-telephone-fill"></i></span>
+                                <input asp-for="SoDienThoai" class="form-control" required placeholder="Số điện thoại..." />
+                            </div>
+                            <span asp-validation-for="SoDienThoai" class="text-danger small fw-bold"></span>
+                        </div>
+
+                        <!-- Header Tọa độ: Thêm mb-0 để triệt tiêu margin thừa -->
+                        <div class="col-12">
+                            <h5 class="section-header mb-0"><i class="bi bi-compass-fill me-2"></i>Tọa độ Bản đồ</h5>
+                        </div>
+
+                        <!-- Vĩ độ trả về col-12 để xếp dọc -->
+                        <div class="col-12">
+                            <label asp-for="ViDo" class="form-label-luxury">Vĩ độ (Latitude)</label>
+                            <div class="input-group luxury-input-group">
+                                <span class="input-group-text"><i class="bi bi-geo"></i></span>
+                                <input asp-for="ViDo" class="form-control" placeholder="VD: 21.0278" />
+                            </div>
+                        </div>
+
+                        <!-- Kinh độ trả về col-12 để xếp dọc -->
+                        <div class="col-12">
+                            <label asp-for="KinhDo" class="form-label-luxury">Kinh độ (Longitude)</label>
+                            <div class="input-group luxury-input-group">
+                                <span class="input-group-text"><i class="bi bi-pin-map-fill"></i></span>
+                                <input asp-for="KinhDo" class="form-control" placeholder="VD: 105.8342" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CỘT PHẢI: MEDIA & UPLOAD ẢNH -->
+                <div class="col-lg-5">
+                    <h5 class="section-header"><i class="bi bi-images me-2"></i>Thư viện Hình ảnh</h5>
+
+                    <div class="upload-zone-container mb-4">
+                        <input type="file" name="HinhAnhFiles" id="fileInput" multiple accept="image/*" class="visually-hidden" onchange="handleFileSelect(event)">
+                        <label for="fileInput" class="upload-label-luxury py-5 text-center">
+                            <i class="bi bi-cloud-arrow-up-fill upload-icon" style="font-size: 3.5rem;"></i>
+                            <span class="upload-text d-block mt-3 fs-5 fw-bold text-white">Thêm hình ảnh mới</span>
+                        </label>
+                    </div>
+
+                    <label class="form-label-luxury mb-2">Quản lý hình ảnh (Cũ & Mới):</label>
+
+                    <!-- Input ẩn để lưu danh sách ảnh cũ còn giữ lại -->
+                    <input type="hidden" name="ExistingImages" id="existingImagesInput" value="@Model.HinhAnh" />
+
+                    <div id="imageThumbnailsContainer" class="thumbnail-container thin-scrollbar border border-secondary border-opacity-25 rounded p-3" style="min-height: 250px; max-height: 450px; overflow-y: auto; background: rgba(0,0,0,0.1);">
+                        @{
+                            if (!string.IsNullOrEmpty(Model.HinhAnh))
+                            {
+                                var currentImages = Model.HinhAnh.Split(';');
+                                foreach (var img in currentImages)
+                                {
+                                    if (!string.IsNullOrEmpty(img))
+                                    {
+                                        <div class="thumbnail-wrapper existing-image-item" data-path="@img">
+                                            <button type="button" class="btn-delete-image" onclick="removeExistingImage(this, '@img')">
+                                                <i class="bi bi-x"></i>
+                                            </button>
+                                            <img src="@img" class="thumbnail-img" />
+                                        </div>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <p id="noImageText" class="text-muted small fst-italic text-center w-100 mt-5 pt-3">
+                                    <i class="bi bi-camera me-1"></i> Chưa có hình ảnh nào.
+                                </p>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nút Lưu -->
+            <div class="form-actions mt-5 pt-4 border-top border-secondary border-opacity-25 text-end">
+                <a class="btn btn-back-luxury" href="javascript:void(0)" onclick="history.back()">
+                    <i class="bi bi-arrow-left me-2"></i>Hủy bỏ
+                </a>
+                <button type="submit" class="btn btn-create-luxury">
+                    <i class="bi bi-pencil-square me-2"></i> Lưu thay đổi
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        const dt = new DataTransfer();
+        const existingImagesInput = document.getElementById("existingImagesInput");
+
+        // 1. Xử lý xóa ảnh CŨ đã có trên server
+        function removeExistingImage(btn, path) {
+            // Xóa ngay element giao diện
+            btn.parentElement.remove();
+
+            // Cập nhật chuỗi ảnh cũ còn lại trong input ẩn
+            let currentPaths = existingImagesInput.value.split(';');
+            let updatedPaths = currentPaths.filter(p => p !== path && p !== "");
+            existingImagesInput.value = updatedPaths.join(';');
+
+            // Kiểm tra nếu hết hình thì hiện dòng chữ thông báo trống
+            checkEmptyContainer();
+        }
+
+        // 2. Xử lý chọn ảnh MỚI
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            const container = document.getElementById("imageThumbnailsContainer");
+            const noImageText = document.getElementById("noImageText");
+
+            if (files.length > 0 && noImageText) noImageText.style.display = 'none';
+
+            Array.from(files).forEach(file => {
+                if (!file.type.startsWith('image/')) return;
+                dt.items.add(file);
+                const reader = new FileReader();
+                reader.onload = e => createNewThumbnail(e.target.result, container, file);
+                reader.readAsDataURL(file);
+            });
+            document.getElementById('fileInput').files = dt.files;
+        }
+
+        function createNewThumbnail(src, container, fileObj) {
+            const imgWrapper = document.createElement("div");
+            imgWrapper.className = "thumbnail-wrapper fade-in-up";
+
+            const deleteBtn = document.createElement("button");
+            deleteBtn.className = "btn-delete-image";
+            deleteBtn.innerHTML = '<i class="bi bi-x"></i>';
+            deleteBtn.type = "button";
+            deleteBtn.onclick = function() {
+                removeNewFile(fileObj, imgWrapper);
+            };
+
+            const img = document.createElement("img");
+            img.src = src;
+            img.className = "thumbnail-img";
+
+            imgWrapper.append(deleteBtn, img);
+            container.appendChild(imgWrapper);
+        }
+
+        function removeNewFile(fileToRemove, element) {
+            const newDt = new DataTransfer();
+            Array.from(dt.files).filter(f => f !== fileToRemove).forEach(f => newDt.items.add(f));
+            dt.items.clear();
+            Array.from(newDt.files).forEach(f => dt.items.add(f));
+            document.getElementById('fileInput').files = dt.files;
+            element.remove();
+            checkEmptyContainer();
+        }
+
+        function checkEmptyContainer() {
+            const container = document.getElementById("imageThumbnailsContainer");
+            if (container.querySelectorAll('.thumbnail-wrapper').length === 0) {
+                container.innerHTML = `<p id="noImageText" class="text-muted small fst-italic text-center w-100 mt-5 pt-3">
+                    <i class="bi bi-camera me-1"></i> Chưa có hình ảnh nào.
+                </p>`;
+            }
+        }
+
+        // 3. Gửi AJAX (giữ nguyên logic cũ nhưng đảm bảo gửi cả existingImagesInput)
+        document.getElementById("editForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const form = this;
+            const formData = new FormData(form);
+            const submitBtn = form.querySelector('button[type="submit"]');
+
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.success) {
+                    window.location.href = result.redirectUrl;
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Lỗi', text: result.message, background: '#1e1e1e', color: '#fff' });
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+}

@@ -1,0 +1,305 @@
+﻿@using System.Globalization
+@model DoAn_HotelBooking.Models.DatPhong
+
+@{
+    ViewData["Title"] = "Thêm đặt phòng";
+
+    decimal giaGoc = ViewBag.GiaPhong != null ? (decimal)ViewBag.GiaPhong : 0;
+    decimal tyLeGiam = ViewBag.TyLeGiamGia != null ? (decimal)ViewBag.TyLeGiamGia : 0;
+    decimal giaDaGiam = giaGoc - (giaGoc * tyLeGiam / 100);
+}
+
+<!-- Import Thư viện -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
+
+<!-- Import CSS dùng chung của hệ thống -->
+<link rel="stylesheet" href="~/css/KhachSan/Create.css" asp-append-version="true" />
+
+<div class="container-fluid fade-in-up py-5 px-4">
+
+    <!-- Tiêu đề & Nút Quay lại / Chọn tiền tệ -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="text-subtitle">QUẢN LÝ ĐẶT PHÒNG</h4>
+            <h2 class="page-title">KHỞI TẠO ĐƠN ĐẶT PHÒNG</h2>
+        </div>
+
+        <div class="d-flex gap-3 align-items-center">
+            <!-- Nút Dropdown chọn Tiền Tệ -->
+            <div class="dropdown">
+                <button class="btn btn-outline-warning dropdown-toggle fw-bold px-4" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="border-radius: 30px;">
+                    <i class="bi bi-cash-stack me-1"></i> Tiền tệ
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark shadow">
+                    <li><a class="dropdown-item currency-option" href="#" data-currency="VND">🇻🇳 VNĐ (Đồng)</a></li>
+                    <li><a class="dropdown-item currency-option" href="#" data-currency="USD">🇺🇸 USD (Đô la)</a></li>
+                    <li><a class="dropdown-item currency-option" href="#" data-currency="EUR">🇪🇺 EUR (Euro)</a></li>
+                </ul>
+            </div>
+
+            <a class="btn btn-back-luxury" href="javascript:void(0);" onclick="window.history.back();">
+                <i class="bi bi-arrow-left me-2"></i> Quay lại
+            </a>
+        </div>
+    </div>
+
+    <!-- Hiển thị lỗi nếu có -->
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger shadow border-0" style="background-color: rgba(220,53,69,0.15); color: #ffcccc; border-left: 4px solid #dc3545 !important;">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @ViewBag.Error
+        </div>
+    }
+
+    <!-- Form Container -->
+    <div class="glass-form-container">
+        <form asp-action="Create" method="post">
+
+            <!-- HIDDEN INPUTS CHO FORM SUBMIT -->
+            <input type="hidden" name="MaPhong" value="@ViewBag.MaPhong" />
+            <input type="hidden" name="MaTaiKhoan" value="@ViewBag.MaTaiKhoan" />
+            <input type="hidden" asp-for="NgayTao" value="@DateTime.Now" />
+
+            <!-- Biến lưu giá cơ sở bằng VND để script tính toán -->
+            <input type="hidden" id="GiaTien" value="@giaGoc" />
+            <input type="hidden" id="TyLeGiamGia" value="@tyLeGiam" />
+
+            <!-- Row stretch để 2 cột luôn bằng chiều cao nhau -->
+            <div class="row g-5 align-items-stretch">
+
+                <!-- CỘT TRÁI: THÔNG TIN PHÒNG & KHÁCH HÀNG (Hiển thị) -->
+                <div class="col-lg-5 d-flex flex-column">
+                    <h5 class="section-header"><i class="bi bi-card-list me-2"></i>Thông tin đơn đặt</h5>
+
+                    <div class="p-4 rounded border flex-grow-1 d-flex flex-column justify-content-between" style="background: rgba(0,0,0,0.2); border-color: var(--border-color) !important;">
+
+                        <div class="d-flex justify-content-between mb-2 border-bottom border-secondary border-opacity-25 pb-2">
+                            <span class="text-muted"><i class="bi bi-calendar-check me-2"></i>Ngày tạo</span>
+                            <span class="text-warning fw-bold">@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2 border-bottom border-secondary border-opacity-25 pb-2">
+                            <span class="text-muted"><i class="bi bi-person-fill me-2"></i>Khách hàng</span>
+                            <span class="text-white fw-bold">@ViewBag.TenKhachHang</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2 border-bottom border-secondary border-opacity-25 pb-2">
+                            <span class="text-muted"><i class="bi bi-telephone-fill me-2"></i>Số điện thoại</span>
+                            <span class="text-white fw-bold">@ViewBag.SoDienThoai</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2 border-bottom border-secondary border-opacity-25 pb-2">
+                            <span class="text-muted"><i class="bi bi-building me-2"></i>Khách sạn</span>
+                            <span class="text-white fw-bold text-end">@ViewBag.TenKhachSan</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2 border-bottom border-secondary border-opacity-25 pb-2">
+                            <span class="text-muted"><i class="bi bi-door-open-fill me-2"></i>Số phòng</span>
+                            <span class="text-warning fw-bold fs-5">@ViewBag.SoPhong</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between pt-2 align-items-center">
+                            <span class="text-muted"><i class="bi bi-cash-coin me-2"></i>Giá phòng / đêm</span>
+                            <div class="text-end">
+                                @if (tyLeGiam > 0)
+                                {
+                                    <span class="text-secondary text-decoration-line-through small me-2">@giaGoc.ToString("N0") đ</span>
+                                }
+                                <span class="text-success fw-bold fs-5" data-base-price="@giaDaGiam">
+                                    @giaDaGiam.ToString("N0") đ
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CỘT PHẢI: THÔNG TIN LỊCH TRÌNH VÀ THANH TOÁN (Nhập liệu) -->
+                <div class="col-lg-7 d-flex flex-column">
+                    <h5 class="section-header"><i class="bi bi-calendar-range-fill me-2"></i>Lịch trình & Thanh toán</h5>
+
+                    <div class="d-flex flex-column flex-grow-1">
+                        <div class="row g-4">
+                            <!-- Ngày nhận phòng -->
+                            <div class="col-md-4">
+                                <label asp-for="NgayNhanPhong" class="form-label-luxury">Nhận phòng <span class="text-danger">*</span></label>
+                                <div class="input-group luxury-input-group">
+                                    <span class="input-group-text"><i class="bi bi-calendar2-plus"></i></span>
+                                    <input type="text" id="NgayNhanPhongDisplay" class="form-control" placeholder="Ngày đến" />
+                                </div>
+                                <input type="hidden" asp-for="NgayNhanPhong" id="NgayNhanPhong" />
+                                <span asp-validation-for="NgayNhanPhong" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Ngày trả phòng -->
+                            <div class="col-md-4">
+                                <label asp-for="NgayTraPhong" class="form-label-luxury">Trả phòng <span class="text-danger">*</span></label>
+                                <div class="input-group luxury-input-group">
+                                    <span class="input-group-text"><i class="bi bi-calendar2-minus"></i></span>
+                                    <input type="text" id="NgayTraPhongDisplay" class="form-control" placeholder="Ngày đi" />
+                                </div>
+                                <input type="hidden" asp-for="NgayTraPhong" id="NgayTraPhong" />
+                                <span asp-validation-for="NgayTraPhong" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Số lượng người -->
+                            <div class="col-md-4">
+                                <label asp-for="SoNguoi" class="form-label-luxury">Số người <span class="text-danger">*</span></label>
+                                <div class="input-group luxury-input-group">
+                                    <span class="input-group-text"><i class="bi bi-people-fill"></i></span>
+                                    <input asp-for="SoNguoi" class="form-control" type="number" min="1" placeholder="Nhập số người" />
+                                </div>
+                                <span asp-validation-for="SoNguoi" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Ghi chú -->
+                            <div class="col-12">
+                                <label asp-for="GhiChu" class="form-label-luxury">Ghi chú yêu cầu thêm (Tùy chọn)</label>
+                                <div class="input-group luxury-input-group">
+                                    <span class="input-group-text"><i class="bi bi-pencil-square"></i></span>
+                                    <textarea asp-for="GhiChu" class="form-control" rows="3" placeholder="Ví dụ: Cần thêm giường phụ, phòng có view đẹp..."></textarea>
+                                </div>
+                                <span asp-validation-for="GhiChu" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- Khung Hiển thị Tổng Tiền -->
+                        <div class="mt-auto pt-4">
+                            <div class="p-3 rounded border border-warning position-relative overflow-hidden" style="background: rgba(255, 215, 0, 0.05);">
+                                <label class="form-label-luxury mb-1 text-warning"><i class="bi bi-wallet2 me-2"></i>TỔNG TIỀN THANH TOÁN</label>
+                                <div class="d-flex align-items-center justify-content-between position-relative z-1">
+
+                                    <!-- Thẻ hiển thị tổng tiền có gắn data-base-price = 0 lúc đầu -->
+                                    <h2 class="mb-0 text-success fw-bold fs-1" id="TongTienDisplay" data-base-price="0">
+                                        0 đ
+                                    </h2>
+
+                                    <i class="bi bi-credit-card text-success fs-1 opacity-50"></i>
+                                </div>
+                                <!-- Input thực sự gửi về Controller luôn là VNĐ (int/decimal) -->
+                                <input type="hidden" id="TongTienInput" name="TongTien" value="0" />
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Nút Lưu -->
+            <div class="form-actions mt-5 pt-4 border-top border-secondary border-opacity-25 text-end">
+                <a class="btn btn-back-luxury" href="javascript:void(0);" onclick="window.history.back();">
+                    <i class="bi bi-x-lg me-2"></i> Hủy bỏ
+                </a>
+                <button type="submit" class="btn btn-create-luxury">
+                    <i class="bi bi-check2-circle me-2"></i> Hoàn tất Đặt phòng
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/Share/DoiTien.js" asp-append-version="true"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // 1. Cấu hình Flatpickr chọn ngày
+            flatpickr("#NgayNhanPhongDisplay", {
+                dateFormat: "d-m-Y",
+                altInput: false,
+                minDate: "today",
+                onChange: function (selectedDates) {
+                    if (selectedDates.length > 0) {
+                        document.getElementById("NgayNhanPhong").value = selectedDates[0].toISOString().split("T")[0];
+                        tinhTongTien();
+                    }
+                }
+            });
+
+            flatpickr("#NgayTraPhongDisplay", {
+                dateFormat: "d-m-Y",
+                altInput: false,
+                minDate: "today",
+                onChange: function (selectedDates) {
+                    if (selectedDates.length > 0) {
+                        document.getElementById("NgayTraPhong").value = selectedDates[0].toISOString().split("T")[0];
+                        tinhTongTien();
+                    }
+                }
+            });
+
+            // 2. Hàm tính tổng tiền gốc (VNĐ) khi người dùng chọn ngày
+            function tinhTongTien() {
+                let nhan = document.getElementById("NgayNhanPhong").value;
+                let tra = document.getElementById("NgayTraPhong").value;
+                let giaTienGoc = parseFloat(document.getElementById("GiaTien").value) || 0;
+                let tyLeGiam = parseFloat(document.getElementById("TyLeGiamGia").value) || 0;
+
+                let tongTienGoc = 0;
+                let tongTienThanhToan = 0;
+
+                // Nếu đã chọn đủ ngày và giá tiền hợp lệ
+                if (nhan && tra && !isNaN(giaTienGoc)) {
+                    let d1 = new Date(nhan);
+                    let d2 = new Date(tra);
+
+                    if (d2 < d1) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Ngày không hợp lệ',
+                            text: 'Ngày trả phòng phải lớn hoặc bằng ngày nhận!',
+                            confirmButtonColor: '#ffc107',
+                            background: '#1e1e1e',
+                            color: '#fff'
+                        });
+                        resetTongTien();
+                        return;
+                    }
+
+                    let soNgay = (d2 - d1) / (1000 * 60 * 60 * 24);
+                    if (soNgay === 0) soNgay = 1; // Nhận và trả trong ngày tính là 1 đêm
+
+                    // Tính toán
+                    tongTienGoc = giaTienGoc * soNgay;
+                    tongTienThanhToan = tongTienGoc - (tongTienGoc * tyLeGiam / 100);
+                }
+
+                // A. Lưu tiền GỐC vào thẻ input ẩn để Backend xử lý việc tạo TienGiam
+                document.getElementById("TongTienInput").value = tongTienGoc;
+
+                // B. Hiển thị TỔNG TIỀN ĐÃ GIẢM cho khách hàng xem trên giao diện
+                let displayElement = document.getElementById("TongTienDisplay");
+                displayElement.setAttribute("data-base-price", tongTienThanhToan);
+
+                // C. Tự động format ngay lập tức dựa trên biến toàn cục của DoiTien.js
+                if (window.formatCurrency && window.currentRates && window.currentSelectedCurrency) {
+                    let rate = window.currentRates[window.currentSelectedCurrency] || 1;
+                    let convertedPrice = tongTienThanhToan * rate;
+                    displayElement.innerHTML = window.formatCurrency(convertedPrice, window.currentSelectedCurrency);
+                } else {
+                    displayElement.innerHTML = tongTienThanhToan.toLocaleString("vi-VN") + " đ";
+                }
+            }
+
+            // Hàm reset lại trạng thái ngày
+            function resetTongTien() {
+                document.getElementById("NgayNhanPhongDisplay").value = "";
+                document.getElementById("NgayTraPhongDisplay").value = "";
+                document.getElementById("NgayNhanPhong").value = "";
+                document.getElementById("NgayTraPhong").value = "";
+
+                document.getElementById("TongTienInput").value = 0;
+                document.getElementById("TongTienDisplay").setAttribute("data-base-price", 0);
+                tinhTongTien();
+            }
+
+            // Gọi hàm 1 lần lúc mới tải trang để gán số 0
+            setTimeout(tinhTongTien, 200);
+        });
+    </script>
+}

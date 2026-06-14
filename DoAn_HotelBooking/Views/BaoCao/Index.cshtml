@@ -1,0 +1,141 @@
+﻿@{
+    ViewData["Title"] = "Báo cáo doanh thu";
+    var tongDoanhThu = (decimal)ViewBag.TongDoanhThu;
+    var topKhachSan = ViewBag.TopKhachSan as string;
+    var doanhThuTop = (decimal)ViewBag.DoanhThuTop;
+    var phanTram = (double)ViewBag.PhanTram;
+    var baoCaoList = ViewBag.BaoCaoList as IEnumerable<dynamic>;
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="~/css/BaoCao/Index.css" asp-append-version="true" />
+
+<div class="container py-4">
+    <div class="mb-5 animate-fade-in">
+        <h1>📈 Báo cáo doanh thu khách sạn</h1>
+        <hr class="text-warning" />
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="report-card animate-fade-in" style="animation-delay: 0.1s;">
+                <div class="report-card-body">
+                    <h3 class="card-title mb-3">💰 Tổng doanh thu toàn hệ thống</h3>
+                    <p class="card-text fs-3 fw-bold text-white m-0">@tongDoanhThu.ToString("N0") VNĐ</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="report-card animate-fade-in" style="animation-delay: 0.2s;">
+                <div class="report-card-body">
+                    <h3 class="card-title mb-3">🏨 Khách sạn doanh thu cao nhất</h3>
+                    <p class="card-text fs-5 m-0 text-white">
+                        <span class="text-info fw-bold fs-4">@topKhachSan</span><br />
+                        Doanh thu: <span class="text-danger fw-bold">@doanhThuTop.ToString("N0") VNĐ</span><br />
+                        Chiếm: <span class="text-warning fw-bold">@phanTram%</span> tổng doanh thu
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="report-card mb-4 animate-fade-in" style="animation-delay: 0.3s;">
+        <div class="report-card-body w-100">
+            <h3 class="card-title mb-4">📊 Chi tiết doanh thu & đánh giá</h3>
+
+            <div class="table-responsive w-100">
+                <table class="custom-table mb-0" id="tableCustomer">
+                    <thead>
+                        <tr>
+                            <th class="text-center">STT</th>
+                            <th>Tên khách sạn</th>
+                            <th class="text-end">Doanh thu (VNĐ)</th>
+                            <th class="text-center">Đánh giá trung bình</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            int stt = 1;
+                            var labels = new List<string>();
+                            var values = new List<decimal>();
+
+                            foreach (var item in baoCaoList)
+                            {
+                                labels.Add(item.TenKhachSan);
+                                values.Add(item.TongDoanhThu);
+
+                                <tr>
+                                    <td class="text-center">@stt</td>
+                                    <td class="fw-semibold">@item.TenKhachSan</td>
+                                    <td class="text-center fw-bold text-warning">@item.TongDoanhThu.ToString("N0")</td>
+                                    <td class="text-center">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            if (i <= Math.Floor((double)item.DiemTrungBinh))
+                                            {
+                                                <i class="bi bi-star-fill text-warning"></i>
+                                            }
+                                            else if (i - item.DiemTrungBinh < 1 && i - item.DiemTrungBinh > 0)
+                                            {
+                                                <i class="bi bi-star-half text-warning"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-star text-secondary"></i>
+                                            }
+                                        }
+                                        <span class="ms-2 text-white">(@item.DiemTrungBinh)</span>
+                                    </td>
+                                </tr>
+                                stt++;
+                            }
+
+                            var labelJson = System.Text.Json.JsonSerializer.Serialize(labels);
+                            var valueJson = System.Text.Json.JsonSerializer.Serialize(values);
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="report-card mb-4 animate-fade-in" style="animation-delay: 0.4s;">
+        <div class="report-card-body w-100">
+            <div class="d-flex flex-wrap justify-content-between align-items-center w-100 mb-4 gap-3">
+                <h3 class="card-title m-0">📊 Tổng quan doanh thu</h3>
+
+                <div class="dropdown">
+                    <button class="btn btn-outline-warning dropdown-toggle" type="button"
+                            id="chartTypeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-pie-chart-fill me-1"></i> Biểu đồ tròn
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="chartTypeDropdown">
+                        <li><a class="dropdown-item chart-type-btn active" href="#" data-type="pie">📊 Biểu đồ tròn</a></li>
+                        <li><a class="dropdown-item chart-type-btn" href="#" data-type="bar">📈 Biểu đồ cột</a></li>
+                        <li><a class="dropdown-item chart-type-btn" href="#" data-type="line">📉 Biểu đồ đường</a></li>
+                        <li><a class="dropdown-item chart-type-btn" href="#" data-type="doughnut">🍩 Biểu đồ Doughnut</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="mainChart"></canvas>
+            </div>
+
+            <div id="chartLegend" class="chart-legend text-start w-100"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        window.labelsData = @Html.Raw(labelJson);
+        window.valuesData = @Html.Raw(valueJson);
+    </script>
+
+    <script src="~/js/Share/ScrollTop.js"></script>
+    <script src="~/js/BieuDo/BieuDo.js"></script>
+}

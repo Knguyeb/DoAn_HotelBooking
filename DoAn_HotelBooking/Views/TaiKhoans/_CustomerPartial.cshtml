@@ -1,0 +1,97 @@
+﻿@model IEnumerable<DoAn_HotelBooking.Models.TaiKhoan>
+@{
+    var listCustomer = Model.Where(x => x.QuyenHan == "Khách hàng").ToList();
+}
+
+<div class="glass-container">
+    <h4 class="text-danger mb-3 fw-bold"><i class="bi bi-person-heart me-2"></i>KHÁCH HÀNG THÀNH VIÊN</h4>
+
+    <div class="toolbar-wrapper mb-3 d-flex justify-content-between flex-wrap gap-2">
+        <div class="search-box-luxury" style="flex: 1; min-width: 300px; max-width: 500px;">
+            <i class="bi bi-search"></i>
+            <input type="text" id="searchCustomer" placeholder="Tìm tên, email, SĐT..." autocomplete="off">
+        </div>
+        <a asp-action="ExportExcel" asp-route-role="Khách hàng" class="btn btn-excel-luxury text-decoration-none d-inline-flex align-items-center">
+            <i class="bi bi-file-earmark-excel me-1"></i> Xuất Excel Khách
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table custom-table align-middle" id="tableCustomer">
+            <thead>
+                <tr>
+                    <th class="text-center" style="width: 5%">#</th>
+                    <th class="text-center">Họ và tên</th>
+                    <th class="text-center">Liên hệ</th>
+                    <th class="text-center">Tên đăng nhập</th>
+                    <th class="text-center">Tác vụ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int iCus = 1;
+                }
+                @foreach (var acc in listCustomer)
+                {
+                    <tr>
+                        <td class="text-center text-muted fw-bold">@iCus</td>
+                        <td class="text-center fw-bold" style="color: var(--yellow);">@acc.HoVaTen</td>
+                        <td class="text-center">
+                            <div class="small text-light">@acc.Email</div>
+                            <div class="small text-success fw-semibold">@acc.SoDienThoai</div>
+                        </td>
+                        <td class="text-center text-info">@acc.TenDangNhap</td>
+                        <td>
+                            <div class="d-flex justify-content-center gap-2">
+                                <button type="button" class="btn btn-icon-luxury btn-info-glow" onclick="showDetail1(@acc.ID)" title="Chi tiết">
+                                    <i class="bi bi-info-circle"></i>
+                                </button>
+                                <a asp-action="Edit" asp-route-id="@acc.ID"
+                                   asp-route-returnUrl="@(!string.IsNullOrEmpty(ViewBag.CurrentKhachSan as string) ? Url.Action("Index", "TaiKhoans", new { maKhachSan = ViewBag.CurrentKhachSan }) : Url.Action("Index", "TaiKhoans"))"
+                                   class="btn btn-icon-luxury btn-warning-glow" title="Sửa">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <button class="btn btn-icon-luxury btn-danger-glow" onclick="confirmDelete('@acc.ID')" title="Xóa">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </div>
+                            <form id="deleteForm-@acc.ID" method="post" asp-action="Delete" asp-route-id="@acc.ID" style="display:none;">
+                                @Html.AntiForgeryToken()
+                            </form>
+                        </td>
+                    </tr>
+                    iCus++;
+                }
+            </tbody>
+        </table>
+
+        <!-- Khung trống -->
+        <div id="noResultsCustomer" class="text-center py-4" style="display: none;">
+            <i class="bi bi-search mb-2" style="font-size: 2.5rem; color: var(--yellow); opacity: 0.5;"></i>
+            <h6 class="text-light">Không tìm thấy Khách hàng nào</h6>
+            <button type="button" onclick="customerTableConfig.clearSearch()" class="btn btn-outline-warning mt-2 rounded-pill px-4">
+                <i class="bi bi-arrow-clockwise me-1"></i> Hiển thị tất cả
+            </button>
+        </div>
+    </div>
+
+    <!-- Phân trang -->
+    <div class="table-footer d-flex justify-content-between align-items-center mt-3 border-top border-secondary pt-3">
+        <span class="text-secondary small">Hiển thị <strong id="visibleCountCustomer" class="text-light">0</strong> / @listCustomer.Count()</span>
+        <nav><ul id="paginationCustomer" class="pagination pagination-luxury mb-0"></ul></nav>
+    </div>
+</div>
+
+<script>
+    var customerTableConfig;
+    document.addEventListener("DOMContentLoaded", function () {
+        customerTableConfig = new TablePaginator({
+            tableId: 'tableCustomer',
+            searchInputId: 'searchCustomer',
+            paginationId: 'paginationCustomer',
+            visibleCountId: 'visibleCountCustomer',
+            noResultsId: 'noResultsCustomer',
+            rowsPerPage: 5
+        });
+    });
+</script>

@@ -1,0 +1,78 @@
+﻿/* Tùy chỉnh Bản đồ */
+#map {
+    height: 80vh;
+    min-height: 500px;
+    width: 100%;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+h1 {
+    margin-top: 15px;
+    color: #FFD700;
+    text-shadow: 0 0 8px #FFD700;
+}
+
+.map-container {
+    padding: 10px;
+    border-radius: 20px;
+}
+
+/* --- TÙY CHỈNH MARKER GIỐNG ẢNH MẪU --- */
+.custom-marker-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.marker-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -75%);
+    width: 65px;
+    height: 65px;
+    background: radial-gradient(circle, rgba(255, 69, 0, 0.4) 0%, rgba(255, 69, 0, 0) 65%);
+    z-index: -1;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.marker-icon-wrapper {
+    background-color: #FF4500;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 3px solid #FFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 15px;
+    z-index: 2;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.marker-pointer {
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 15px solid #FFF;
+    margin-top: -2px;
+    z-index: 1;
+    filter: drop-shadow(0 3px 2px rgba(0,0,0,0.1));
+}
+
+/* --- TÙY CHỈNH VỎ POPUP NỀN ĐEN GIỐNG ẢNH MẪU --- */
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+    background: #32323b !important;
+    color: #ffffff !important;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.6);
+}
+
+.leaflet-popup-content strong {
+    color: #FFD700;
+}

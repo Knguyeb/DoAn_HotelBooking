@@ -1,0 +1,168 @@
+﻿/* ========================================================
+   1. VARIABLES (Biến màu sắc)
+======================================================== */
+:root {
+    --black: #000;
+    --white: #fff;
+    --yellow: #FFD700;
+    --orange: #FF4500;
+    --card-bg: #111;
+    --bg-dark: #1a1a1a;
+    --text-gray: #eaeaea;
+}
+
+/* ========================================================
+   2. TYPOGRAPHY & GENERAL (Kiểu chữ & Cài đặt chung)
+======================================================== */
+h1 {
+    font-weight: 700;
+    color: var(--yellow);
+    text-shadow: 0 0 8px var(--yellow);
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* ========================================================
+   3. COMPONENTS (Thành phần giao diện)
+======================================================== */
+/* --- Thẻ Báo Cáo (Report Card) --- */
+.report-card {
+    background: var(--card-bg);
+    border: 1px solid var(--orange);
+    border-radius: 15px;
+    box-shadow: 0 0 10px rgba(255, 69, 0, 0.5); /* Đổ bóng mềm hơn một chút */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Giúp các card cao bằng nhau */
+}
+
+    .report-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px var(--orange);
+    }
+
+.report-card-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    flex: 1; /* Đẩy nội dung lấp đầy card */
+}
+
+.card-title {
+    font-weight: 600;
+    color: var(--yellow);
+    text-shadow: 0 0 5px rgba(255, 69, 0, 0.8);
+    font-size: 1.25rem;
+}
+
+/* --- Bảng (Table) --- */
+.custom-table {
+    background-color: var(--black);
+    color: var(--white);
+    border: 1px solid var(--yellow);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    border-radius: 8px;
+    overflow: hidden;
+    width: 100%;
+    margin-top: 15px;
+}
+
+    .custom-table thead {
+        background: linear-gradient(90deg, var(--yellow), var(--orange));
+        color: var(--black);
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .custom-table th,
+    .custom-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+        vertical-align: middle;
+    }
+
+    .custom-table tbody tr {
+        transition: background-color 0.2s ease-in-out;
+    }
+
+        .custom-table tbody tr:hover td {
+            background-color: #222; /* Sửa lại không dùng !important */
+        }
+
+/* --- Biểu đồ (Chart) --- */
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    min-height: 400px;
+}
+
+canvas {
+    padding: 15px;
+}
+
+/* --- Chú thích Biểu đồ (Legend) --- */
+.chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 25px;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--white);
+    margin-top: 20px;
+}
+
+#chartLegend div {
+    background: rgba(255, 215, 0, 0.1);
+    border-radius: 5px;
+    padding: 8px 16px;
+    border-left: 4px solid var(--yellow);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+}
+
+    #chartLegend div:hover {
+        background: rgba(255, 215, 0, 0.2);
+        transform: translateX(5px);
+    }
+
+/* ========================================================
+   4. ANIMATIONS (Hiệu ứng)
+======================================================== */
+.animate-fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+    opacity: 0;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========================================================
+   5. RESPONSIVE
+======================================================== */
+@media (max-width: 768px) {
+    .chart-legend {
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .chart-container {
+        min-height: 300px;
+    }
+}

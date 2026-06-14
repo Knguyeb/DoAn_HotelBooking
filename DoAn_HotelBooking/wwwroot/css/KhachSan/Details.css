@@ -1,0 +1,313 @@
+﻿:root {
+    --black: #000000;
+    --white: #ffffff;
+    --yellow: #FFD700;
+    --orange: #FF4500;
+    --dark-bg: #25252b; /* Đồng bộ với Layout tổng */
+    --surface-bg: #32323b; /* Nền của Card */
+    --border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* =========================================
+   HIỆU ỨNG XUẤT HIỆN KHI LOAD TRANG
+   ========================================= */
+@keyframes fadeInScale {
+    0% {
+        opacity: 0;
+        transform: scale(0.95) translateY(20px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================================
+   1. BỐ CỤC CHUNG & CARD CHI TIẾT
+   ========================================= */
+.details-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 70vh;
+    margin: 40px auto;
+    padding: 0 15px;
+}
+
+.details-card {
+    background-color: var(--surface-bg);
+    color: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    padding: 40px;
+    max-width: 1400px;
+    width: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    backdrop-filter: blur(10px);
+    animation: fadeInScale 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+    .details-card:hover {
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 69, 0, 0.1);
+    }
+
+    .details-card h1 {
+        color: var(--yellow);
+        font-weight: 800;
+        margin-bottom: 30px;
+        text-shadow: 0 2px 10px rgba(255, 215, 0, 0.2);
+        letter-spacing: 1px;
+    }
+
+/* =========================================
+   2. KHU VỰC HÌNH ẢNH (CAROUSEL)
+   ========================================= */
+.carousel-inner {
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+    border: 1px solid var(--border-color);
+    opacity: 0;
+    animation: fadeInUp 0.6s ease-out 0.2s forwards;
+}
+
+.carousel-item img {
+    max-height: 350px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.carousel-item:hover img {
+    transform: scale(1.05);
+}
+
+/* =========================================
+   3. KHU VỰC THÔNG TIN (DL / DT / DD)
+   ========================================= */
+.details-card dl.row {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+    opacity: 0;
+    animation: fadeInUp 0.6s ease-out 0.3s forwards;
+}
+
+.details-card dt {
+    font-weight: 600;
+    color: var(--gray-light, #B0B0B0);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.details-card dd {
+    margin-bottom: 15px;
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--white);
+}
+
+/* =========================================
+   4. DANH SÁCH PHÒNG
+   ========================================= */
+.room-card {
+    background: var(--surface-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    opacity: 0;
+    animation: fadeInUp 0.6s ease-out 0.5s forwards;
+}
+
+    .room-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(255, 215, 0, 0.15);
+    }
+
+    .room-card .card-img-top {
+        transition: transform 0.5s ease;
+    }
+
+    .room-card:hover .card-img-top {
+        transform: scale(1.08);
+    }
+
+    .room-card .btn-outline-warning {
+        color: var(--yellow);
+        border-color: var(--yellow);
+        transition: all 0.3s ease;
+    }
+
+        .room-card .btn-outline-warning:hover {
+            background-color: var(--yellow);
+            color: #111;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+
+/* =========================================
+   5. CÁC NÚT ĐIỀU HƯỚNG
+   ========================================= */
+.custom-box {
+    border-top: 1px solid var(--border-color);
+    padding-top: 25px;
+    margin-top: 30px;
+    opacity: 0;
+    animation: fadeInUp 0.6s ease-out 0.6s forwards;
+}
+
+.btnQuayLai, .btnDanhGia, .btnSua {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 30px;
+    min-width: 160px;
+    height: 48px;
+    background: transparent;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.btnQuayLai {
+    color: #FF3333 !important;
+    border: 1px solid #FF3333 !important;
+}
+
+    .btnQuayLai:hover {
+        background: #FF3333 !important;
+        color: #fff !important;
+        box-shadow: 0 0 15px rgba(255, 51, 51, 0.5);
+        transform: translateY(-2px);
+    }
+
+.btnDanhGia {
+    color: var(--yellow) !important;
+    border: 1px solid var(--yellow) !important;
+}
+
+    .btnDanhGia:hover {
+        background: var(--yellow) !important;
+        color: #111 !important;
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        transform: translateY(-2px);
+    }
+
+.btnSua {
+    color: var(--orange) !important;
+    border: 1px solid var(--orange) !important;
+}
+
+    .btnSua:hover {
+        background: var(--orange) !important;
+        color: var(--white) !important;
+        box-shadow: 0 0 15px rgba(255, 69, 0, 0.5);
+        transform: translateY(-2px);
+    }
+
+.btnDisabled {
+    border-color: #555 !important;
+    color: #888 !important;
+    cursor: not-allowed !important;
+}
+
+    .btnDisabled:hover {
+        background: transparent !important;
+        color: #888 !important;
+        transform: none;
+        box-shadow: none;
+    }
+
+.btnXemTatCa {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 40px;
+    background: transparent;
+    border: 1px solid #00E5FF;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #00E5FF;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    opacity: 0;
+    animation: fadeInUp 0.6s ease-out 0.6s forwards;
+}
+
+    .btnXemTatCa:hover {
+        background: #00E5FF;
+        color: #111;
+        box-shadow: 0 0 20px rgba(0, 229, 255, 0.6);
+        transform: translateY(-3px);
+    }
+
+/* =========================================
+   6. BẢN ĐỒ OPENSTREETMAP
+   ========================================= */
+.map-wrapper {
+    opacity: 0;
+    animation: fadeInUp 0.6s ease-out 0.7s forwards;
+}
+
+#map {
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    border-color: rgba(255,255,255,0.1) !important;
+}
+
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+    background: var(--surface-bg) !important;
+    color: var(--white) !important;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.6);
+}
+
+.leaflet-popup-content strong {
+    color: var(--yellow);
+}
+
+/* =========================================
+   7. HIỆU ỨNG POPUP (MODAL) CHI TIẾT PHÒNG
+   ========================================= */
+.modal-backdrop.show {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    opacity: 1 !important;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+.custom-modal-bg {
+    background-color: #242526 !important;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
+}
+
+/* ==============================================================
+   VŨ KHÍ HẠNG NẶNG: TÀNG HÌNH MỌI THANH CUỘN KHI MODAL MỞ
+   (Xóa bỏ triệt để thanh cuộn thừa)
+   ============================================================== */
+body.modal-open,
+body.modal-open * {
+    scrollbar-width: none !important; /* Cho Firefox */
+    -ms-overflow-style: none !important; /* Cho Edge cũ / IE */
+}
+
+    body.modal-open::-webkit-scrollbar,
+    body.modal-open *::-webkit-scrollbar {
+        display: none !important; /* Cho Chrome, Safari, Edge mới, Cốc Cốc */
+    }

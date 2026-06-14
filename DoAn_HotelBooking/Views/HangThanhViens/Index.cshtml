@@ -1,0 +1,329 @@
+﻿@model IEnumerable<DoAn_HotelBooking.Models.HangThanhVien>
+
+@{
+    ViewData["Title"] = "Quản lý hạng thành viên";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/KhachSan/Index.css" asp-append-version="true" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+<div class="container-fluid fade-in-up mt-4">
+    @Html.AntiForgeryToken()
+
+    <div class="row mb-4 g-3 align-items-stretch">
+        <div class="col-md-4">
+            <div class="stat-card h-100 d-flex align-items-center">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #FFD700, #FF4500);">
+                    <i class="bi bi-award-fill"></i>
+                </div>
+                <div class="stat-info">
+                    <h6>Tổng Hạng Thành Viên</h6>
+                    <h3 id="totalCount">@Model.Count()</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="stat-card h-100 d-flex align-items-center justify-content-between">
+                <div>
+                    <h2 class="page-title mb-1">DANH MỤC HẠNG THÀNH VIÊN</h2>
+                    <p class="text-secondary mb-0 small">Quản lý các cấp độ hạng và ưu đãi giảm giá trên hệ thống</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-primary-luxury text-decoration-none" onclick="addNewRow()">
+                        <i class="bi bi-plus-lg me-1"></i> Thêm mới
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-container">
+        <div class="toolbar-wrapper mb-3">
+            <div class="search-box-luxury">
+                <i class="bi bi-search"></i>
+                <input type="text" id="searchRank" placeholder="Tìm kiếm tên hạng..." autocomplete="off">
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table custom-table align-middle" id="rankTable">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width: 5%">#</th>
+                        <th class="text-center">Tên hạng</th>
+                        <th class="text-center">Mốc điểm tối thiểu</th>
+                        <th class="text-center">Tỷ lệ giảm giá</th>
+                        <th class="text-center">Tác vụ quản lý</th>
+                    </tr>
+                </thead>
+                <tbody id="rankTableBody">
+                    @{
+                        int i = 1;
+                    }
+                    @foreach (var item in Model)
+                    {
+                        <tr id="row-@item.ID">
+                            <td class="text-center text-muted fw-bold">@i</td>
+
+                            <td class="text-center">
+                                <div class="fw-bold" style="color: var(--yellow); font-size: 1.05rem; letter-spacing: 0.5px;">
+                                    <i class="bi bi-star-fill text-warning me-2"></i>@item.TenHang
+                                </div>
+                            </td>
+
+                            <td class="text-center fw-semibold">
+                                @item.MocDiemToiThieu <span class="text-muted small">điểm</span>
+                            </td>
+
+                            <td class="text-center fw-bold text-success" style="font-size: 1.05rem;">
+                                @item.TyLeGiamGia<i class="bi bi-percent ms-1"></i>
+                            </td>
+
+                            <td>
+                                <div class="d-flex justify-content-center gap-2">
+                                    <button class="btn btn-icon-luxury btn-warning-glow" onclick="editRow(@item.ID, '@item.TenHang', @item.MocDiemToiThieu, @item.TyLeGiamGia, @i)" title="Sửa thông tin">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+
+                                    <button class="btn btn-icon-luxury btn-danger-glow" onclick="confirmDelete('@item.ID')" title="Xóa">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </div>
+
+                                <form id="deleteForm-@item.ID" method="post" asp-action="Delete" asp-route-id="@item.ID" style="display:none;">
+                                    @Html.AntiForgeryToken()
+                                </form>
+                            </td>
+                        </tr>
+                        i++;
+                    }
+                </tbody>
+            </table>
+
+            <div id="noResults" class="text-center py-5" style="display: none;">
+                <div class="mb-3">
+                    <i class="bi bi-search" style="font-size: 3rem; color: var(--yellow); opacity: 0.5;"></i>
+                </div>
+                <h5 class="text-light">Không tìm thấy hạng thành viên nào</h5>
+                <p class="text-secondary">Vui lòng thử lại với từ khóa khác.</p>
+                <button type="button" onclick="pageConfig.clearSearch()" class="btn btn-outline-warning mt-2 rounded-pill px-4">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Hiển thị tất cả
+                </button>
+            </div>
+        </div>
+
+        <div class="table-footer d-flex justify-content-between align-items-center mt-auto pt-3" style="border-top: 1px solid var(--border-color)">
+            <span class="text-secondary small">Đang hiển thị <strong id="visibleCount" class="text-light">0</strong> hạng</span>
+            <ul id="pagination" class="pagination-luxury">
+            </ul>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <input type="hidden" id="successMessage" value="@TempData["SuccessMessage"]" />
+    <input type="hidden" id="errorMessage" value="@TempData["ErrorMessage"]" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@sweetalert2/theme-dark@4/dark.css">
+
+    <style>
+        /* Tắt hiệu ứng mờ (blur) và chỉnh lại nền tối 40% */
+        .swal2-backdrop-show {
+            backdrop-filter: none !important;
+            background: rgba(0, 0, 0, 0.4) !important;
+        }
+
+        /* KHẮC PHỤC LỖI CHỮ BỊ MỜ (MUTED) TRONG THÔNG BÁO */
+        .swal2-popup .swal2-title {
+            color: #ffffff !important; /* Tiêu đề màu trắng sáng */
+            font-weight: 600 !important;
+        }
+
+        .swal2-popup .swal2-html-container {
+            color: #ffffff !important;
+            font-size: 1.05rem !important;
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="~/js/Share/Delete.js" asp-append-version="true"></script>
+    <script src="~/js/Share/Success.js" asp-append-version="true"></script>
+    <script src="~/js/Share/PhanTrang.js" asp-append-version="true"></script>
+
+    <script>
+        var pageConfig;
+        document.addEventListener("DOMContentLoaded", function () {
+            pageConfig = new TablePaginator({
+                tableId: 'rankTable',
+                searchInputId: 'searchRank',
+                paginationId: 'pagination',
+                visibleCountId: 'visibleCount',
+                noResultsId: 'noResults',
+                rowsPerPage: 10
+            });
+        });
+
+        // Hàm hỗ trợ render lại HTML dòng sau khi lưu thành công
+        function getRowHtml(id, index, tenHang, mocDiem, tyLe) {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            return `
+                <td class="text-center text-muted fw-bold">${index}</td>
+                <td class="text-center">
+                    <div class="fw-bold" style="color: var(--yellow); font-size: 1.05rem; letter-spacing: 0.5px;">
+                        <i class="bi bi-star-fill text-warning me-2"></i>${tenHang}
+                    </div>
+                </td>
+                <td class="text-center fw-semibold">
+                    ${mocDiem} <span class="text-muted small">điểm</span>
+                </td>
+                <td class="text-center fw-bold text-success" style="font-size: 1.05rem;">
+                    ${tyLe}<i class="bi bi-percent ms-1"></i>
+                </td>
+                <td>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="btn btn-icon-luxury btn-warning-glow" onclick="editRow(${id}, '${tenHang}', ${mocDiem}, ${tyLe}, '${index}')" title="Sửa thông tin">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <a href="/HangThanhViens/Details/${id}" class="btn btn-icon-luxury btn-info-glow" title="Chi tiết">
+                            <i class="bi bi-info-circle"></i>
+                        </a>
+                        <button class="btn btn-icon-luxury btn-danger-glow" onclick="confirmDelete('${id}')" title="Xóa">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
+                    </div>
+                    <form id="deleteForm-${id}" method="post" action="/HangThanhViens/Delete/${id}" style="display:none;">
+                        <input name="__RequestVerificationToken" type="hidden" value="${token}">
+                    </form>
+                </td>
+            `;
+        }
+
+        // ================= 1. INLINE CREATE (THÊM MỚI) =================
+        function addNewRow() {
+            if (document.getElementById('inline-create-row')) return;
+            const tbody = document.getElementById('rankTableBody');
+            const newRowHtml = `
+                <tr id="inline-create-row" style="background-color: rgba(255, 255, 255, 0.05);">
+                    <td class="text-center text-muted fw-bold">Mới</td>
+                    <td class="text-center">
+                        <input type="text" id="newTenHang" class="form-control" placeholder="Tên hạng..." required />
+                    </td>
+                    <td class="text-center">
+                        <input type="number" id="newMocDiem" class="form-control text-center" placeholder="Điểm" min="0" required />
+                    </td>
+                    <td class="text-center d-flex align-items-center justify-content-center">
+                        <input type="number" id="newTyLe" class="form-control text-center me-1" placeholder="%" min="0" max="100" step="0.1" required /> %
+                    </td>
+                    <td>
+                        <div class="d-flex justify-content-center gap-2">
+                            <button class="btn btn-icon-luxury btn-success-glow" onclick="saveNewRow()" title="Lưu lại">
+                                <i class="bi bi-check-lg" style="font-size: 1.2rem;"></i>
+                            </button>
+                            <button class="btn btn-icon-luxury btn-danger-glow" onclick="document.getElementById('inline-create-row').remove()" title="Hủy bỏ">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            tbody.insertAdjacentHTML('afterbegin', newRowHtml);
+        }
+
+        function saveNewRow() {
+            const tenHang = document.getElementById('newTenHang').value;
+            const mocDiem = document.getElementById('newMocDiem').value;
+            const tyLe = document.getElementById('newTyLe').value;
+
+            if (!tenHang || !mocDiem || !tyLe) {
+                Swal.fire('Lỗi', 'Vui lòng nhập đầy đủ thông tin!', 'warning');
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch('/HangThanhViens/CreateAjax', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify({ TenHang: tenHang, MocDiemToiThieu: parseInt(mocDiem), TyLeGiamGia: parseFloat(tyLe) })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({ title: 'Thành công!', text: data.message, icon: 'success', timer: 2000, showConfirmButton: false });
+                    const row = document.getElementById('inline-create-row');
+                    row.id = `row-${data.id}`;
+                    row.style.backgroundColor = "";
+                    row.innerHTML = getRowHtml(data.id, 'Mới', tenHang, mocDiem, tyLe);
+                } else {
+                    Swal.fire('Lỗi', data.message, 'error');
+                }
+            }).catch(() => Swal.fire('Lỗi', 'Không thể kết nối máy chủ.', 'error'));
+        }
+
+
+        // ================= 2. INLINE EDIT (SỬA TRỰC TIẾP) =================
+        function editRow(id, oldName, oldMocDiem, oldTyLe, index) {
+            const row = document.getElementById(`row-${id}`);
+            row.innerHTML = `
+                <td class="text-center text-muted fw-bold">${index}</td>
+                <td class="text-center">
+                    <input type="text" id="editTenHang-${id}" class="form-control" value="${oldName}" required />
+                </td>
+                <td class="text-center">
+                    <input type="number" id="editMocDiem-${id}" class="form-control text-center" value="${oldMocDiem}" min="0" required />
+                </td>
+                <td class="text-center d-flex align-items-center justify-content-center">
+                    <input type="number" id="editTyLe-${id}" class="form-control text-center me-1" value="${oldTyLe}" min="0" max="100" step="0.1" required /> %
+                </td>
+                <td>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="btn btn-icon-luxury btn-success-glow" onclick="saveEditRow(${id}, '${index}', '${oldName}', ${oldMocDiem}, ${oldTyLe})" title="Lưu lại">
+                            <i class="bi bi-check-lg" style="font-size: 1.2rem;"></i>
+                        </button>
+                        <button class="btn btn-icon-luxury btn-danger-glow" onclick="cancelEditRow(${id}, '${index}', '${oldName}', ${oldMocDiem}, ${oldTyLe})" title="Hủy bỏ">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+        }
+
+        function cancelEditRow(id, index, oldName, oldMocDiem, oldTyLe) {
+            const row = document.getElementById(`row-${id}`);
+            row.innerHTML = getRowHtml(id, index, oldName, oldMocDiem, oldTyLe);
+        }
+
+        function saveEditRow(id, index, oldNameFallback, oldMocDiemFallback, oldTyLeFallback) {
+            const tenHang = document.getElementById(`editTenHang-${id}`).value;
+            const mocDiem = document.getElementById(`editMocDiem-${id}`).value;
+            const tyLe = document.getElementById(`editTyLe-${id}`).value;
+
+            if (!tenHang || !mocDiem || !tyLe) {
+                Swal.fire('Lỗi', 'Vui lòng nhập đầy đủ thông tin!', 'warning');
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch(`/HangThanhViens/EditAjax/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify({ ID: id, TenHang: tenHang, MocDiemToiThieu: parseInt(mocDiem), TyLeGiamGia: parseFloat(tyLe) })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({ title: 'Thành công!', text: data.message, icon: 'success', timer: 2000, showConfirmButton: false });
+                    const row = document.getElementById(`row-${id}`);
+                    row.innerHTML = getRowHtml(id, index, tenHang, mocDiem, tyLe);
+                } else {
+                    Swal.fire('Lỗi', data.message, 'error');
+                }
+            }).catch(() => Swal.fire('Lỗi', 'Không thể kết nối máy chủ.', 'error'));
+        }
+    </script>
+}

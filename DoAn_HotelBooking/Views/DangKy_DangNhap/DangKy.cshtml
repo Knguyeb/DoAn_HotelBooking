@@ -1,0 +1,79 @@
+﻿@model DoAn_HotelBooking.Models.TaiKhoan
+
+@{
+    Layout = null; // Không hiện navbar mặc định
+}
+
+@{
+    ViewData["Title"] = "Đăng ký";
+}
+
+<link rel="stylesheet" href="~/css/DangKy_DangNhap/DangKy.css" />
+
+<div class="container">
+    <!-- Nền cong -->
+    <div class="curved-shape"></div>
+    <div class="curved-shape2"></div>
+
+    <!-- Form bên trái -->
+    <div class="form-box">
+        <h1>Đăng ký</h1>
+        <form asp-action="DangKy" asp-controller="DangKy_DangNhap" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="input-box">
+                <input asp-for="HoVaTen" required />
+                <label>Họ và tên</label>
+                <box-icon name="user" color="gray"></box-icon>
+            </div>
+
+            <div class="input-box">
+                <input asp-for="TenDangNhap" required />
+                <label>Tên đăng nhập</label>
+                <box-icon name="id-card" color="gray"></box-icon>
+            </div>
+
+            <div class="input-box">
+                <input asp-for="MatKhau" type="password" id="password" required />
+                <label>Mật khẩu</label>
+                <box-icon id="togglePassword" name="lock-alt" color="gray" style="cursor:pointer"></box-icon>
+            </div>
+
+            <script>
+                const passwordInput = document.getElementById("password");
+                const togglePassword = document.getElementById("togglePassword");
+                togglePassword.addEventListener("click", () => {
+                    const type = passwordInput.type === "password" ? "text" : "password";
+                    passwordInput.type = type;
+                    togglePassword.setAttribute("name", type === "text" ? "lock-open-alt" : "lock-alt");
+                });
+            </script>
+
+            <div class="input-box">
+                <input asp-for="SoDienThoai" required pattern="^0[0-9]{9}$" />
+                <label>Số điện thoại</label>
+                <box-icon name="phone" color="gray"></box-icon>
+            </div>
+
+            <div class="input-box">
+                <input asp-for="Email" type="email" required />
+                <label>Email</label>
+                <box-icon name="envelope" color="gray"></box-icon>
+            </div>
+
+            <button class="btn" type="submit">Đăng ký</button>
+
+            <div class="regi-link">
+                Đã có tài khoản? <a asp-action="DangNhap" asp-controller="DangKy_DangNhap">Đăng nhập</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Chào mừng bên phải -->
+    <div class="info-content">
+        <h2>WELCOME!</h2>
+        <p>We’re delighted to have you here. If you need any assistance, feel free to reach out.</p>
+    </div>
+</div>
+
+<script src="https://unpkg.com/boxicons@2.1.4/dist/boxicons.js"></script>

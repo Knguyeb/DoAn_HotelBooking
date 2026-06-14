@@ -1,0 +1,188 @@
+﻿@using System.Globalization
+@model DoAn_HotelBooking.Models.Phong
+
+@{
+    var quyen = Context.Session.GetString("QuyenHan");
+
+    // Tạo HTML cho Badge Đánh giá
+    // Ép toàn bộ mã HTML thành 1 chuỗi string an toàn
+    string badgeDanhGia = "";
+    if (ViewBag.TrungBinhSao > 0)
+    {
+        badgeDanhGia = $"<span class='badge bg-warning text-dark shadow-sm ms-3 d-inline-flex align-items-center gap-1' style='font-size: 0.85rem; padding: 5px 10px; border-radius: 6px;'><i class='fas fa-star text-danger'></i> <span class='fw-bold'>{ViewBag.TrungBinhSao.ToString("0.0")}</span></span> <span class='ms-2 text-muted fw-normal' style='font-size: 0.85rem;'>({ViewBag.SoDanhGia} đánh giá)</span>";
+    }
+    else
+    {
+        badgeDanhGia = "<span class='badge text-light shadow-sm ms-3 fw-normal d-inline-flex align-items-center' style='font-size: 0.8rem; padding: 5px 10px; border-radius: 6px; background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);'>Chưa có đánh giá</span>";
+    }
+}
+
+<!-- THẺ ẨN: Chứa sẵn Tiêu đề và Badge đã được C# render, dùng flexbox để nằm ngang -->
+<div id="hidden-modal-title" class="d-none">
+    <div class="d-flex align-items-center m-0">
+        <i class="fas fa-bed me-2"></i> Phòng @Model.SoPhong
+        @Html.Raw(badgeDanhGia)
+    </div>
+</div>
+
+<link href="~/css/khachsan/details.css" rel="stylesheet" />
+
+<div class="row g-4 align-items-stretch">
+    <!-- ================= CỘT ẢNH ================= -->
+    <div class="col-md-6 d-flex">
+        @if (!string.IsNullOrEmpty(Model.HinhAnh))
+        {
+            var anhList = Model.HinhAnh.Split(";", StringSplitOptions.RemoveEmptyEntries);
+            <div id="roomPopupCarousel" class="carousel slide shadow-sm rounded overflow-hidden flex-fill" data-bs-ride="carousel" data-bs-interval="3000">
+                <div class="carousel-indicators">
+                    @for (int i = 0; i < anhList.Length; i++)
+                    {
+                        <button type="button" data-bs-target="#roomPopupCarousel" data-bs-slide-to="@i" class="@(i == 0 ? "active" : "")"></button>
+                    }
+                </div>
+                <div class="carousel-inner h-100">
+                    @for (int i = 0; i < anhList.Length; i++)
+                    {
+                        <div class="carousel-item h-100 @(i == 0 ? "active" : "")">
+                            <img src="@anhList[i]" alt="Ảnh phòng @Model.SoPhong" class="d-block w-100 h-100" style="object-fit: cover; min-height: 300px;" />
+                        </div>
+                    }
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#roomPopupCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#roomPopupCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="d-flex align-items-center justify-content-center rounded flex-fill" style="background: rgba(0,0,0,0.2); min-height: 300px;">
+                <p class="text-muted">Chưa có hình ảnh</p>
+            </div>
+        }
+    </div>
+
+    <!-- ================= CỘT THÔNG TIN VÀ NÚT ================= -->
+    <div class="col-md-6 d-flex flex-column">
+
+        <div class="p-3 p-lg-4 rounded-3 d-flex flex-column flex-grow-1" style="border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.15);">
+            <dl class="row mb-0" style="font-size: 0.95rem;">
+                <dt class="col-sm-5 text-muted fw-normal mb-3 d-flex align-items-center"><i class="fas fa-layer-group fa-fw me-2"></i>Tầng</dt>
+                <dd class="col-sm-7 text-light fw-bold mb-3 d-flex align-items-center">@Model.Tang</dd>
+
+                <dt class="col-sm-5 text-muted fw-normal mb-3 d-flex align-items-center"><i class="fas fa-tags fa-fw me-2"></i>Loại phòng</dt>
+                <dd class="col-sm-7 text-light fw-bold mb-3 d-flex align-items-center">@Model.LoaiPhong</dd>
+
+                <dt class="col-sm-5 text-muted fw-normal mb-3 d-flex align-items-center"><i class="fas fa-user-friends fa-fw me-2"></i>Sức chứa</dt>
+                <dd class="col-sm-7 text-light fw-bold mb-3 d-flex align-items-center">@Model.SucChua người</dd>
+
+                <!-- DÒNG TRẠNG THÁI: Đã ép Flexbox để nằm ngang hoàn hảo -->
+                <dt class="col-sm-5 text-muted fw-normal mb-0 d-flex align-items-center"><i class="fas fa-info-circle fa-fw me-2"></i>Trạng thái</dt>
+                <dd class="col-sm-7 mb-0 d-flex align-items-center">
+                    @if (Model.TrangThai == "Còn trống")
+                    {
+                        <span class="badge d-inline-flex align-items-center" style="background-color: rgba(40, 167, 69, 0.15); color: #28a745; border: 1px solid rgba(40,167,69,0.5); padding: 5px 12px; font-size: 0.85rem; border-radius: 6px;">
+                            <i class="bi bi-check-circle-fill me-2"></i> Còn trống
+                        </span>
+                    }
+                    else if (Model.TrangThai == "Đã đặt")
+                    {
+                        <span class="badge d-inline-flex align-items-center" style="background-color: rgba(220, 53, 69, 0.15); color: #dc3545; border: 1px solid rgba(220,53,69,0.5); padding: 5px 12px; font-size: 0.85rem; border-radius: 6px;">
+                            <i class="bi bi-door-closed-fill me-2"></i> Đã đặt
+                        </span>
+                    }
+                    else if (Model.TrangThai == "Bảo trì")
+                    {
+                        <span class="badge d-inline-flex align-items-center" style="background-color: rgba(255, 193, 7, 0.15); color: #ffc107; border: 1px solid rgba(255,193,7,0.5); padding: 5px 12px; font-size: 0.85rem; border-radius: 6px;">
+                            <i class="bi bi-tools me-2"></i> Bảo trì
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge d-inline-flex align-items-center" style="background-color: rgba(108, 117, 125, 0.15); color: #6c757d; border: 1px solid rgba(108,117,125,0.5); padding: 5px 12px; font-size: 0.85rem; border-radius: 6px;">
+                            <i class="bi bi-info-circle-fill me-2"></i> @Model.TrangThai
+                        </span>
+                    }
+                </dd>
+            </dl>
+
+            <div class="d-flex align-items-center mt-4">
+                <span class="text-muted fw-normal me-2" style="font-size: 0.95rem;">
+                    <i class="fas fa-money-bill-wave fa-fw me-1"></i>Giá:
+                </span>
+                <div class="dropup d-inline-block">
+                    <span class="text-success fs-4 fw-bold dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-base-price="@Model.GiaPhong" style="cursor: pointer;" title="Nhấn để đổi tiền tệ">
+                        @Convert.ToDouble(Model.GiaPhong).ToString("N0") VNĐ
+                    </span>
+                    <ul class="dropdown-menu dropdown-menu-dark shadow-lg mb-2" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;">
+                        <li><a class="dropdown-item currency-option" href="javascript:void(0)" data-currency="VND">🇻🇳 VNĐ</a></li>
+                        <li><a class="dropdown-item currency-option" href="javascript:void(0)" data-currency="USD">🇺🇸 USD</a></li>
+                        <li><a class="dropdown-item currency-option" href="javascript:void(0)" data-currency="EUR">🇪🇺 EUR</a></li>
+                    </ul>
+                </div>
+                <span class="text-muted fs-6 fw-bold ms-2">/ đêm</span>
+            </div>
+        </div>
+
+        <div class="d-flex gap-3 mt-3">
+            @if (quyen == "Khách hàng")
+            {
+                @if (Model.TrangThai == "Còn trống")
+                {
+                    <a asp-controller="DatPhongs" asp-action="Create" asp-route-MaPhong="@Model.ID" asp-route-MaTaiKhoan="@ViewBag.MaTaiKhoan" class="btn btnSua flex-grow-1 text-center py-2 fw-bold d-flex align-items-center justify-content-center">
+                        <i class="bi bi-calendar-check-fill me-2"></i> Đặt phòng
+                    </a>
+                }
+                else if (Model.TrangThai == "Đã đặt")
+                {
+                    <button type="button" class="btn btnDisabled flex-grow-1 text-center py-2 fw-bold d-flex align-items-center justify-content-center"
+                            onclick="Swal.fire({ icon: 'warning', title: 'Phòng đã được đặt!', text: 'Vui lòng chọn một phòng khác đang còn trống.', confirmButtonText: 'Đóng', background: '#1e1e1e', color: '#ffffff', confirmButtonColor: '#dc3545' })">
+                        <i class="bi bi-door-closed-fill me-2"></i> Đã hết phòng
+                    </button>
+                }
+                else if (Model.TrangThai == "Bảo trì")
+                {
+                    <button type="button" class="btn btnDisabled flex-grow-1 text-center py-2 fw-bold d-flex align-items-center justify-content-center"
+                            onclick="Swal.fire({ icon: 'info', title: 'Đang bảo trì!', text: 'Phòng này đang được dọn dẹp hoặc sửa chữa. Vui lòng quay lại sau.', confirmButtonText: 'Đóng', background: '#1e1e1e', color: '#ffffff', confirmButtonColor: '#ffc107' })">
+                        <i class="bi bi-tools me-2"></i> Đang bảo trì
+                    </button>
+                }
+                <a id="btnDanhGiaPopup" class="btn btnDanhGia flex-grow-1 text-center py-2" data-maphong="@Model.ID" href="javascript:void(0)">
+                    <i class="fas fa-star me-2"></i> Đánh giá
+                </a>
+            }
+            else
+            {
+                <div class="w-100 rounded p-2" style="background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2);">
+                    <p class="text-muted w-100 text-center m-0 fst-italic" style="font-size: 0.9rem;">
+                        Vui lòng đăng nhập tài khoản khách hàng để đặt phòng.
+                    </p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+}
+
+<!-- SCRIPT: Tự động đắp icon giường, tên phòng và Badge Đánh giá vào Tiêu đề Modal -->
+<script>
+    // Dùng setTimeout để đảm bảo Modal đã mở ra và DOM đã sẵn sàng
+    setTimeout(function() {
+        var headerLabel = document.getElementById('roomDetailModalLabel');
+        if (headerLabel) {
+            // Sử dụng cú pháp Dấu Backtick (`) của ES6 để nội dung HTML có chứa chuỗi bên trong không bị lỗi parse
+            headerLabel.innerHTML = `
+                <div class="d-flex align-items-center" style="color: #ffc107;">
+                    <i class="fas fa-bed me-2"></i> Phòng @Model.SoPhong
+                    @Html.Raw(badgeDanhGia)
+                </div>
+            `;
+        }
+    }, 100);
+</script>

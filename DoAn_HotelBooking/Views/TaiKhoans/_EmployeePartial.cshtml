@@ -1,0 +1,113 @@
+﻿@model IEnumerable<DoAn_HotelBooking.Models.TaiKhoan>
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    var listEmployee = Model.Where(x => x.QuyenHan == "Nhân viên").ToList();
+    var quyenHan = HttpContextAccessor.HttpContext.Session.GetString("QuyenHan");
+}
+
+<div class="glass-container">
+    <h4 class="text-success mb-3 fw-bold"><i class="bi bi-person-badge me-2"></i>NHÂN VIÊN</h4>
+
+    <div class="toolbar-wrapper mb-3 d-flex justify-content-between flex-wrap gap-2">
+        <div class="search-box-luxury" style="flex: 1; min-width: 300px; max-width: 500px;">
+            <i class="bi bi-search"></i>
+            <input type="text" id="searchEmployee" placeholder="Tìm tên, email, SĐT..." autocomplete="off">
+        </div>
+        @if (quyenHan == "Admin" || quyenHan == "Quản lý")
+        {
+            <a asp-action="ExportExcel" asp-route-role="Nhân viên" asp-route-maKhachSan="@ViewBag.MaKhachSan" class="btn btn-excel-luxury text-decoration-none d-inline-flex align-items-center">
+                <i class="bi bi-file-earmark-excel me-1"></i> Xuất Excel Nhân viên
+            </a>
+        }
+    </div>
+
+    <div class="table-responsive">
+        <table class="table custom-table align-middle" id="tableEmployee">
+            <thead>
+                <tr>
+                    <th class="text-center" style="width: 5%">#</th>
+                    <th class="text-center">Họ và tên</th>
+                    <th class="text-center">Liên hệ</th>
+                    <th class="text-center">Tên đăng nhập</th>
+                    <th class="text-center">Chi nhánh</th>
+                    <th class="text-center">Tác vụ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int iEmp = 1;
+                }
+                @foreach (var acc in listEmployee)
+                {
+                    <tr>
+                        <td class="text-center text-muted fw-bold">@iEmp</td>
+                        <td class="text-center fw-bold" style="color: var(--yellow);">@acc.HoVaTen</td>
+                        <td class="text-center">
+                            <div class="small text-light">@acc.Email</div>
+                            <div class="small text-success fw-semibold">@acc.SoDienThoai</div>
+                        </td>
+                        <td class="text-center text-info">@acc.TenDangNhap</td>
+                        <td class="text-center">
+                            <span class="badge px-3 py-2" style="background: linear-gradient(135deg, #FF9800, #FF5722); color: white; box-shadow: 0 0 10px rgba(255, 152, 0, 0.4); font-size: 0.85rem;">
+                                @(acc.KhachSan != null ? acc.KhachSan.TenKhachSan : "—")
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex justify-content-center gap-2">
+                                <button type="button" class="btn btn-icon-luxury btn-info-glow" onclick="showDetail1(@acc.ID)" title="Chi tiết">
+                                    <i class="bi bi-info-circle"></i>
+                                </button>
+                                @if (ViewBag.CurrentRole == "Admin" || ViewBag.CurrentRole == "Quản lý")
+                                {
+                                    <a asp-action="Edit" asp-route-id="@acc.ID"
+                                       asp-route-returnUrl="@(ViewBag.FromHotel == true && acc.MaKhachSan != null ? Url.Action("Index", "TaiKhoans", new { maKhachSan = acc.MaKhachSan }) : Url.Action("Index", "TaiKhoans"))"
+                                       class="btn btn-icon-luxury btn-warning-glow" title="Sửa">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <button class="btn btn-icon-luxury btn-danger-glow" onclick="confirmDelete('@acc.ID')" title="Xóa">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                }
+                            </div>
+                            <form id="deleteForm-@acc.ID" method="post" asp-controller="TaiKhoans" asp-action="Delete" asp-route-id="@acc.ID" style="display:none;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="maKhachSan" value="@(acc.MaKhachSan ?? "")" />
+                                <input type="hidden" name="returnUrl" value="@(ViewBag.FromHotel == true && acc.MaKhachSan != null ? Url.Action("Index", "TaiKhoans", new { maKhachSan = acc.MaKhachSan }) : Url.Action("Index", "TaiKhoans"))" />
+                            </form>
+                        </td>
+                    </tr>
+                    iEmp++;
+                }
+            </tbody>
+        </table>
+
+        <!-- Khung trống -->
+        <div id="noResultsEmployee" class="text-center py-4" style="display: none;">
+            <i class="bi bi-search mb-2" style="font-size: 2.5rem; color: var(--yellow); opacity: 0.5;"></i>
+            <h6 class="text-light">Không tìm thấy Nhân viên nào</h6>
+            <button type="button" onclick="employeeTableConfig.clearSearch()" class="btn btn-outline-warning mt-2 rounded-pill px-4">
+                <i class="bi bi-arrow-clockwise me-1"></i> Hiển thị tất cả
+            </button>
+        </div>
+    </div>
+
+    <!-- Phân trang -->
+    <div class="table-footer d-flex justify-content-between align-items-center mt-3 border-top border-secondary pt-3">
+        <span class="text-secondary small">Hiển thị <strong id="visibleCountEmployee" class="text-light">0</strong> / @listEmployee.Count()</span>
+        <nav><ul id="paginationEmployee" class="pagination pagination-luxury mb-0"></ul></nav>
+    </div>
+</div>
+
+<script>
+    var employeeTableConfig;
+    document.addEventListener("DOMContentLoaded", function () {
+        employeeTableConfig = new TablePaginator({
+            tableId: 'tableEmployee',
+            searchInputId: 'searchEmployee',
+            paginationId: 'paginationEmployee',
+            visibleCountId: 'visibleCountEmployee',
+            noResultsId: 'noResultsEmployee',
+            rowsPerPage: 5
+        });
+    });
+</script>

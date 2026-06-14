@@ -1,0 +1,46 @@
+services:
+  web:
+    build: .
+    image: hotel-booking-web:v1
+    ports:
+      - "5000:8080"
+    depends_on:
+      - db
+    environment:
+      # 1. Chuỗi kết nối Database
+      - ConnectionStrings__DoAn_HotelBookingContext=Server=db;Database=HotelBookingDb;User Id=sa;Password=YourPassword123;TrustServerCertificate=True;
+      
+      # 2. Cấu hình Email (Bắt buộc để gửi mail trong Docker)
+      # Thay bằng email và Mật khẩu ứng dụng Gmail của bạn
+      - EmailConfig__SmtpServer=smtp.gmail.com
+      - EmailConfig__SmtpPort=587
+      - EmailConfig__SenderEmail=${EMAIL}
+      - EmailConfig__SenderPassword=${EMAIL_PASSWORD}
+  
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourPassword123
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql # Ổ cứng ảo giúp tắt Docker đi bật lại không bị mất dữ liệu phòng/đơn hàng
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    depends_on:
+      - web
+    ports:
+      - "4040:4040"
+    environment:
+      # Sử dụng ${} để gọi biến từ file .env
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    command:
+      - "http"
+      - "web:8080"
+      - "--host-header=rewrite"
+
+# Khai báo ổ cứng ảo cho Database
+volumes:
+  sql_data:

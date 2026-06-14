@@ -1,0 +1,169 @@
+﻿@model IEnumerable<DoAn_HotelBooking.Models.Phong>
+
+@{
+    // Truyền tên khách sạn từ Controller sang ViewBag để hiển thị
+    ViewData["Title"] = "Danh sách phòng - " + ViewBag.TenKhachSan;
+}
+
+<link rel="stylesheet" href="~/css/Home.css" asp-append-version="true" />
+
+<div class="hero-banner">
+    <div class="hero-content text-center">
+        <h1 class="hero-title">@ViewBag.TenKhachSan</h1>
+        <p class="hero-subtitle">Khám phá các hạng phòng đẳng cấp dành riêng cho bạn</p>
+    </div>
+</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mt-4">
+    @foreach (var item in Model)
+    {
+        <div class="col">
+            <div class="card h-100 hotel-card">
+
+                <div class="position-relative overflow-hidden" style="border-radius: 15px 15px 0 0;">
+                    @{
+                        var roomImg = (item.HinhAnh ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim();
+                        string imgSrc = string.IsNullOrEmpty(roomImg) ? Url.Content("~/Images/no-image.png") :
+                        (roomImg.StartsWith("/") ? Url.Content("~" + roomImg) : Url.Content("~/Images/" + roomImg));
+
+                        // Xử lý 3 trạng thái
+                        string trangThai = item.TrangThai ?? "";
+                        string badgeText = trangThai;
+                        string badgeStyle = "background-color: rgba(108, 117, 125, 0.9); color: white;"; // Mặc định (Xám)
+                        string badgeIcon = "bi-info-circle-fill"; // Icon mặc định
+
+                        if (trangThai == "Còn trống")
+                        {
+                            badgeStyle = "background-color: rgba(40, 167, 69, 0.95); color: #fff; box-shadow: 0 4px 10px rgba(40,167,69,0.3);";
+                            badgeIcon = "bi-check-circle-fill"; // Icon dấu tick check
+                        }
+                        else if (trangThai == "Đã đặt")
+                        {
+                            badgeStyle = "background-color: rgba(220, 53, 69, 0.95); color: #fff; box-shadow: 0 4px 10px rgba(220,53,69,0.3);";
+                            badgeIcon = "bi-door-closed-fill"; // Icon cửa đóng
+                        }
+                        else if (trangThai == "Bảo trì")
+                        {
+                            badgeStyle = "background-color: rgba(255, 193, 7, 0.95); color: #000; box-shadow: 0 4px 10px rgba(255,193,7,0.3);";
+                            badgeIcon = "bi-tools"; // Icon dụng cụ sửa chữa
+                        }
+                    }
+
+                    <img src="@imgSrc" class="card-img-top" alt="Phòng @item.SoPhong" style="height: 220px; object-fit: cover; transition: transform 0.3s ease;">
+
+                    <!-- Tem trạng thái (Badge) đã tích hợp Icon -->
+                    <span class="badge position-absolute top-0 end-0 m-3" style="@badgeStyle font-size: 0.85rem; padding: 8px 15px; border-radius: 8px; backdrop-filter: blur(4px); font-weight: 600;">
+                        <i class="bi @badgeIcon me-1"></i> @badgeText
+                    </span>
+                </div>
+
+                <div class="card-body d-flex flex-column text-white">
+
+                    <h5 class="card-title text-warning fw-bold mb-4 text-center">
+                        <i class="fas fa-bed me-2"></i> Phòng @item.SoPhong
+                    </h5>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4 pb-3" style="border-bottom: 1px dashed rgba(255,255,255,0.1);">
+                        <div class="text-muted">
+                            <i class="fas fa-layer-group text-secondary me-1"></i> Loại:
+                            <strong class="text-light">@(item.LoaiPhong ?? "Đang cập nhật")</strong>
+                        </div>
+
+                        <div>
+                            @if (item.TrungBinhSao > 0)
+                            {
+                                <span class="badge bg-warning text-dark shadow-sm px-2 py-1" style="font-size: 0.9rem;">
+                                    <i class="fas fa-star"></i> @item.TrungBinhSao.ToString("0.0")
+                                </span>
+                                <small class="text-muted ms-2 fst-italic">(@ViewBag.SoDanhGia đánh giá)</small>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary shadow-sm px-2 py-1" style="font-size: 0.85rem; font-weight: normal;">
+                                    Chưa đánh giá
+                                </span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="mt-auto d-flex align-items-center gap-2">
+                        <span class="text-info"><i class="fas fa-tag me-1"></i> Giá:</span>
+
+                        <div class="dropdown">
+                            <span class="text-success fw-bold fs-5 dropdown-toggle"
+                                  data-bs-toggle="dropdown"
+                                  aria-expanded="false"
+                                  data-base-price="@item.GiaPhong"
+                                  style="cursor: pointer;"
+                                  title="Nhấn để đổi tiền tệ">
+                                @Convert.ToDouble(@item.GiaPhong).ToString("N0") VNĐ
+                            </span>
+                            <ul class="dropdown-menu dropdown-menu-dark shadow-lg mt-2" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;">
+                                <li><a class="dropdown-item currency-option" href="javascript:void(0)" data-currency="VND">🇻🇳 VNĐ</a></li>
+                                <li><a class="dropdown-item currency-option" href="javascript:void(0)" data-currency="USD">🇺🇸 USD</a></li>
+                                <li><a class="dropdown-item currency-option" href="javascript:void(0)" data-currency="EUR">🇪🇺 EUR</a></li>
+                            </ul>
+                        </div>
+
+                        <small class="text-muted"> / đêm</small>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-transparent border-0 p-3 pt-0">
+                    <button type="button"
+                            class="btn btn-outline-warning w-100 btn-xem-chi-tiet-phong"
+                            style="border-radius: 30px; font-weight: bold;"
+                            data-bs-toggle="modal"
+                            data-bs-target="#dynamicAjaxModal"
+                            data-id="@item.ID"
+                            data-title="Phòng @item.SoPhong"
+                            data-url="@Url.Action("DetailsPartial", "Phongs", new { id = item.ID })">
+                        Xem chi tiết <i class="fas fa-arrow-right ms-1"></i>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal Chi tiết phòng -->
+<div class="modal fade" id="dynamicAjaxModal" tabindex="-1" aria-labelledby="dynamicAjaxModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content custom-modal-bg text-light" style="border: 1px solid rgba(255, 215, 0, 0.2); border-radius: 15px;">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title text-warning fw-bold" id="dynamicAjaxModalLabel">
+                    <div class="spinner-border spinner-border-sm text-warning me-2" role="status"></div> Đang tải...
+                </h5>
+                <button type="button" class="btn-close btn-close-white opacity-75" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body pt-3 pb-4">
+            </div>
+        </div>
+    </div>
+</div>
+
+@{
+    // Đảm bảo TotalPages và CurrentPage luôn có giá trị hợp lệ (ít nhất là 1)
+    int totalPages = ViewBag.TotalPages != null && ViewBag.TotalPages > 0 ? ViewBag.TotalPages : 1;
+    int currentPage = ViewBag.CurrentPage != null && ViewBag.CurrentPage > 0 ? ViewBag.CurrentPage : 1;
+}
+
+<nav aria-label="Page navigation" class="mt-5 mb-4">
+    <ul class="pagination justify-content-center">
+        @for (int i = 1; i <= totalPages; i++)
+        {
+            <li class="page-item @(i == currentPage ? "active" : "")">
+                <a class="page-link" asp-route-page="@i" asp-route-maKhachSan="@ViewBag.MaKhachSan">@i</a>
+            </li>
+        }
+    </ul>
+</nav>
+
+@section Scripts {
+    <script src="~/js/Share/ScrollTop.js"></script>
+    <script src="~/js/Share/DoiTien.js"></script>
+    <script src="~/js/DanhGia/DanhGiaPhong.js" asp-append-version="true"></script>
+    <script src="~/js/Share/PopUpDetails.js" asp-append-version="true"></script>
+}
