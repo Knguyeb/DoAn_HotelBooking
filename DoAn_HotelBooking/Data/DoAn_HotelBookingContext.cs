@@ -1,15 +1,18 @@
-﻿using System;
+﻿using DoAn_HotelBooking.Models;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using DoAn_HotelBooking.Models;
 
 namespace DoAn_HotelBooking.Data
 {
-    public class DoAn_HotelBookingContext : DbContext
+    // Đã sửa IDataProtectionProvider thành IDataProtectionKeyContext
+    public class DoAn_HotelBookingContext : DbContext, IDataProtectionKeyContext
     {
-        public DoAn_HotelBookingContext (DbContextOptions<DoAn_HotelBookingContext> options)
+        public DoAn_HotelBookingContext(DbContextOptions<DoAn_HotelBookingContext> options)
             : base(options)
         {
         }
@@ -21,5 +24,8 @@ namespace DoAn_HotelBooking.Data
         public DbSet<DoAn_HotelBooking.Models.DanhGiaKS> DanhGiaKS { get; set; } = default!;
         public DbSet<DoAn_HotelBooking.Models.DanhGiaPhong> DanhGiaPhong { get; set; } = default!;
         public DbSet<DoAn_HotelBooking.Models.HangThanhVien> HangThanhVien { get; set; } = default!;
+
+        // Bảng dùng để lưu chìa khóa bảo mật
+        public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
     }
 }

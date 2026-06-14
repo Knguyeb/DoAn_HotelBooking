@@ -4,7 +4,9 @@ using DoAn_HotelBooking.Helpers;
 using DotNetEnv;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 
 Env.Load("../.env");
@@ -15,18 +17,24 @@ Console.WriteLine("DATABASE_URL: " + Environment.GetEnvironmentVariable("DATABAS
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Cấu hình trung gian ép hệ thống nhận diện HTTPS khi chạy qua Proxy của Render
+// 1. CẤU HÌNH PROXY RENDER (Đã gộp thành 1 khối duy nhất)
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
 });
 
-// Kết nối DB
+// 2. KHAI BÁO KẾT NỐI DATABASE TRƯỚC
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
     ?? throw new Exception("DATABASE_URL not found");
 
 builder.Services.AddDbContext<DoAn_HotelBookingContext>(options =>
     options.UseNpgsql(connectionString));
+
+// 3. SAU ĐÓ MỚI GỌI DATA PROTECTION (Vì nó cần Database ở trên để lưu chìa khóa)
+builder.Services.AddDataProtection()
+    .PersistKeysToDbContext<DoAn_HotelBookingContext>();
 
 // Add services
 builder.Services.AddControllersWithViews();
@@ -56,19 +64,10 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddScoped<ThangHangHelper>();
 
-builder.Services.Configure<ForwardedHeadersOptions>(options =>
-{
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    // 2 dòng dưới đây là MẤU CHỐT để C# tin tưởng hệ thống proxy của Render
-    options.KnownNetworks.Clear();
-    options.KnownProxies.Clear();
-});
-
 var app = builder.Build();
 
 // ==========================================
 // FIX LỖI ĐĂNG NHẬP GOOGLE TRÊN RENDER
-// Đảm bảo request luôn được hiểu là HTTPS
 // ==========================================
 app.UseForwardedHeaders();
 app.Use((context, next) =>
@@ -77,13 +76,13 @@ app.Use((context, next) =>
     return next();
 });
 
-// Seed dữ liệu với cơ chế thử lại (Retry)
+// Seed dữ liệu và tự động tạo/cập nhật bảng
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<DoAn_HotelBookingContext>();
 
-    // Tự động tạo DB nếu chưa có
+    // Dòng này sẽ tự động chạy file Migration để tạo bảng DataProtectionKeys trên Render
     context.Database.Migrate();
 
     // Seed dữ liệu
