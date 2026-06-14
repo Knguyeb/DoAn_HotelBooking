@@ -1021,50 +1021,59 @@ namespace DoAn_HotelBooking.Controllers
         {
             try
             {
-                // 1. Tự động đọc từ appsettings.json HOẶC biến môi trường của Docker (EmailConfig__SenderEmail)
-                string fromEmail = _configuration["EmailConfig:SenderEmail"] ?? Environment.GetEnvironmentVariable("EMAIL");
-                string appPassword = _configuration["EmailConfig:SenderPassword"] ?? Environment.GetEnvironmentVariable("EMAIL_PASSWORD");
+                // 1. Lấy thông tin từ cấu hình hoặc Render Environment
+                string senderEmail = _configuration["EmailConfig:SenderEmail"] ?? Environment.GetEnvironmentVariable("EMAIL");
+                string apiKey = Environment.GetEnvironmentVariable("EMAIL_PASSWORD");
 
-                // Đọc thêm cấu hình SMTP nếu có
-                string smtpServer = _configuration["EmailConfig:SmtpServer"] ?? "smtp.gmail.com";
-                int smtpPort = int.TryParse(_configuration["EmailConfig:SmtpPort"], out int port) ? port : 587;
-
-                // 2. KIỂM TRA CUỐI CÙNG
-                if (string.IsNullOrEmpty(fromEmail) || string.IsNullOrEmpty(appPassword))
+                if (string.IsNullOrEmpty(senderEmail) || string.IsNullOrEmpty(apiKey))
                 {
-                    TempData["ErrorMessage"] = "Lỗi hệ thống: Không tìm thấy tài khoản cấu hình Email!";
+                    TempData["ErrorMessage"] = "Lỗi hệ thống: Không tìm thấy tài khoản Email hoặc API Key!";
+                    Console.WriteLine("LỖI: Thiếu biến môi trường EMAIL hoặc EMAIL_PASSWORD");
                     return false;
                 }
 
-                var message = new MailMessage(fromEmail, toEmail, subject, body)
+                // 2. Sử dụng HttpClient để gọi API qua cổng bảo mật HTTPS (Vượt rào Render)
+                using (var client = new System.Net.Http.HttpClient())
                 {
-                    IsBodyHtml = true
-                };
+                    // Gắn chìa khóa API vào Header
+                    client.DefaultRequestHeaders.Add("api-key", apiKey);
+                    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
-                using (var client = new SmtpClient(smtpServer, smtpPort))
-                {
-                    // THỨ TỰ 3 DÒNG NÀY CỰC KỲ QUAN TRỌNG TRÊN ĐÁM MÂY
-                    client.UseDefaultCredentials = false; // BƯỚC 1: Bắt buộc tắt tài khoản mặc định của máy chủ Linux
-                    client.Credentials = new NetworkCredential(fromEmail, appPassword); // BƯỚC 2: Nạp chìa khóa của bạn vào
-                    client.EnableSsl = true; // BƯỚC 3: Bật đường ống bảo mật
+                    // Đóng gói dữ liệu Email theo đúng chuẩn của Brevo
+                    var emailData = new
+                    {
+                        sender = new { name = "Hệ thống Đặt phòng Khách sạn", email = senderEmail },
+                        to = new[] { new { email = toEmail } },
+                        subject = subject,
+                        htmlContent = body
+                    };
 
-                    client.Timeout = 30000; // Tăng lên 30s để đề phòng mạng Render bị nghẽn
+                    // Chuyển dữ liệu sang chuỗi JSON
+                    string jsonContent = System.Text.Json.JsonSerializer.Serialize(emailData);
+                    var content = new System.Net.Http.StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
 
-                    await client.SendMailAsync(message);
+                    // Bấm nút gửi lên máy chủ Brevo
+                    var response = await client.PostAsync("https://api.brevo.com/v3/smtp/email", content);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine("THÀNH CÔNG: Đã gửi email qua Brevo API!");
+                        return true;
+                    }
+                    else
+                    {
+                        // Bắt lỗi chi tiết nếu gửi thất bại
+                        string errorResult = await response.Content.ReadAsStringAsync();
+                        Console.WriteLine($"LỖI TỪ BREVO: {response.StatusCode} - {errorResult}");
+                        TempData["ErrorMessage"] = "Lỗi cấu hình gửi mail: " + response.StatusCode;
+                        return false;
+                    }
                 }
-
-                return true;
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Lỗi khi gửi mail: " + ex.Message;
-
-                // In ra lỗi ngoài
-                Console.WriteLine("LỖI GỬI EMAIL: " + ex.Message);
-
-                // 🚀 BỔ SUNG DÒNG NÀY ĐỂ BẮT TẬN TAY THỦ PHẠM
-                Console.WriteLine("CHI TIẾT (INNER): " + ex.InnerException?.Message);
-
+                TempData["ErrorMessage"] = "Lỗi khi gọi API gửi mail: " + ex.Message;
+                Console.WriteLine("LỖI GỬI EMAIL API (Ngoại lệ): " + ex.Message);
                 return false;
             }
         }
