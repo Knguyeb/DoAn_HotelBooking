@@ -1058,7 +1058,13 @@ namespace DoAn_HotelBooking.Controllers
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = "Lỗi khi gửi mail: " + ex.Message;
-                Console.WriteLine("LỖI GỬI EMAIL: " + ex.Message); // In ra log của Docker để dễ debug
+
+                // In ra lỗi ngoài
+                Console.WriteLine("LỖI GỬI EMAIL: " + ex.Message);
+
+                // 🚀 BỔ SUNG DÒNG NÀY ĐỂ BẮT TẬN TAY THỦ PHẠM
+                Console.WriteLine("CHI TIẾT (INNER): " + ex.InnerException?.Message);
+
                 return false;
             }
         }
