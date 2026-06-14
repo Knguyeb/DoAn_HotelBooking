@@ -331,15 +331,6 @@
                                                 <i class="bi bi-qr-code-scan"></i>
                                             </button>
                                         }
-                                        else if (item.TrangThaiDatPhong == "Đã hủy")
-                                        {
-                                            <button type="button" class="btn btn-icon-luxury btn-danger-glow" onclick="confirmDelete('@item.ID')" title="Xóa lịch sử này">
-                                                <i class="bi bi-trash-fill"></i>
-                                            </button>
-                                            <form id="deleteForm-@item.ID" method="post" asp-action="Delete" asp-controller="DatPhongs" asp-route-id="@item.ID" style="display:none;">
-                                                @Html.AntiForgeryToken()
-                                            </form>
-                                        }
 
                                         <button type="button" class="btn btn-icon-luxury btn-info-glow" title="Chi tiết đơn" data-bs-toggle="modal" data-bs-target="#dynamicAjaxModal" data-title="Chi tiết mã đơn #@item.ID" data-url="@Url.Action("DetailsPartial", "DatPhongs", new { id = item.ID })">
                                             <i class="bi bi-info-circle"></i>

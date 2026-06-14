@@ -537,7 +537,7 @@ namespace DoAn_HotelBooking.Controllers
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Đặt phòng thành công! Hạng thành viên của bạn đã được áp dụng ưu đãi.";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(LichSuDatPhong));
         }
 
         // GET: DatPhongs/Edit/5
@@ -606,7 +606,7 @@ namespace DoAn_HotelBooking.Controllers
                 TempData["SuccessMessage"] = "🗑️ Xóa thành công!";
             }
 
-            return RedirectToAction(nameof(LichSuDatPhong));
+            return RedirectToAction(nameof(Index));
         }
 
         private bool DatPhongExists(int id)
