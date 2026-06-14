@@ -56,6 +56,14 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddScoped<ThangHangHelper>();
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    // 2 dòng dưới đây là MẤU CHỐT để C# tin tưởng hệ thống proxy của Render
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 var app = builder.Build();
 
 // ==========================================
