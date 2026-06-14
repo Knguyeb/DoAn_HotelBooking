@@ -185,5 +185,3 @@ Properties/launchSettings.json
 # 🚫 BỎ QUA CÁC FILE TẠO RA TRONG QUÁ TRÌNH CHẠY WEB
 # =========================================
 wwwroot/HoaDonPDF/
-wwwroot/images/
-wwwroot/Images/
