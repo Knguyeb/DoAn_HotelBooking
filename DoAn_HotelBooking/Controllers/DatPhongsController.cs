@@ -1043,9 +1043,12 @@ namespace DoAn_HotelBooking.Controllers
 
                 using (var client = new SmtpClient(smtpServer, smtpPort))
                 {
-                    client.EnableSsl = true;
-                    client.Credentials = new NetworkCredential(fromEmail, appPassword);
-                    client.Timeout = 20000; // Tăng thời gian chờ nếu mạng yếu
+                    // THỨ TỰ 3 DÒNG NÀY CỰC KỲ QUAN TRỌNG TRÊN ĐÁM MÂY
+                    client.UseDefaultCredentials = false; // BƯỚC 1: Bắt buộc tắt tài khoản mặc định của máy chủ Linux
+                    client.Credentials = new NetworkCredential(fromEmail, appPassword); // BƯỚC 2: Nạp chìa khóa của bạn vào
+                    client.EnableSsl = true; // BƯỚC 3: Bật đường ống bảo mật
+
+                    client.Timeout = 30000; // Tăng lên 30s để đề phòng mạng Render bị nghẽn
 
                     await client.SendMailAsync(message);
                 }
