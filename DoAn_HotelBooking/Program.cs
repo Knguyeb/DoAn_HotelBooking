@@ -82,10 +82,13 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<DoAn_HotelBookingContext>();
 
-    // Dòng này sẽ tự động chạy file Migration để tạo bảng DataProtectionKeys trên Render
+    // 🚀 Dòng này có tác dụng y hệt Update-Database 0, nhưng nó sẽ chạy trên Render!
+    context.Database.EnsureDeleted();
+
+    // Dòng này sẽ xây lại toàn bộ các bảng mới tinh (bao gồm cả bảng chứa chìa khóa)
     context.Database.Migrate();
 
-    // Seed dữ liệu
+    // Nạp lại dữ liệu mẫu
     SeedData.Initialize(services);
 }
 
