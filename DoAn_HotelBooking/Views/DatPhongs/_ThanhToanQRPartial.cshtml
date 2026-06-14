@@ -18,7 +18,8 @@
     if (!daThanhToan)
     {
         // ✅ ĐÃ SỬA: Tự động lấy tên miền (localhost lúc test máy nhà, hoặc onrender lúc báo cáo)
-        string currentDomain = $"{Context.Request.Scheme}://{Context.Request.Host}";
+        // Ép buộc dùng https và nối với tên miền hiện tại
+        string currentDomain = $"https://{Context.Request.Host}";
 
         // Nối tên miền với đường dẫn tới trang thanh toán
         string paymentLink = $"{currentDomain}/DatPhongs/TrangThanhToanDienThoai/{Model.ID}";
