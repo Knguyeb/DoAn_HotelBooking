@@ -17,9 +17,13 @@
 
     if (!daThanhToan)
     {
-        string baseUrl = "https://tying-uncrown-grant.ngrok-free.dev";
-        string paymentLink = $"{baseUrl}/DatPhongs/TrangThanhToanDienThoai/{Model.ID}";
+        // ✅ ĐÃ SỬA: Tự động lấy tên miền (localhost lúc test máy nhà, hoặc onrender lúc báo cáo)
+        string currentDomain = $"{Context.Request.Scheme}://{Context.Request.Host}";
 
+        // Nối tên miền với đường dẫn tới trang thanh toán
+        string paymentLink = $"{currentDomain}/DatPhongs/TrangThanhToanDienThoai/{Model.ID}";
+
+        // Mã hóa link để nhét vào API tạo mã QR
         string encodedUrl = Uri.EscapeDataString(paymentLink);
         qrUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={encodedUrl}";
     }
