@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DoAn_HotelBooking.Migrations
 {
     [DbContext(typeof(DoAn_HotelBookingContext))]
-    [Migration("20260613235058_CreatePostgresDB")]
-    partial class CreatePostgresDB
+    [Migration("20260614061103_CreateDB")]
+    partial class CreateDB
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -279,6 +279,25 @@ namespace DoAn_HotelBooking.Migrations
                         .IsUnique();
 
                     b.ToTable("TaiKhoan");
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FriendlyName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Xml")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DataProtectionKeys");
                 });
 
             modelBuilder.Entity("DoAn_HotelBooking.Models.DanhGiaKS", b =>
