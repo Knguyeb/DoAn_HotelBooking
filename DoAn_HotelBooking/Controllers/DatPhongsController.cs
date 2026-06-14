@@ -606,7 +606,7 @@ namespace DoAn_HotelBooking.Controllers
                 TempData["SuccessMessage"] = "🗑️ Xóa thành công!";
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(LichSuDatPhong));
         }
 
         private bool DatPhongExists(int id)
@@ -887,7 +887,7 @@ namespace DoAn_HotelBooking.Controllers
                 TempData["ErrorMessage"] = "Không thể hủy vì phòng đã thanh toán hoặc đã hoàn tất!";
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(LichSuDatPhong));
         }
         [HttpGet]
         public async Task<IActionResult> XuatHoaDonPDF(int id)
