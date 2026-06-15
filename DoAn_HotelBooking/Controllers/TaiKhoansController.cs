@@ -216,7 +216,7 @@ namespace DoAn_HotelBooking.Controllers
             // ❌ Nếu có lỗi validation chung → load lại form Create
             return ReloadViewWithError(taiKhoan, returnUrl);
         }
-      
+
         // GET: TaiKhoans/Edit/5
         public async Task<IActionResult> Edit(int? id, string? returnUrl, string? maKhachSan)
         {
@@ -224,6 +224,29 @@ namespace DoAn_HotelBooking.Controllers
 
             var taiKhoan = await _context.TaiKhoan.FindAsync(id);
             if (taiKhoan == null) return NotFound();
+
+            // ==========================================
+            // 🌟 1. KIỂM TRA QUYỀN TRUY CẬP (GET)
+            // ==========================================
+            var quyenHan = HttpContext.Session.GetString("QuyenHan");
+            var maKhachSanUser = HttpContext.Session.GetString("MaKhachSan");
+
+            if (quyenHan != "Admin")
+            {
+                // Chặn sửa Admin
+                if (taiKhoan.QuyenHan == "Admin")
+                {
+                    TempData["ErrorMessage"] = "🚫 Lỗi bảo mật: Bạn không có quyền can thiệp vào tài khoản Quản trị viên!";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Chặn sửa nhân viên/quản lý của Khách sạn khác (Trừ khách hàng dùng chung)
+                if (taiKhoan.QuyenHan != "Khách hàng" && taiKhoan.MaKhachSan != maKhachSanUser)
+                {
+                    TempData["ErrorMessage"] = "🚫 Từ chối truy cập: Tài khoản này thuộc về chi nhánh khác!";
+                    return RedirectToAction(nameof(Index));
+                }
+            }
 
             ViewData["MaKhachSan"] = new SelectList(
                 _context.KhachSan,
@@ -242,6 +265,7 @@ namespace DoAn_HotelBooking.Controllers
 
             return View(taiKhoan);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -263,6 +287,36 @@ namespace DoAn_HotelBooking.Controllers
             {
                 var existing = await _context.TaiKhoan.FindAsync(id);
                 if (existing == null) return NotFound();
+
+                // ==========================================
+                // 🌟 2. KIỂM TRA QUYỀN BẢO MẬT KHI LƯU (POST)
+                // ==========================================
+                var quyenHan = HttpContext.Session.GetString("QuyenHan");
+                var maKhachSanUser = HttpContext.Session.GetString("MaKhachSan");
+
+                if (quyenHan != "Admin")
+                {
+                    // Kiểm tra trên dữ liệu GỐC (existing) thay vì dữ liệu gửi lên (taiKhoan)
+                    if (existing.QuyenHan == "Admin")
+                    {
+                        TempData["ErrorMessage"] = "🚫 Gian lận: Bạn không có quyền sửa tài khoản Quản trị viên!";
+                        return RedirectToAction(nameof(Index));
+                    }
+
+                    if (existing.QuyenHan != "Khách hàng" && existing.MaKhachSan != maKhachSanUser)
+                    {
+                        TempData["ErrorMessage"] = "🚫 Gian lận: Không thể sửa nhân sự của chi nhánh khác!";
+                        return RedirectToAction(nameof(Index));
+                    }
+
+                    // CHẶN LEO QUYỀN (Privilege Escalation): 
+                    // Không cho phép Nhân viên/Quản lý tự ý đổi quyền của ai đó (hoặc chính mình) thành Admin
+                    if (taiKhoan.QuyenHan == "Admin")
+                    {
+                        TempData["ErrorMessage"] = "🚫 Lỗi bảo mật: Bạn không có quyền cấp chức vụ Quản trị viên!";
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
 
                 // ✅ Kiểm tra trùng tên đăng nhập
                 string tenDangNhapMoi = taiKhoan.TenDangNhap?.Trim().ToLower();
@@ -286,7 +340,6 @@ namespace DoAn_HotelBooking.Controllers
                 existing.Email = taiKhoan.Email;
                 existing.SoDienThoai = taiKhoan.SoDienThoai;
                 existing.QuyenHan = taiKhoan.QuyenHan;
-                // Xóa dòng: existing.MaKhachSan = taiKhoan.MaKhachSan;
 
                 // ✅ Nếu nhập mật khẩu mới → hash lại, còn trống thì giữ nguyên
                 if (!string.IsNullOrWhiteSpace(taiKhoan.MatKhau))
@@ -312,7 +365,6 @@ namespace DoAn_HotelBooking.Controllers
                 }
             }
 
-            // Nếu validation chung (ModelState.IsValid = false) thất bại
             return ReloadViewWithError(taiKhoan, returnUrl);
         }
 
@@ -324,6 +376,27 @@ namespace DoAn_HotelBooking.Controllers
             var taiKhoan = await _context.TaiKhoan.FindAsync(id);
             if (taiKhoan != null)
             {
+                // ==========================================
+                // 🌟 3. KIỂM TRA QUYỀN TRƯỚC KHI XÓA
+                // ==========================================
+                var quyenHan = HttpContext.Session.GetString("QuyenHan");
+                var maKhachSanUser = HttpContext.Session.GetString("MaKhachSan");
+
+                if (quyenHan != "Admin")
+                {
+                    if (taiKhoan.QuyenHan == "Admin")
+                    {
+                        TempData["ErrorMessage"] = "🚫 Lỗi bảo mật: Không thể xóa tài khoản Quản trị viên!";
+                        return RedirectToAction(nameof(Index));
+                    }
+
+                    if (taiKhoan.QuyenHan != "Khách hàng" && taiKhoan.MaKhachSan != maKhachSanUser)
+                    {
+                        TempData["ErrorMessage"] = "🚫 Từ chối truy cập: Không thể xóa nhân sự của chi nhánh khác!";
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
+
                 _context.TaiKhoan.Remove(taiKhoan);
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = "🗑️ Xóa tài khoản thành công!";
