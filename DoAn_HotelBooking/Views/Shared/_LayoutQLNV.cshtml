@@ -95,7 +95,19 @@
                         </a>
                     </div>
 
-                    <div class="navbar-nav flex-row">
+                    <div class="navbar-nav flex-row align-items-center">
+
+                        <div class="position-relative me-3">
+                            <a href="#"
+                               class="text-light"
+                               data-bs-toggle="modal"
+                               data-bs-target="#thongBaoModal">
+
+                                <i class="fas fa-bell fs-5"></i>
+
+                            </a>
+                        </div>
+
                         <li class="nav-item d-flex align-items-center">
                             <a href="javascript:void(0);" class="nav-link text-light px-3 py-2"
                                onclick="showDetail(
@@ -121,6 +133,34 @@
         </div>
     </div>
 
+    <div class="modal fade" id="thongBaoModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-bell text-warning"></i>
+                        Thông báo
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal">
+                    </button>
+                </div>
+
+                <div class="modal-body" id="thongBaoBody">
+
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-warning"></div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <input type="hidden" id="successMessage" value="@TempData["SuccessMessage"]" />
     <input type="hidden" id="errorMessage" value="@TempData["ErrorMessage"]" />
 
@@ -131,6 +171,7 @@
     <script src="~/js/Share/DangXuat.js" asp-append-version="true"></script>
     <script src="~/js/Share/SideBar.js" asp-append-version="true"></script>
     <script src="~/js/Share/ThongTinChiTiet.js" asp-append-version="true"></script>
+    <script src="~/js/Share/ThongBao.js" asp-append-version="true"></script>
     <script src="~/js/Share/Success.js" asp-append-version="true"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 

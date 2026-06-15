@@ -480,3 +480,30 @@ main {
 .nav-link, .navbar-brand, .footer a {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+#thongBaoModal .modal-content {
+    background-color: #2c2f33;
+    color: white;
+    border: none;
+    border-radius: 12px;
+}
+
+#thongBaoModal .modal-header {
+    border-bottom: 1px solid #444;
+}
+
+#thongBaoModal .modal-title {
+    color: #ffc107;
+}
+
+#thongBaoModal .btn-close {
+    filter: invert(1);
+}
+
+#thongBaoModal .border-bottom {
+    border-color: #444 !important;
+}
+
+#thongBaoModal .text-muted {
+    color: #b0b0b0 !important;
+}

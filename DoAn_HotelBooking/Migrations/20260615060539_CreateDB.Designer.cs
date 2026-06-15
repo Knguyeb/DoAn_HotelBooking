@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DoAn_HotelBooking.Migrations
 {
     [DbContext(typeof(DoAn_HotelBookingContext))]
-    [Migration("20260614061103_CreateDB")]
+    [Migration("20260615060539_CreateDB")]
     partial class CreateDB
     {
         /// <inheritdoc />
@@ -279,6 +279,41 @@ namespace DoAn_HotelBooking.Migrations
                         .IsUnique();
 
                     b.ToTable("TaiKhoan");
+                });
+
+            modelBuilder.Entity("DoAn_HotelBooking.Models.ThongBao", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
+
+                    b.Property<bool>("DaDoc")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Loai")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("MaKhachSan")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("NgayTao")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("NoiDung")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TieuDe")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("ThongBao");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>

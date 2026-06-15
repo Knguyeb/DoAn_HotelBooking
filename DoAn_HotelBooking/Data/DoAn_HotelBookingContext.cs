@@ -24,7 +24,7 @@ namespace DoAn_HotelBooking.Data
         public DbSet<DoAn_HotelBooking.Models.DanhGiaKS> DanhGiaKS { get; set; } = default!;
         public DbSet<DoAn_HotelBooking.Models.DanhGiaPhong> DanhGiaPhong { get; set; } = default!;
         public DbSet<DoAn_HotelBooking.Models.HangThanhVien> HangThanhVien { get; set; } = default!;
-
+        public DbSet<DoAn_HotelBooking.Models.ThongBao> ThongBao { get; set; } = default!;
         // Bảng dùng để lưu chìa khóa bảo mật
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
     }

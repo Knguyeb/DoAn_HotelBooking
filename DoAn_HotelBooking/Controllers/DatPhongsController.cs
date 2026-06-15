@@ -372,8 +372,16 @@ namespace DoAn_HotelBooking.Controllers
                 }
 
                 _context.Update(datPhong);
-                await _context.SaveChangesAsync();
 
+                _context.ThongBao.Add(new ThongBao
+                {
+                    TieuDe = $"{datPhong.TaiKhoan?.HoVaTen} - Thanh toán ({datPhong.Phong?.SoPhong}) - {datPhong.TongTien:N0} VNĐ",
+                    NoiDung = "",
+                    Loai = "ThanhToan",
+                    MaKhachSan = datPhong.Phong?.MaKhachSan
+                });
+
+                await _context.SaveChangesAsync();
                 await _thangHangHelper.KiemTraVaNangHangAsync(datPhong.TaiKhoan);
 
                 // 📧 GỬI EMAIL BIÊN LAI KHI THANH TOÁN QUA ĐIỆN THOẠI THÀNH CÔNG
@@ -569,6 +577,18 @@ namespace DoAn_HotelBooking.Controllers
 
             // 6. Lưu vào Cơ sở dữ liệu
             _context.DatPhong.Add(datPhong);
+
+            var phong = await _context.Phong
+    .FirstOrDefaultAsync(p => p.ID == datPhong.MaPhong);
+
+            _context.ThongBao.Add(new ThongBao
+            {
+                TieuDe = $"{taiKhoan?.HoVaTen} - Đặt phòng ({phong?.SoPhong})",
+                NoiDung = "",
+                Loai = "DatPhong",
+                MaKhachSan = phong?.MaKhachSan
+            });
+
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Đặt phòng thành công! Hạng thành viên của bạn đã được áp dụng ưu đãi.";
@@ -820,8 +840,13 @@ namespace DoAn_HotelBooking.Controllers
             {
                 datPhong.TrangThaiDatPhong = "Đã hủy";
 
-                // ❌ SỬA TẠI ĐÂY: XÓA ĐOẠN RESET TRẠNG THÁI PHÒNG VỀ CÒN TRỐNG
-                // Vì phòng chưa bao giờ bị khóa vật lý, nên ta không cần nhúng tay vào trạng thái vật lý của phòng nữa.
+                _context.ThongBao.Add(new ThongBao
+                {
+                    TieuDe = $"{datPhong.TaiKhoan?.HoVaTen} - Hủy phòng ({datPhong.Phong?.SoPhong})",
+                    NoiDung = "",
+                    Loai = "HuyPhong",
+                    MaKhachSan = datPhong.Phong?.MaKhachSan
+                });
 
                 _context.Update(datPhong);
                 await _context.SaveChangesAsync();

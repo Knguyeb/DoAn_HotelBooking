@@ -12,7 +12,7 @@ namespace DoAn_HotelBooking.Security
             var method = context.HttpContext.Request.Method;
 
             // ✅ BỎ QUA LOGIN + HOME
-            if (controller == "DangNhap" || controller == "Home")
+            if (controller == "DangKy_DangNhap" || controller == "Home")
                 return;
 
             var session = context.HttpContext.Session;
@@ -21,7 +21,11 @@ namespace DoAn_HotelBooking.Security
             // ❌ Chưa đăng nhập → về login
             if (string.IsNullOrEmpty(quyenHan))
             {
-                context.Result = new RedirectToActionResult("Index", "DangNhap", null);
+                context.Result = new RedirectToActionResult(
+                    "DangNhap",
+                    "DangKy_DangNhap",
+                    null);
+
                 return;
             }
 

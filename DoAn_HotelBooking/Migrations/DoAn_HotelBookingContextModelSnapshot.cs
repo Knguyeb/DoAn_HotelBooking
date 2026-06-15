@@ -278,6 +278,41 @@ namespace DoAn_HotelBooking.Migrations
                     b.ToTable("TaiKhoan");
                 });
 
+            modelBuilder.Entity("DoAn_HotelBooking.Models.ThongBao", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
+
+                    b.Property<bool>("DaDoc")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Loai")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("MaKhachSan")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("NgayTao")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("NoiDung")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TieuDe")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("ThongBao");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
                 {
                     b.Property<int>("Id")

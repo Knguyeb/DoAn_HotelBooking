@@ -65,6 +65,11 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddScoped<ThangHangHelper>();
 
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<ChanQuyen>();
+});
+
 var app = builder.Build();
 
 // ==========================================
@@ -89,11 +94,6 @@ using (var scope = app.Services.CreateScope())
     // Nạp lại dữ liệu mẫu
     SeedData.Initialize(services);
 }
-
-builder.Services.AddControllersWithViews(options =>
-{
-    options.Filters.Add<ChanQuyen>();
-});
 
 // Pipeline
 if (!app.Environment.IsDevelopment())
