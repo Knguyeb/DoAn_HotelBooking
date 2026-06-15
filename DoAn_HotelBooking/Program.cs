@@ -1,13 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
-using DoAn_HotelBooking.Data;
+﻿using DoAn_HotelBooking.Data;
 using DoAn_HotelBooking.Helpers;
+using DoAn_HotelBooking.Security;
 using DotNetEnv;
-using Npgsql.EntityFrameworkCore.PostgreSQL;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 Env.Load("../.env");
 
@@ -88,6 +89,11 @@ using (var scope = app.Services.CreateScope())
     // Nạp lại dữ liệu mẫu
     SeedData.Initialize(services);
 }
+
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<ChanQuyen>();
+});
 
 // Pipeline
 if (!app.Environment.IsDevelopment())
