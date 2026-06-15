@@ -4,8 +4,10 @@
 @{
     var quyen = Context.Session.GetString("QuyenHan");
 
+    // Lấy trạng thái hôm nay để xử lý logic hiển thị
+    string trangThai = Model.TrangThaiHomNay ?? Model.TrangThai;
+
     // Tạo HTML cho Badge Đánh giá
-    // Ép toàn bộ mã HTML thành 1 chuỗi string an toàn
     string badgeDanhGia = "";
     if (ViewBag.TrungBinhSao > 0)
     {
@@ -17,7 +19,6 @@
     }
 }
 
-<!-- THẺ ẨN: Chứa sẵn Tiêu đề và Badge đã được C# render, dùng flexbox để nằm ngang -->
 <div id="hidden-modal-title" class="d-none">
     <div class="d-flex align-items-center m-0">
         <i class="fas fa-bed me-2"></i> Phòng @Model.SoPhong
@@ -28,7 +29,6 @@
 <link href="~/css/khachsan/details.css" rel="stylesheet" />
 
 <div class="row g-4 align-items-stretch">
-    <!-- ================= CỘT ẢNH ================= -->
     <div class="col-md-6 d-flex">
         @if (!string.IsNullOrEmpty(Model.HinhAnh))
         {
@@ -64,7 +64,6 @@
         }
     </div>
 
-    <!-- ================= CỘT THÔNG TIN VÀ NÚT ================= -->
     <div class="col-md-6 d-flex flex-column">
 
         <div class="p-3 p-lg-4 rounded-3 d-flex flex-column flex-grow-1" style="border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.15);">
@@ -78,31 +77,30 @@
                 <dt class="col-sm-5 text-muted fw-normal mb-3 d-flex align-items-center"><i class="fas fa-user-friends fa-fw me-2"></i>Sức chứa</dt>
                 <dd class="col-sm-7 text-light fw-bold mb-3 d-flex align-items-center">@Model.SucChua người</dd>
 
-                <!-- DÒNG TRẠNG THÁI: Đã ép Flexbox để nằm ngang hoàn hảo -->
                 <dt class="col-sm-5 text-muted fw-normal mb-0 d-flex align-items-center"><i class="fas fa-info-circle fa-fw me-2"></i>Trạng thái</dt>
                 <dd class="col-sm-7 mb-0 d-flex align-items-center">
-                    @if (Model.TrangThai == "Còn trống")
+                    @if (trangThai == "Còn trống")
                     {
                         <span class="badge d-inline-flex align-items-center" style="background-color: rgba(40, 167, 69, 0.15); color: #28a745; border: 1px solid rgba(40,167,69,0.5); padding: 5px 12px; font-size: 0.85rem; border-radius: 6px;">
                             <i class="bi bi-check-circle-fill me-2"></i> Còn trống
                         </span>
                     }
-                    else if (Model.TrangThai == "Đã đặt")
+                    else if (trangThai == "Đã đặt hôm nay")
                     {
-                        <span class="badge d-inline-flex align-items-center" style="background-color: rgba(220, 53, 69, 0.15); color: #dc3545; border: 1px solid rgba(220,53,69,0.5); padding: 5px 12px; font-size: 0.85rem; border-radius: 6px;">
-                            <i class="bi bi-door-closed-fill me-2"></i> Đã đặt
+                        <span class="badge d-inline-flex align-items-center" style="background-color: rgba(253, 126, 20, 0.15); color: #fd7e14; border: 1px solid rgba(253,126,20,0.5); padding: 5px 12px; font-size: 0.85rem; border-radius: 6px;">
+                            <i class="bi bi-calendar-check-fill me-2"></i> Đã đặt hôm nay
                         </span>
                     }
-                    else if (Model.TrangThai == "Bảo trì")
+                    else if (trangThai == "Đang sử dụng")
+                    {
+                        <span class="badge d-inline-flex align-items-center" style="background-color: rgba(220, 53, 69, 0.15); color: #dc3545; border: 1px solid rgba(220,53,69,0.5); padding: 5px 12px; font-size: 0.85rem; border-radius: 6px;">
+                            <i class="bi bi-door-closed-fill me-2"></i> Đang sử dụng
+                        </span>
+                    }
+                    else if (trangThai == "Bảo trì")
                     {
                         <span class="badge d-inline-flex align-items-center" style="background-color: rgba(255, 193, 7, 0.15); color: #ffc107; border: 1px solid rgba(255,193,7,0.5); padding: 5px 12px; font-size: 0.85rem; border-radius: 6px;">
                             <i class="bi bi-tools me-2"></i> Bảo trì
-                        </span>
-                    }
-                    else
-                    {
-                        <span class="badge d-inline-flex align-items-center" style="background-color: rgba(108, 117, 125, 0.15); color: #6c757d; border: 1px solid rgba(108,117,125,0.5); padding: 5px 12px; font-size: 0.85rem; border-radius: 6px;">
-                            <i class="bi bi-info-circle-fill me-2"></i> @Model.TrangThai
                         </span>
                     }
                 </dd>
@@ -129,26 +127,20 @@
         <div class="d-flex gap-3 mt-3">
             @if (quyen == "Khách hàng")
             {
-                @if (Model.TrangThai == "Còn trống")
-                {
-                    <a asp-controller="DatPhongs" asp-action="Create" asp-route-MaPhong="@Model.ID" asp-route-MaTaiKhoan="@ViewBag.MaTaiKhoan" class="btn btnSua flex-grow-1 text-center py-2 fw-bold d-flex align-items-center justify-content-center">
-                        <i class="bi bi-calendar-check-fill me-2"></i> Đặt phòng
-                    </a>
-                }
-                else if (Model.TrangThai == "Đã đặt")
-                {
-                    <button type="button" class="btn btnDisabled flex-grow-1 text-center py-2 fw-bold d-flex align-items-center justify-content-center"
-                            onclick="Swal.fire({ icon: 'warning', title: 'Phòng đã được đặt!', text: 'Vui lòng chọn một phòng khác đang còn trống.', confirmButtonText: 'Đóng', background: '#1e1e1e', color: '#ffffff', confirmButtonColor: '#dc3545' })">
-                        <i class="bi bi-door-closed-fill me-2"></i> Đã hết phòng
-                    </button>
-                }
-                else if (Model.TrangThai == "Bảo trì")
+                @if (trangThai == "Bảo trì")
                 {
                     <button type="button" class="btn btnDisabled flex-grow-1 text-center py-2 fw-bold d-flex align-items-center justify-content-center"
                             onclick="Swal.fire({ icon: 'info', title: 'Đang bảo trì!', text: 'Phòng này đang được dọn dẹp hoặc sửa chữa. Vui lòng quay lại sau.', confirmButtonText: 'Đóng', background: '#1e1e1e', color: '#ffffff', confirmButtonColor: '#ffc107' })">
                         <i class="bi bi-tools me-2"></i> Đang bảo trì
                     </button>
                 }
+                else
+                {
+                    <a asp-controller="DatPhongs" asp-action="Create" asp-route-MaPhong="@Model.ID" asp-route-MaTaiKhoan="@ViewBag.MaTaiKhoan" class="btn btnSua flex-grow-1 text-center py-2 fw-bold d-flex align-items-center justify-content-center">
+                        <i class="bi bi-calendar-check-fill me-2"></i> Đặt phòng
+                    </a>
+                }
+
                 <a id="btnDanhGiaPopup" class="btn btnDanhGia flex-grow-1 text-center py-2" data-maphong="@Model.ID" href="javascript:void(0)">
                     <i class="fas fa-star me-2"></i> Đánh giá
                 </a>
@@ -170,13 +162,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 }
 
-<!-- SCRIPT: Tự động đắp icon giường, tên phòng và Badge Đánh giá vào Tiêu đề Modal -->
 <script>
-    // Dùng setTimeout để đảm bảo Modal đã mở ra và DOM đã sẵn sàng
     setTimeout(function() {
         var headerLabel = document.getElementById('roomDetailModalLabel');
         if (headerLabel) {
-            // Sử dụng cú pháp Dấu Backtick (`) của ES6 để nội dung HTML có chứa chuỗi bên trong không bị lỗi parse
             headerLabel.innerHTML = `
                 <div class="d-flex align-items-center" style="color: #ffc107;">
                     <i class="fas fa-bed me-2"></i> Phòng @Model.SoPhong

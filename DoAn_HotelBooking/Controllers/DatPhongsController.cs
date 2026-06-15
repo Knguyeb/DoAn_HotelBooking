@@ -3,6 +3,7 @@ using DoAn_HotelBooking.Models;
 using DoAn_HotelBooking.Helpers;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -459,6 +460,20 @@ namespace DoAn_HotelBooking.Controllers
                     ViewBag.TenKhachSan = phong.KhachSan?.TenKhachSan;
                     ViewBag.GiaPhong = phong.GiaPhong;
                 }
+
+                // --- 🌟 BỔ SUNG: LẤY DANH SÁCH NGÀY ĐÃ ĐẶT ---
+                var bookedDates = _context.DatPhong
+                    .Where(dp => dp.MaPhong == MaPhong &&
+                                (dp.TrangThaiDatPhong == "Chờ xác nhận" || dp.TrangThaiDatPhong == "Đã xác nhận"))
+                    .Select(dp => new
+                    {
+                        from = dp.NgayNhanPhong.ToString("yyyy-MM-dd"),
+                        to = dp.NgayTraPhong.ToString("yyyy-MM-dd")
+                    })
+                    .ToList(); // Dùng ToList() vì hàm này không dùng async/await
+
+                ViewBag.BookedDates = JsonSerializer.Serialize(bookedDates);
+                // ---------------------------------------------
             }
 
             // ✅ Trả về model mặc định
@@ -475,6 +490,26 @@ namespace DoAn_HotelBooking.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(DatPhong datPhong)
         {
+            // 1. Chuyển đổi thời gian sang UTC trước để kiểm tra trùng lịch chính xác
+            DateTime checkInUtc = datPhong.NgayNhanPhong.ToUniversalTime();
+            DateTime checkOutUtc = datPhong.NgayTraPhong.ToUniversalTime();
+
+            // 2. THUẬT TOÁN KIỂM TRA TRÙNG LỊCH ĐẶT PHÒNG
+            // Kiểm tra xem phòng này đã có ai đặt trong khoảng thời gian được yêu cầu chưa
+            bool isConflict = await _context.DatPhong.AnyAsync(dp =>
+                dp.MaPhong == datPhong.MaPhong &&
+                (dp.TrangThaiDatPhong == "Chờ xác nhận" || dp.TrangThaiDatPhong == "Đã xác nhận") && // Bỏ qua các đơn Đã hủy/Đã trả phòng
+                dp.NgayNhanPhong < checkOutUtc &&
+                dp.NgayTraPhong > checkInUtc
+            );
+
+            // Nếu trùng lịch, thêm lỗi vào ModelState
+            if (isConflict)
+            {
+                ModelState.AddModelError(string.Empty, "Rất tiếc! Phòng này đã có khách đặt trong khoảng thời gian bạn chọn. Vui lòng chọn ngày khác.");
+            }
+
+            // 3. Kiểm tra tính hợp lệ của Model (bao gồm cả lỗi trùng lịch vừa ném vào)
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values
@@ -507,7 +542,7 @@ namespace DoAn_HotelBooking.Controllers
 
             // --- 🌟 XỬ LÝ KHI MODEL HỢP LỆ VÀ BẮT ĐẦU TẠO ĐƠN ĐẶT PHÒNG ---
 
-            // 1. Tìm thông tin tài khoản và hạng thành viên để lấy tỷ lệ giảm giá
+            // 4. Tìm thông tin tài khoản và hạng thành viên để lấy tỷ lệ giảm giá
             var taiKhoan = await _context.TaiKhoan
                 .Include(t => t.HangThanhVien)
                 .FirstOrDefaultAsync(t => t.ID == datPhong.MaTaiKhoan);
@@ -525,72 +560,19 @@ namespace DoAn_HotelBooking.Controllers
                 datPhong.TienGiam = 0; // Không có hạng hoặc lỗi thì mặc định giảm 0đ
             }
 
-            // 2. Thiết lập các thông tin mặc định còn lại
+            // 5. Thiết lập các thông tin mặc định còn lại
             datPhong.TrangThaiDatPhong = "Chờ xác nhận";
+
             datPhong.NgayTao = DateTime.UtcNow;
+            datPhong.NgayNhanPhong = checkInUtc; // Dùng luôn biến đã convert ở trên
+            datPhong.NgayTraPhong = checkOutUtc;
 
-            datPhong.NgayNhanPhong = datPhong.NgayNhanPhong.ToUniversalTime();
-            datPhong.NgayTraPhong = datPhong.NgayTraPhong.ToUniversalTime();
-
-            // 3. Lưu vào Cơ sở dữ liệu
+            // 6. Lưu vào Cơ sở dữ liệu
             _context.DatPhong.Add(datPhong);
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Đặt phòng thành công! Hạng thành viên của bạn đã được áp dụng ưu đãi.";
             return RedirectToAction(nameof(LichSuDatPhong));
-        }
-
-        // GET: DatPhongs/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var datPhong = await _context.DatPhong.FindAsync(id);
-            if (datPhong == null)
-            {
-                return NotFound();
-            }
-            ViewData["MaPhong"] = new SelectList(_context.Phong, "ID", "HinhAnh", datPhong.MaPhong);
-            ViewData["MaTaiKhoan"] = new SelectList(_context.TaiKhoan, "ID", "Email", datPhong.MaTaiKhoan);
-            return View(datPhong);
-        }
-
-        // POST: DatPhongs/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,NgayTao,NgayNhanPhong,NgayTraPhong,SoNguoi,TongTien,TrangThaiDatPhong,GhiChu,MaTaiKhoan,MaPhong")] DatPhong datPhong)
-        {
-            if (id != datPhong.ID)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(datPhong);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!DatPhongExists(datPhong.ID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["MaPhong"] = new SelectList(_context.Phong, "ID", "HinhAnh", datPhong.MaPhong);
-            ViewData["MaTaiKhoan"] = new SelectList(_context.TaiKhoan, "ID", "Email", datPhong.MaTaiKhoan);
-            return View(datPhong);
         }
 
         // POST: DatPhongs/Delete/5
@@ -628,10 +610,10 @@ namespace DoAn_HotelBooking.Controllers
             // ✅ Cập nhật trạng thái đơn thành Đang lưu trú
             datPhong.TrangThaiDatPhong = "Đang lưu trú";
 
-            // ✅ Cập nhật trạng thái phòng thực tế (đổi thành Đang sử dụng)
+            // 🌟 SỬA TẠI ĐÂY: Khách thực sự vào ở thì phòng chuyển thành "Đang sử dụng"
             if (datPhong.Phong != null)
             {
-                datPhong.Phong.TrangThai = "Đã đặt";
+                datPhong.Phong.TrangThai = "Đang sử dụng";
                 _context.Update(datPhong.Phong);
             }
 
@@ -639,10 +621,9 @@ namespace DoAn_HotelBooking.Controllers
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Đã Check-in thành công! Khách hàng bắt đầu lưu trú.";
-
-            // Check-in xong thì tự động chuyển hướng sang trang Đang Lưu Trú
             return RedirectToAction(nameof(DangLuuTru));
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -660,10 +641,9 @@ namespace DoAn_HotelBooking.Controllers
 
             // ✅ 2. Đảm bảo trạng thái thanh toán là Đã thanh toán khi trả phòng
             datPhong.TrangThaiThanhToan = "Đã thanh toán";
-
             datPhong.NgayTao = DateTime.UtcNow;
 
-            // ✅ 3. Cập nhật trạng thái phòng thực tế (trả về trạng thái Trống)
+            // ✅ 3. GIỮ NGUYÊN: Trả phòng thì phòng vật lý trở về "Còn trống"
             if (datPhong.Phong != null)
             {
                 datPhong.Phong.TrangThai = "Còn trống";
@@ -674,15 +654,14 @@ namespace DoAn_HotelBooking.Controllers
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Đã Check-out thành công! Phòng đã được dọn dẹp và sẵn sàng.";
-
-            // Check-out xong thường chuyển hướng về trang Hóa Đơn hoặc danh sách lịch sử
             return RedirectToAction(nameof(HoaDon));
         }
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> XacNhan(int id)
         {
-            // ✅ ĐÃ SỬA: Bổ sung ThenInclude để lấy thông tin Hạng Thành Viên cho mẫu Email
             var datPhong = await _context.DatPhong
                 .Include(dp => dp.TaiKhoan)
                     .ThenInclude(t => t.HangThanhVien)
@@ -697,45 +676,39 @@ namespace DoAn_HotelBooking.Controllers
             datPhong.TrangThaiDatPhong = "Đã xác nhận";
             _context.DatPhong.Update(datPhong);
 
-            // ✅ Tìm phòng tương ứng và đổi trạng thái sang "Đã đặt"
-            if (datPhong.Phong != null)
-            {
-                datPhong.Phong.TrangThai = "Đã đặt";
-                _context.Phong.Update(datPhong.Phong);
-            }
+            // ❌ SỬA TẠI ĐÂY: XÓA ĐOẠN ĐỔI TRẠNG THÁI PHÒNG
+            // Lễ tân xác nhận đơn cho tháng sau thì phòng tháng này vẫn phải Trống.
 
             await _context.SaveChangesAsync();
 
-            // 📧 GỬI EMAIL XÁC NHẬN
+            // 📧 GỬI EMAIL XÁC NHẬN (GIỮ NGUYÊN CODE CỦA BẠN)
             if (!string.IsNullOrEmpty(datPhong.TaiKhoan?.Email))
             {
                 int soNgayO = (datPhong.NgayTraPhong - datPhong.NgayNhanPhong).Days;
                 if (soNgayO <= 0) soNgayO = 1;
 
-                // ✅ ĐÃ SỬA: Lấy chính xác tổng tiền thực tế và giá gốc để hiển thị minh bạch
                 decimal tongTienThucTe = datPhong.TongTien;
                 decimal giaGoc = (datPhong.Phong?.GiaPhong ?? 0) * soNgayO;
 
                 string subject = $"[{datPhong.Phong?.KhachSan?.TenKhachSan}] Xác nhận đơn đặt phòng thành công";
 
                 string extraInfo = $@"
-        <tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Số khách lưu trú:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>{datPhong.SoNguoi} người</td></tr>
-        <tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Giờ nhận phòng:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>Từ 14:00 - {datPhong.NgayNhanPhong:dd/MM/yyyy}</td></tr>
-        <tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Giờ trả phòng:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>Trước 12:00 - {datPhong.NgayTraPhong:dd/MM/yyyy} ({soNgayO} đêm)</td></tr>
-        <tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Giá phòng gốc:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef; text-decoration: line-through; color: #6c757d;'>{giaGoc:N0} VNĐ</td></tr>";
+<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Số khách lưu trú:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>{datPhong.SoNguoi} người</td></tr>
+<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Giờ nhận phòng:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>Từ 14:00 - {datPhong.NgayNhanPhong:dd/MM/yyyy}</td></tr>
+<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Giờ trả phòng:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>Trước 12:00 - {datPhong.NgayTraPhong:dd/MM/yyyy} ({soNgayO} đêm)</td></tr>
+<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Giá phòng gốc:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef; text-decoration: line-through; color: #6c757d;'>{giaGoc:N0} VNĐ</td></tr>";
 
-                // Chỉ hiển thị dòng ưu đãi nếu số tiền giảm lớn hơn 0
                 if (datPhong.TienGiam > 0)
                 {
                     extraInfo += $@"<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Ưu đãi hạng thẻ:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef; color: #dc3545; font-weight: bold;'>-{datPhong.TienGiam:N0} VNĐ</td></tr>";
                 }
 
                 extraInfo += $@"
-        <tr><td style='padding: 12px 0 0 0; color: #333;'><b>Tổng thanh toán:</b></td><td style='padding: 12px 0 0 0; color: #198754; font-weight: bold; font-size: 16px;'>{tongTienThucTe:N0} VNĐ</td></tr>";
+<tr><td style='padding: 12px 0 0 0; color: #333;'><b>Tổng thanh toán:</b></td><td style='padding: 12px 0 0 0; color: #198754; font-weight: bold; font-size: 16px;'>{tongTienThucTe:N0} VNĐ</td></tr>";
 
                 string body = TaoNoiDungEmail(
                     datPhong,
-                    mauChuDao: "#007bff", // Xanh dương hoàng gia
+                    mauChuDao: "#007bff",
                     tieuDe: "XÁC NHẬN ĐẶT PHÒNG",
                     loiNhanChinh: $"Chúng tôi chân thành cảm ơn Quý khách đã tin tưởng và lựa chọn <b>{datPhong.Phong?.KhachSan?.TenKhachSan}</b> cho kỳ nghỉ sắp tới. Chúng tôi rất vui mừng xác nhận đơn đặt phòng của Quý khách đã được hệ thống ghi nhận thành công.",
                     thongTinBoSung: extraInfo,
@@ -748,6 +721,7 @@ namespace DoAn_HotelBooking.Controllers
             TempData["SuccessMessage"] = "Đã xác nhận và gửi email cho khách hàng!";
             return RedirectToAction(nameof(Index));
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -766,25 +740,23 @@ namespace DoAn_HotelBooking.Controllers
             datPhong.TrangThaiDatPhong = "Đang lưu trú";
             datPhong.TrangThaiThanhToan = "Đã thanh toán";
 
-            // ✅ Cập nhật trạng thái phòng
+            // 🌟 SỬA TẠI ĐÂY: Thanh toán xong đang ở thì là Đang sử dụng
             if (datPhong.Phong != null)
             {
-                datPhong.Phong.TrangThai = "Đã đặt";
+                datPhong.Phong.TrangThai = "Đang sử dụng";
                 _context.Update(datPhong.Phong);
             }
 
-            // 🌟 LOGIC TÍCH ĐIỂM TẠI QUẦY LỄ TÂN
+            // 🌟 LOGIC TÍCH ĐIỂM TẠI QUẦY LỄ TÂN (GIỮ NGUYÊN)
             int soNgayO = (datPhong.NgayTraPhong - datPhong.NgayNhanPhong).Days;
             if (soNgayO <= 0) soNgayO = 1;
 
-            // ✅ ĐÃ SỬA: Lấy tiền từ DB để tính điểm chuẩn xác
             decimal tongTienThucTe = datPhong.TongTien;
             decimal giaGoc = (datPhong.Phong?.GiaPhong ?? 0) * soNgayO;
 
             int diemDuocCong = 0;
             if (datPhong.TaiKhoan != null)
             {
-                // Tính điểm dựa trên TỔNG TIỀN THỰC TRẢ
                 diemDuocCong = (int)(tongTienThucTe / SO_TIEN_QUY_DOI_DIEM);
                 datPhong.TaiKhoan.DiemTichLuy += diemDuocCong;
             }
@@ -794,12 +766,11 @@ namespace DoAn_HotelBooking.Controllers
 
             await _thangHangHelper.KiemTraVaNangHangAsync(datPhong.TaiKhoan);
 
-            // 📧 GỬI EMAIL THANH TOÁN KÈM THÔNG TIN ĐIỂM THƯỞNG
+            // 📧 GỬI EMAIL THANH TOÁN KÈM THÔNG TIN ĐIỂM THƯỞNG (GIỮ NGUYÊN)
             if (!string.IsNullOrEmpty(datPhong.TaiKhoan?.Email))
             {
                 string subject = $"[{datPhong.Phong?.KhachSan?.TenKhachSan}] Biên lai thanh toán điện tử";
 
-                // ✅ ĐÃ SỬA: Ghi rõ giá gốc, tiền ưu đãi hạng và tổng thực trả
                 string extraInfo = $@"
 <tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Thời gian lưu trú:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>{datPhong.NgayNhanPhong:dd/MM/yyyy} đến {datPhong.NgayTraPhong:dd/MM/yyyy} ({soNgayO} đêm)</td></tr>
 <tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Giá phòng gốc:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef; text-decoration: line-through; color: #6c757d;'>{giaGoc:N0} VNĐ</td></tr>";
@@ -816,7 +787,7 @@ namespace DoAn_HotelBooking.Controllers
 
                 string body = TaoNoiDungEmail(
                     datPhong,
-                    mauChuDao: "#198754", // Xanh lá
+                    mauChuDao: "#198754",
                     tieuDe: "BIÊN LAI THANH TOÁN",
                     loiNhanChinh: "Chúng tôi xin gửi thông báo xác nhận: Khách sạn đã nhận được đầy đủ khoản thanh toán cho đơn đặt phòng của Quý khách. Dưới đây là biên lai điện tử chi tiết:",
                     thongTinBoSung: extraInfo,
@@ -826,10 +797,10 @@ namespace DoAn_HotelBooking.Controllers
                 await SendEmailAsync(datPhong.TaiKhoan.Email, subject, body);
             }
 
-            // Cập nhật câu thông báo hiển thị trên giao diện quản lý
             TempData["SuccessMessage"] = $"Đã thanh toán! Khách hàng được tích lũy thêm {diemDuocCong} điểm.";
             return RedirectToAction(nameof(DangLuuTru));
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -849,28 +820,23 @@ namespace DoAn_HotelBooking.Controllers
             {
                 datPhong.TrangThaiDatPhong = "Đã hủy";
 
-                // Nếu phòng đã xác nhận và đang ở trạng thái "Đã đặt", chuyển về "Còn trống"
-                if (datPhong.Phong != null && datPhong.Phong.TrangThai == "Đã đặt")
-                {
-                    datPhong.Phong.TrangThai = "Còn trống";
-                    _context.Update(datPhong.Phong);
-                }
+                // ❌ SỬA TẠI ĐÂY: XÓA ĐOẠN RESET TRẠNG THÁI PHÒNG VỀ CÒN TRỐNG
+                // Vì phòng chưa bao giờ bị khóa vật lý, nên ta không cần nhúng tay vào trạng thái vật lý của phòng nữa.
 
                 _context.Update(datPhong);
                 await _context.SaveChangesAsync();
 
-                // 📧 GỬI EMAIL HỦY ĐƠN
-                // (Trong hàm HuyDatPhong, thay thế phần gửi email cũ bằng đoạn này)
+                // 📧 GỬI EMAIL HỦY ĐƠN (GIỮ NGUYÊN)
                 if (!string.IsNullOrEmpty(datPhong.TaiKhoan?.Email))
                 {
                     string subject = $"[{datPhong.Phong?.KhachSan?.TenKhachSan}] Thông báo hủy đơn đặt phòng";
                     string extraInfo = $@"
-        <tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Thời gian dự kiến:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>{datPhong.NgayNhanPhong:dd/MM/yyyy} - {datPhong.NgayTraPhong:dd/MM/yyyy}</td></tr>
-        <tr><td style='padding: 12px 0 0 0;'><b>Trạng thái:</b></td><td style='padding: 12px 0 0 0;'><span style='background-color: #dc3545; color: white; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold;'>ĐÃ HỦY</span></td></tr>";
+<tr><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'><b>Thời gian dự kiến:</b></td><td style='padding: 8px 0; border-bottom: 1px dashed #e9ecef;'>{datPhong.NgayNhanPhong:dd/MM/yyyy} - {datPhong.NgayTraPhong:dd/MM/yyyy}</td></tr>
+<tr><td style='padding: 12px 0 0 0;'><b>Trạng thái:</b></td><td style='padding: 12px 0 0 0;'><span style='background-color: #dc3545; color: white; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold;'>ĐÃ HỦY</span></td></tr>";
 
                     string body = TaoNoiDungEmail(
                         datPhong,
-                        mauChuDao: "#dc3545", // Đỏ tươi
+                        mauChuDao: "#dc3545",
                         tieuDe: "THÔNG BÁO HỦY PHÒNG",
                         loiNhanChinh: "Theo yêu cầu của Quý khách (hoặc do quy định của khách sạn), chúng tôi xin thông báo đơn đặt phòng của Quý khách đã được tiến hành <b>HỦY</b> trên hệ thống.",
                         thongTinBoSung: extraInfo,
@@ -889,6 +855,7 @@ namespace DoAn_HotelBooking.Controllers
 
             return RedirectToAction(nameof(LichSuDatPhong));
         }
+
         [HttpGet]
         public async Task<IActionResult> XuatHoaDonPDF(int id)
         {

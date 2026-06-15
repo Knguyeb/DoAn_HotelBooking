@@ -16,23 +16,26 @@ namespace DoAn_HotelBooking.Controllers
         }
 
         // GET: Phongs
-        public async Task<IActionResult>Index(string id) // id = MaKhachSan
+        // GET: Phongs
+        public async Task<IActionResult> Index(string id) // id = MaKhachSan
         {
             if (string.IsNullOrEmpty(id)) return NotFound();
 
             var khachSan = await _context.KhachSan
-            .AsNoTracking()
-            .FirstOrDefaultAsync(k => k.MaKhachSan == id);
+                .AsNoTracking()
+                .FirstOrDefaultAsync(k => k.MaKhachSan == id);
 
             if (khachSan == null) return NotFound();
 
             ViewBag.KhachSan = khachSan;
             ViewBag.MaKhachSan = khachSan.MaKhachSan;
 
+            // 🌟 BỔ SUNG .Include(p => p.DatPhongs) VÀO ĐÂY
             var phongs = await _context.Phong
-            .Where(p => p.MaKhachSan == id)
-            .OrderBy(p => p.SoPhong)
-            .ToListAsync();
+                .Include(p => p.DatPhongs)
+                .Where(p => p.MaKhachSan == id)
+                .OrderBy(p => p.SoPhong)
+                .ToListAsync();
 
             return View(phongs);
         }
@@ -40,16 +43,17 @@ namespace DoAn_HotelBooking.Controllers
         // GET: Phongs/TatCaPhong
         public async Task<IActionResult> TatCaPhong(string? maKhachSan)
         {
-            // Bắt đầu với câu truy vấn lấy tất cả phòng và bao gồm thông tin Khách sạn
-            var query = _context.Phong.Include(p => p.KhachSan).AsQueryable();
+            // 🌟 BỔ SUNG .Include(p => p.DatPhongs) VÀO ĐÂY
+            var query = _context.Phong
+                .Include(p => p.KhachSan)
+                .Include(p => p.DatPhongs)
+                .AsQueryable();
 
             // KIỂM TRA MÃ KHÁCH SẠN TỪ NÚT BẤM
             if (!string.IsNullOrEmpty(maKhachSan))
             {
-                // Lọc chỉ lấy phòng của khách sạn có mã tương ứng
                 query = query.Where(p => p.MaKhachSan == maKhachSan);
 
-                // Lấy thông tin khách sạn để truyền tên ra ViewBag (hiển thị lên banner)
                 var ks = await _context.KhachSan.FirstOrDefaultAsync(k => k.MaKhachSan == maKhachSan);
                 if (ks != null)
                 {
@@ -59,11 +63,9 @@ namespace DoAn_HotelBooking.Controllers
             }
             else
             {
-                // Nếu không có mã khách sạn truyền vào, hiển thị tiêu đề chung
                 ViewBag.TenKhachSan = "Tất cả hệ thống phòng";
             }
 
-            // THỰC THI TRUY VẤN VÀ TRẢ VỀ VIEW
             var dsPhong = await query.OrderBy(p => p.SoPhong).ToListAsync();
 
             return View(dsPhong);
@@ -74,28 +76,27 @@ namespace DoAn_HotelBooking.Controllers
         {
             if (id == null) return NotFound();
 
+            // 🌟 BỔ SUNG .Include(p => p.DatPhongs) VÀO ĐÂY
             var phong = await _context.Phong
                 .Include(p => p.KhachSan)
+                .Include(p => p.DatPhongs)
                 .FirstOrDefaultAsync(m => m.ID == id);
 
             if (phong == null) return NotFound();
 
-            // Lấy thông tin User từ Session
+            // ... (Giữ nguyên các đoạn code tính sao và lấy User của bạn bên dưới)
             if (HttpContext.Session.GetString("UserID") != null)
             {
                 ViewBag.MaTaiKhoan = int.Parse(HttpContext.Session.GetString("UserID"));
             }
 
-            // Lấy danh sách đánh giá
             var danhGias = await _context.DanhGiaPhong
                 .Where(d => d.MaPhong == id)
                 .ToListAsync();
 
-            // Tính toán số sao
             ViewBag.TrungBinhSao = danhGias.Any() ? Math.Round(danhGias.Average(d => d.SoSao), 1) : 0;
             ViewBag.SoDanhGia = danhGias.Count;
 
-            // Trả về PartialView thay vì View
             return PartialView("_DetailsPartial", phong);
         }
 

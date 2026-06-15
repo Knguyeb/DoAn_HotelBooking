@@ -62,7 +62,7 @@ namespace DoAn_HotelBooking.Controllers
             var danhSachPhong = await _context.Phong
                 .Where(p => p.MaKhachSan == id)
                 .Include(p => p.DanhGiaPhongs) // Phải Include để lấy được dữ liệu điểm
-                                               // .Include(p => p.LoaiPhong) // Bỏ comment dòng này nếu bạn có bảng LoaiPhong liên kết
+                .Include(p => p.DatPhongs)
                 .ToListAsync();
 
             // Bước 2: Tính điểm trung bình ảo và gán vào thuộc tính

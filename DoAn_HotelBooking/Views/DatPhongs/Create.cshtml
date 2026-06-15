@@ -19,6 +19,18 @@
 <!-- Import CSS dùng chung của hệ thống -->
 <link rel="stylesheet" href="~/css/KhachSan/Create.css" asp-append-version="true" />
 
+<style>
+    /* Chỉnh màu cho các ngày đã bị disable (đã có người đặt) */
+    .flatpickr-day.flatpickr-disabled,
+    .flatpickr-day.flatpickr-disabled:hover {
+        background-color: rgba(220, 53, 69, 0.15) !important; /* Nền đỏ nhạt */
+        color: #dc3545 !important; /* Chữ đỏ đậm */
+        border-color: transparent !important;
+        text-decoration: line-through; /* Thêm gạch ngang chữ */
+        cursor: not-allowed !important;
+    }
+</style>
+
 <div class="container-fluid fade-in-up py-5 px-4">
 
     <!-- Tiêu đề & Nút Quay lại / Chọn tiền tệ -->
@@ -206,25 +218,47 @@
     <script src="~/js/Share/DoiTien.js" asp-append-version="true"></script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+               document.addEventListener("DOMContentLoaded", function () {
 
-            // 1. Cấu hình Flatpickr chọn ngày
-            flatpickr("#NgayNhanPhongDisplay", {
+            // 1. Lấy dữ liệu mảng ngày đã đặt từ Backend
+            const rawBookedDates = @Html.Raw(ViewBag.BookedDates ?? "[]");
+
+            // 2. Ép kiểu chuẩn sang Object Date của Javascript để Flatpickr không bị lỗi định dạng
+            const disabledDates = rawBookedDates.map(range => {
+                return {
+                    from: new Date(range.from),
+                    to: new Date(range.to)
+                };
+            });
+
+            // 🌟 KHAI BÁO BIẾN TRƯỚC ĐỂ TRÁNH LỖI HOISTING
+            let traPhongPicker;
+
+            // 3. Cấu hình Flatpickr chọn ngày Nhận phòng
+            const nhanPhongPicker = flatpickr("#NgayNhanPhongDisplay", {
                 dateFormat: "d-m-Y",
                 altInput: false,
                 minDate: "today",
+                disable: disabledDates, // Chặn các khoảng ngày đã đặt
                 onChange: function (selectedDates) {
                     if (selectedDates.length > 0) {
+                        // Điều chỉnh minDate cho ô Trả phòng luôn phải >= ô Nhận phòng
+                        if (traPhongPicker) {
+                            traPhongPicker.set('minDate', selectedDates[0]);
+                        }
+
                         document.getElementById("NgayNhanPhong").value = selectedDates[0].toISOString().split("T")[0];
                         tinhTongTien();
                     }
                 }
             });
 
-            flatpickr("#NgayTraPhongDisplay", {
+            // 4. Cấu hình Flatpickr chọn ngày Trả phòng
+            traPhongPicker = flatpickr("#NgayTraPhongDisplay", {
                 dateFormat: "d-m-Y",
                 altInput: false,
                 minDate: "today",
+                disable: disabledDates, // Chặn các khoảng ngày đã đặt
                 onChange: function (selectedDates) {
                     if (selectedDates.length > 0) {
                         document.getElementById("NgayTraPhong").value = selectedDates[0].toISOString().split("T")[0];
