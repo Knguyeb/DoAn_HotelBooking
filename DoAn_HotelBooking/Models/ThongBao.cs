@@ -8,12 +8,7 @@ namespace DoAn_HotelBooking.Models
         public int ID { get; set; }
 
         [Required]
-        public string TieuDe { get; set; }
-
-        [Required]
         public string NoiDung { get; set; }
-
-        public string Loai { get; set; }
 
         public DateTime NgayTao { get; set; } = DateTime.UtcNow;
 

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DoAn_HotelBooking.Migrations
 {
     [DbContext(typeof(DoAn_HotelBookingContext))]
-    [Migration("20260615060539_CreateDB")]
+    [Migration("20260616042242_CreateDB")]
     partial class CreateDB
     {
         /// <inheritdoc />
@@ -292,10 +292,6 @@ namespace DoAn_HotelBooking.Migrations
                     b.Property<bool>("DaDoc")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("Loai")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("MaKhachSan")
                         .IsRequired()
                         .HasColumnType("text");
@@ -304,10 +300,6 @@ namespace DoAn_HotelBooking.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("NoiDung")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("TieuDe")
                         .IsRequired()
                         .HasColumnType("text");
 

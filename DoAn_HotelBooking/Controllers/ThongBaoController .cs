@@ -1,5 +1,6 @@
 ﻿using DoAn_HotelBooking.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DoAn_HotelBooking.Controllers
 {
@@ -20,15 +21,47 @@ namespace DoAn_HotelBooking.Controllers
             var data = _context.ThongBao
                 .Where(x => x.MaKhachSan == maKS)
                 .OrderByDescending(x => x.NgayTao)
-                .Take(20)
+                .Take(10)
                 .Select(x => new
                 {
-                    tieuDe = x.TieuDe,
+                    noiDung = x.NoiDung,
                     ngayTao = x.NgayTao.ToString("dd/MM/yyyy HH:mm")
                 })
                 .ToList();
 
             return Json(data);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DanhDauDaDocToanBo()
+        {
+            var maKS = HttpContext.Session.GetString("MaKhachSan");
+            var quyen = HttpContext.Session.GetString("QuyenHan");
+
+            // Chỉ tìm những thông báo CHƯA ĐỌC
+            IQueryable<Models.ThongBao> query = _context.ThongBao.Where(t => t.DaDoc == false);
+
+            if (quyen != "Admin")
+            {
+                if (string.IsNullOrEmpty(maKS))
+                    return Json(new { success = false });
+
+                // Ép theo khách sạn
+                query = query.Where(t => t.MaKhachSan == maKS);
+            }
+
+            var danhSachChuaDoc = await query.ToListAsync();
+
+            if (danhSachChuaDoc.Any())
+            {
+                foreach (var item in danhSachChuaDoc)
+                {
+                    item.DaDoc = true; // Chuyển thành đã đọc
+                }
+                await _context.SaveChangesAsync();
+            }
+
+            return Json(new { success = true });
         }
     }
 }

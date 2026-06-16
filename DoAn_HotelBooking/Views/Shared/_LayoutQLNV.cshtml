@@ -1,4 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Http
+@using DoAn_HotelBooking.Data
+@inject DoAn_HotelBookingContext _context
 @inject IHttpContextAccessor HttpContextAccessor
 
 <!DOCTYPE html>
@@ -10,7 +12,7 @@
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="~/css/_Layout.css" rel="stylesheet" asp-append-version="true" />    
+    <link href="~/css/_Layout.css" rel="stylesheet" asp-append-version="true" />
     <link rel="stylesheet" href="~/DoAn_HotelBooking.styles.css" asp-append-version="true" />
 </head>
 
@@ -21,6 +23,13 @@
         var maKS = Context.Session.GetString("MaKhachSan");
         var ten = Context.Session.GetString("HoVaTen");
         var tenKhachSan = Context.Session.GetString("TenKhachSan") ?? "Khách sạn";
+
+        int soThongBaoMoi = 0;
+
+        if (!string.IsNullOrEmpty(maKS))
+        {
+            soThongBaoMoi = _context.ThongBao.Count(t => t.MaKhachSan == maKS && t.DaDoc == false);
+        }
     }
 
     <div class="admin-container">
@@ -97,14 +106,18 @@
 
                     <div class="navbar-nav flex-row align-items-center">
 
-                        <div class="position-relative me-3">
+                        <div class="position-relative me-2 d-flex align-items-center">
                             <a href="#"
-                               class="text-light"
+                               class="btn-noti position-relative"
                                data-bs-toggle="modal"
                                data-bs-target="#thongBaoModal">
 
                                 <i class="fas fa-bell fs-5"></i>
 
+                                @if (soThongBaoMoi > 0)
+                                {
+                                    <span class="position-absolute top-0 start-100 translate-middle noti-dot"></span>
+                                }
                             </a>
                         </div>
 

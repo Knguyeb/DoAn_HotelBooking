@@ -289,10 +289,6 @@ namespace DoAn_HotelBooking.Migrations
                     b.Property<bool>("DaDoc")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("Loai")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("MaKhachSan")
                         .IsRequired()
                         .HasColumnType("text");
@@ -301,10 +297,6 @@ namespace DoAn_HotelBooking.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("NoiDung")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("TieuDe")
                         .IsRequired()
                         .HasColumnType("text");
 

@@ -375,9 +375,7 @@ namespace DoAn_HotelBooking.Controllers
 
                 _context.ThongBao.Add(new ThongBao
                 {
-                    TieuDe = $"{datPhong.TaiKhoan?.HoVaTen} - Thanh toán ({datPhong.Phong?.SoPhong}) - {datPhong.TongTien:N0} VNĐ",
-                    NoiDung = "",
-                    Loai = "ThanhToan",
+                    NoiDung = $"{datPhong.TaiKhoan?.HoVaTen} - Thanh toán (P.{datPhong.Phong?.SoPhong}) - {datPhong.TongTien:N0} VNĐ",
                     MaKhachSan = datPhong.Phong?.MaKhachSan
                 });
 
@@ -583,9 +581,7 @@ namespace DoAn_HotelBooking.Controllers
 
             _context.ThongBao.Add(new ThongBao
             {
-                TieuDe = $"{taiKhoan?.HoVaTen} - Đặt phòng ({phong?.SoPhong})",
-                NoiDung = "",
-                Loai = "DatPhong",
+                NoiDung = $"{taiKhoan?.HoVaTen} - Đặt phòng (P.{phong?.SoPhong})",
                 MaKhachSan = phong?.MaKhachSan
             });
 
@@ -842,9 +838,7 @@ namespace DoAn_HotelBooking.Controllers
 
                 _context.ThongBao.Add(new ThongBao
                 {
-                    TieuDe = $"{datPhong.TaiKhoan?.HoVaTen} - Hủy phòng ({datPhong.Phong?.SoPhong})",
-                    NoiDung = "",
-                    Loai = "HuyPhong",
+                    NoiDung = $"{datPhong.TaiKhoan?.HoVaTen} - Hủy phòng (P.{datPhong.Phong?.SoPhong})",
                     MaKhachSan = datPhong.Phong?.MaKhachSan
                 });
 

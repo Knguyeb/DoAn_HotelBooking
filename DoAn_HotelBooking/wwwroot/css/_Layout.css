@@ -481,6 +481,65 @@ main {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ========================================================
+   NÚT THÔNG BÁO (NOTIFICATION BUTTON)
+   ======================================================== */
+.btn-noti {
+    color: var(--white) !important;
+    background-color: transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%; /* Bo tròn hoàn toàn */
+    transition: all 0.3s ease;
+    text-decoration: none;
+    border: 1px solid transparent;
+}
+
+    .btn-noti:hover {
+        background-color: var(--button-hover);
+        color: var(--yellow) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-noti:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        background-color: var(--button-active);
+    }
+
+/* Chấm đỏ báo có thông báo (không chứa số) */
+.noti-dot {
+    width: 12px;
+    height: 12px;
+    background-color: #dc3545; /* Đỏ cảnh báo */
+    border: 2px solid var(--orange); /* Viền cắt rãnh tiệp màu nền Navbar */
+    border-radius: 50%; /* Tròn xoe */
+    padding: 0; /* Xóa padding vì không có chữ */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Hiệu ứng Hover cho từng dòng thông báo */
+.noti-hover:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Mặc định ẩn mũi tên, khi hover mới đẩy mũi tên ra */
+.noti-arrow {
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.3s ease;
+}
+
+.noti-hover:hover .noti-arrow {
+    opacity: 1;
+    transform: translateX(0);
+}
+
 #thongBaoModal .modal-content {
     background-color: #2c2f33;
     color: white;
