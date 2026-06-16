@@ -84,6 +84,28 @@ namespace DoAn_HotelBooking.Security
                     context.Result = new ForbidResult();
                     return;
                 }
+
+                if (controller == "DatPhong" &&
+                    (action == "Edit" ||
+                    action == "Delete" ||
+                    action == "XacNhan" ||
+                    action == "CheckIn" ||
+                    action == "CheckOut" ||
+                    method == "Delete" ||
+                    method == "POST"))
+                {
+                    context.Result = new ForbidResult();
+                    return;
+                }
+
+                if (controller == "TaiKhoan" &&
+                    (action == "Create" ||
+                    action == "Delete" ||
+                    method == "POST"))
+                {
+                    context.Result = new ForbidResult();
+                    return;
+                }
             }
         }
 
