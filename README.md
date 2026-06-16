@@ -8,7 +8,7 @@
 
 Một hệ thống quản lý đặt phòng khách sạn toàn diện (Full-stack) được phát triển bằng **ASP.NET Core MVC** và **Entity Framework Core**. Dự án được xây dựng nhằm giải quyết các bài toán nghiệp vụ cốt lõi trong vận hành khách sạn: ngăn chặn đặt trùng phòng (Overbooking), tự động hóa luồng thông báo/email, tích hợp thanh toán trực tuyến và phân tích doanh thu trực quan. Cấu trúc dữ liệu được triển khai trên nền tảng Serverless Database **Neon (PostgreSQL)**.
 
-🔗 **[Xem Live Demo Tại Đây](https://doan-hotelbooking.onrender.com/))**
+🔗 **[Xem Live Demo Tại Đây](https://doan-hotelbooking.onrender.com/)**
 
 > **Tài khoản trải nghiệm (Demo Accounts):**
 > * **Admin (Chủ hệ thống):** `system` / `123456` *(Quản lý danh mục khách sạn, xem báo cáo doanh thu tổng, thiết lập hệ thống)*
