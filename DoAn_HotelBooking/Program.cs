@@ -12,10 +12,6 @@ using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 Env.Load("../.env");
 
-Console.WriteLine("GOOGLE_CLIENT_ID: " + Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID"));
-Console.WriteLine("EMAIL: " + Environment.GetEnvironmentVariable("EMAIL"));
-Console.WriteLine("DATABASE_URL: " + Environment.GetEnvironmentVariable("DATABASE_URL"));
-
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. CẤU HÌNH PROXY RENDER (Đã gộp thành 1 khối duy nhất)
