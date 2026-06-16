@@ -308,6 +308,7 @@ namespace DoAn_HotelBooking.Controllers
         }
 
         // 1. Hàm để Máy tính gọi kiểm tra trạng thái liên tục
+        // 1. Hàm để Máy tính gọi kiểm tra trạng thái liên tục
         [HttpGet]
         [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)] // Chống cache trình duyệt
         public async Task<IActionResult> KiemTraTrangThai(int id)
@@ -317,7 +318,8 @@ namespace DoAn_HotelBooking.Controllers
                                          .AsNoTracking()
                                          .FirstOrDefaultAsync(m => m.ID == id);
 
-            if (datPhong != null && datPhong.TrangThaiDatPhong == "Đã thanh toán")
+            // 🌟 SỬA TẠI ĐÂY: Kiểm tra cột TrangThaiThanhToan (Thay vì TrangThaiDatPhong)
+            if (datPhong != null && datPhong.TrangThaiThanhToan == "Đã thanh toán")
             {
                 return Json(new { daThanhToan = true });
             }
@@ -352,7 +354,7 @@ namespace DoAn_HotelBooking.Controllers
             if (datPhong != null)
             {
                 // Đồng bộ cả 2 trạng thái khi khách bấm xác nhận trên điện thoại
-                datPhong.TrangThaiDatPhong = "Đã thanh toán";
+                datPhong.TrangThaiDatPhong = "Đã xác nhận";
                 datPhong.TrangThaiThanhToan = "Đã thanh toán";
 
                 // 🌟 LOGIC TÍCH ĐIỂM
@@ -470,13 +472,14 @@ namespace DoAn_HotelBooking.Controllers
                 // --- 🌟 BỔ SUNG: LẤY DANH SÁCH NGÀY ĐÃ ĐẶT ---
                 var bookedDates = _context.DatPhong
                     .Where(dp => dp.MaPhong == MaPhong &&
-                                (dp.TrangThaiDatPhong == "Chờ xác nhận" || dp.TrangThaiDatPhong == "Đã xác nhận"))
+                                 dp.TrangThaiDatPhong != "Đã hủy" &&
+                                 dp.TrangThaiDatPhong != "Hoàn thành")
                     .Select(dp => new
                     {
                         from = dp.NgayNhanPhong.ToString("yyyy-MM-dd"),
                         to = dp.NgayTraPhong.ToString("yyyy-MM-dd")
                     })
-                    .ToList(); // Dùng ToList() vì hàm này không dùng async/await
+                    .ToList();
 
                 ViewBag.BookedDates = JsonSerializer.Serialize(bookedDates);
                 // ---------------------------------------------
@@ -486,7 +489,7 @@ namespace DoAn_HotelBooking.Controllers
             return View(new DatPhong
             {
                 NgayTao = DateTime.Now,
-                NgayNhanPhong = DateTime.Now,
+                NgayNhanPhong = DateTime.Now,   
                 NgayTraPhong = DateTime.Now.AddDays(1)
             });
         }
@@ -501,10 +504,11 @@ namespace DoAn_HotelBooking.Controllers
             DateTime checkOutUtc = datPhong.NgayTraPhong.ToUniversalTime();
 
             // 2. THUẬT TOÁN KIỂM TRA TRÙNG LỊCH ĐẶT PHÒNG
-            // Kiểm tra xem phòng này đã có ai đặt trong khoảng thời gian được yêu cầu chưa
             bool isConflict = await _context.DatPhong.AnyAsync(dp =>
                 dp.MaPhong == datPhong.MaPhong &&
-                (dp.TrangThaiDatPhong == "Chờ xác nhận" || dp.TrangThaiDatPhong == "Đã xác nhận") && // Bỏ qua các đơn Đã hủy/Đã trả phòng
+                // 🌟 ĐÃ SỬA: Chặn tất cả, chỉ cho phép đặt đè nếu đơn cũ đã Hủy hoặc Hoàn thành
+                dp.TrangThaiDatPhong != "Đã hủy" &&
+                dp.TrangThaiDatPhong != "Hoàn thành" &&
                 dp.NgayNhanPhong < checkOutUtc &&
                 dp.NgayTraPhong > checkInUtc
             );
