@@ -13,6 +13,36 @@ namespace DoAn_HotelBooking.Controllers
             _context = context;
         }
 
+        // GET: ThongBao/Index (Trang hiển thị tất cả thông báo)
+        public async Task<IActionResult> Index()
+        {
+            var maKS = HttpContext.Session.GetString("MaKhachSan");
+            var quyen = HttpContext.Session.GetString("QuyenHan");
+
+            // Lấy toàn bộ thông báo từ Database
+            IQueryable<Models.ThongBao> query = _context.ThongBao;
+
+            // Phân quyền dữ liệu (Row-level Security)
+            if (quyen != "Admin")
+            {
+                // Nhân viên/Quản lý chỉ được xem thông báo của Khách sạn mình
+                if (string.IsNullOrEmpty(maKS))
+                {
+                    TempData["ErrorMessage"] = "⚠️ Khách hàng không có quyền xem trang này.";
+                    return RedirectToAction("Index", "Home");
+                }
+                query = query.Where(t => t.MaKhachSan == maKS);
+            }
+
+            // Sắp xếp thông báo mới nhất lên đầu tiên
+            var danhSachThongBao = await query
+                .OrderByDescending(t => t.NgayTao)
+                .ToListAsync();
+
+            return View(danhSachThongBao);
+        }
+
+
         [HttpGet]
         public IActionResult GetThongBao()
         {
