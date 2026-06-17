@@ -35,40 +35,88 @@
 <div class="container-fluid fade-in-up mt-4">
     @Html.AntiForgeryToken()
 
-    <div class="row mb-4 g-3 align-items-stretch">
+    <div class="row mb-3 g-3 align-items-stretch">
         <div class="col-md-4">
-            <div class="stat-card h-100 d-flex align-items-center">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #FF4500, #DC143C);">
-                    <i class="bi bi-bug-fill"></i>
-                </div>
-                <div class="stat-info">
-                    <h6>Lỗi Chưa Xử Lý</h6>
-                    <h3 id="totalCount" class="text-danger">@Model.Count(x => !x.DaXuLy)</h3>
+            <div class="stat-card h-100 d-flex flex-column justify-content-center p-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #FF4500, #DC143C); width: 50px; height: 50px;">
+                        <i class="bi bi-bug-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-secondary mb-1">Cần Xử Lý</h6>
+                        <h3 id="totalCount" class="text-danger mb-0 fw-bold">@Model.Count(x => !x.DaXuLy)</h3>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="col-md-8">
-            <div class="stat-card h-100 d-flex align-items-center justify-content-between">
+            <div class="stat-card h-100 d-flex align-items-center justify-content-between p-3">
                 <div>
-                    <h2 class="page-title mb-1">NHẬT KÝ LỖI HỆ THỐNG</h2>
-                    <p class="text-secondary mb-0 small">Theo dõi và giám sát các sự cố phát sinh từ máy chủ</p>
+                    <h2 class="page-title mb-1 text-warning" style="font-size: 1.5rem; text-transform: uppercase;">Nhật ký lỗi hệ thống</h2>
+                    <p class="text-secondary mb-0 small">Theo dõi và giám sát sự cố máy chủ</p>
                 </div>
                 <div class="d-flex gap-2">
                     <button onclick="location.reload()" class="btn btn-primary-luxury text-decoration-none">
-                        <i class="bi bi-arrow-clockwise me-1"></i> Làm mới
+                        <i class="bi bi-arrow-clockwise me-1"></i> Tải lại
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="glass-container">
-        <div class="toolbar-wrapper mb-3">
-            <div class="search-box-luxury">
-                <i class="bi bi-search"></i>
-                <input type="text" id="searchLog" placeholder="Tìm kiếm nội dung lỗi, thời gian..." autocomplete="off">
+    <div class="row mb-4 g-3">
+        <div class="col-12">
+            <div class="stat-card h-100 p-3" style="background: rgba(0,0,0,0.3);">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-secondary small m-0"><i class="bi bi-graph-up me-1"></i> Tần suất lỗi (7 ngày qua)</h6>
+                </div>
+                <div style="height: 120px; width: 100%;">
+                    <canvas id="errorChart"></canvas>
+                </div>
             </div>
+        </div>
+    </div>
+
+    <div class="glass-container">
+
+        <div class="toolbar-wrapper mb-3 p-3 rounded" style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color);">
+            <form method="get" class="row g-2 align-items-center">
+                <div class="col-md-3">
+                    <div class="search-box-luxury w-100 m-0">
+                        <i class="bi bi-search"></i>
+                        <input type="text" id="searchLog" placeholder="Tìm nội dung lỗi..." autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <select name="level" class="form-select bg-dark text-light border-secondary">
+                        <option value="">-- Mọi mức độ --</option>
+
+                        @if (ViewBag.AvailableLevels != null)
+                        {
+                            foreach (string lvl in ViewBag.AvailableLevels)
+                            {
+                                <option value="@lvl" selected="@(ViewBag.CurrentLevel == lvl ? "selected" : null)">
+                                    @lvl
+                                </option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <input type="date" name="startDate" value="@ViewBag.StartDate" class="form-control bg-dark text-light border-secondary" title="Từ ngày">
+                </div>
+                <div class="col-md-2">
+                    <input type="date" name="endDate" value="@ViewBag.EndDate" class="form-control bg-dark text-light border-secondary" title="Đến ngày">
+                </div>
+
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary-luxury w-50 fw-bold"><i class="bi bi-funnel me-1"></i> Lọc</button>
+                    <a asp-action="Index" class="btn btn-excel-luxury w-50"><i class="bi bi-x-circle me-1"></i> Xóa lọc</a>
+                </div>
+            </form>
         </div>
 
         <div class="table-responsive">
@@ -212,6 +260,8 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <input type="hidden" id="successMessage" value="@TempData["SuccessMessage"]" />
     <input type="hidden" id="errorMessage" value="@TempData["ErrorMessage"]" />
 
@@ -222,6 +272,7 @@
     <script>
         var pageConfig;
         document.addEventListener("DOMContentLoaded", function () {
+            // Khởi tạo bảng và phân trang
             pageConfig = new TablePaginator({
                 tableId: 'logTable',
                 searchInputId: 'searchLog',
@@ -230,6 +281,46 @@
                 noResultsId: 'noResults',
                 rowsPerPage: 10
             });
+
+            // Khởi tạo Biểu đồ Chart.js
+            const chartCtx = document.getElementById('errorChart');
+            if (chartCtx) {
+                const ctx = chartCtx.getContext('2d');
+                // Lấy dữ liệu từ ViewBag do Controller truyền sang
+                const labels = @Html.Raw(ViewBag.ChartLabels ?? "[]");
+                const data = @Html.Raw(ViewBag.ChartData ?? "[]");
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Số lượng lỗi',
+                            data: data,
+                            borderColor: '#FFD700',
+                            backgroundColor: 'rgba(255, 215, 0, 0.15)',
+                            borderWidth: 2,
+                            pointBackgroundColor: '#FF4500',
+                            pointBorderColor: '#000',
+                            pointRadius: 4,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { color: '#888', font: {size: 10} } },
+                            y: { grid: { color: '#444', borderDash: [5, 5] }, ticks: { color: '#888', stepSize: 1, font: {size: 10} }, beginAtZero: true }
+                        }
+                    }
+                });
+            }
         });
 
         let currentLogId = 0;
