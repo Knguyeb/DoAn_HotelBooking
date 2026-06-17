@@ -534,6 +534,45 @@ namespace DoAn_HotelBooking.Data
                     context.SaveChanges();
                 }
 
+                if (!context.SystemLogs.Any())
+                {
+                    context.SystemLogs.AddRange(
+                        new SystemLog
+                        {
+                            Message = "An error occurred while saving the entity changes. See the inner exception for details.",
+                            Level = "error",
+                            Timestamp = DateTime.UtcNow.AddHours(-2), // Giả lập lỗi xảy ra cách đây 2 tiếng
+                            DaXuLy = false,
+                            Exception = @"Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes.
+ ---> Npgsql.PostgresException (0x80004005): 23503: insert or update on table ""DatPhongs"" violates foreign key constraint ""FK_DatPhongs_KhachSans_MaKhachSan""
+   DETAIL: Key (MaKhachSan)=(999) is not present in table ""KhachSans"".
+   at Npgsql.Internal.NpgsqlConnector.<ReadMessage>g__ReadMessageLong|233_0(NpgsqlConnector connector, Boolean async, DataRowLoadingMode dataRowLoadingMode, Boolean readingNotifications, Boolean isReadingPrependedMessage)
+   at Npgsql.NpgsqlDataReader.NextResult(Boolean async, Boolean isConsuming, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlCommand.ExecuteReader(CommandBehavior behavior, Boolean async, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at DoAn_HotelBooking.Controllers.DatPhongsController.TaoMoiDatPhong(DatPhong model) in C:\Users\Admin\source\repos\DoAn_HotelBooking\Controllers\DatPhongsController.cs:line 145"
+                        },
+                        new SystemLog
+                        {
+                            Message = "NullReferenceException: Object reference not set to an instance of an object.",
+                            Level = "critical",
+                            Timestamp = DateTime.UtcNow.AddDays(-1), // Lỗi từ hôm qua
+                            DaXuLy = true, // Lỗi này đã được đánh dấu xử lý
+                            Exception = @"System.NullReferenceException: Object reference not set to an instance of an object.
+   at DoAn_HotelBooking.Controllers.TaiKhoansController.LayThongTinCaNhan(Int32 id) in C:\Users\Admin\source\repos\DoAn_HotelBooking\Controllers\TaiKhoansController.cs:line 56
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)"
+                        }
+                    );
+
+                    context.SaveChanges();
+                }
+
                 context.SaveChanges();
             }
         }

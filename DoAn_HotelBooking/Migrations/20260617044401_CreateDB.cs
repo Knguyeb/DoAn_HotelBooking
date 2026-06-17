@@ -59,6 +59,23 @@ namespace DoAn_HotelBooking.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "SystemLogs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Message = table.Column<string>(type: "text", nullable: false),
+                    Level = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Exception = table.Column<string>(type: "text", nullable: false),
+                    DaXuLy = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SystemLogs", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ThongBao",
                 columns: table => new
                 {
@@ -285,6 +302,9 @@ namespace DoAn_HotelBooking.Migrations
 
             migrationBuilder.DropTable(
                 name: "DatPhong");
+
+            migrationBuilder.DropTable(
+                name: "SystemLogs");
 
             migrationBuilder.DropTable(
                 name: "ThongBao");

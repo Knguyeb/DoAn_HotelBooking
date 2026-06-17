@@ -226,6 +226,38 @@ namespace DoAn_HotelBooking.Migrations
                     b.ToTable("Phong");
                 });
 
+            modelBuilder.Entity("DoAn_HotelBooking.Models.SystemLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("DaXuLy")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Exception")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Level")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SystemLogs");
+                });
+
             modelBuilder.Entity("DoAn_HotelBooking.Models.TaiKhoan", b =>
                 {
                     b.Property<int>("ID")

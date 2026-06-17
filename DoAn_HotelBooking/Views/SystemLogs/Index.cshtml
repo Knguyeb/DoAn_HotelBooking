@@ -1,0 +1,336 @@
+﻿@model IEnumerable<DoAn_HotelBooking.Models.SystemLog>
+
+@{
+    ViewData["Title"] = "Nhật ký lỗi hệ thống";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/KhachSan/Index.css" asp-append-version="true" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+@functions {
+    public string GetLevelColor(string levelStr)
+    {
+        if (string.IsNullOrEmpty(levelStr)) return "bg-secondary";
+
+        string level = levelStr.ToLower().Trim();
+
+        if (level.Contains("critical") || level.Contains("fatal") || level == "5")
+            return "bg-danger";
+
+        if (level.Contains("error") || level == "4")
+            return "bg-warning text-dark";
+
+        if (level.Contains("warning") || level == "3")
+            return "bg-primary";
+
+        if (level.Contains("info") || level.Contains("debug") || level == "2" || level == "1")
+            return "bg-info text-dark";
+
+        return "bg-secondary";
+    }
+}
+
+<div class="container-fluid fade-in-up mt-4">
+    @Html.AntiForgeryToken()
+
+    <div class="row mb-4 g-3 align-items-stretch">
+        <div class="col-md-4">
+            <div class="stat-card h-100 d-flex align-items-center">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #FF4500, #DC143C);">
+                    <i class="bi bi-bug-fill"></i>
+                </div>
+                <div class="stat-info">
+                    <h6>Lỗi Chưa Xử Lý</h6>
+                    <h3 id="totalCount" class="text-danger">@Model.Count(x => !x.DaXuLy)</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="stat-card h-100 d-flex align-items-center justify-content-between">
+                <div>
+                    <h2 class="page-title mb-1">NHẬT KÝ LỖI HỆ THỐNG</h2>
+                    <p class="text-secondary mb-0 small">Theo dõi và giám sát các sự cố phát sinh từ máy chủ</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button onclick="location.reload()" class="btn btn-primary-luxury text-decoration-none">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Làm mới
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-container">
+        <div class="toolbar-wrapper mb-3">
+            <div class="search-box-luxury">
+                <i class="bi bi-search"></i>
+                <input type="text" id="searchLog" placeholder="Tìm kiếm nội dung lỗi, thời gian..." autocomplete="off">
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table custom-table align-middle" id="logTable">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width: 5%">#</th>
+                        <th class="text-center" style="width: 15%">Thời gian</th>
+                        <th class="text-center" style="width: 10%">Mức độ</th>
+                        <th class="text-center" style="width: 45%">Nội dung lỗi</th>
+                        <th class="text-center" style="width: 15%">Trạng thái</th>
+                        <th class="text-center" style="width: 10%">Chi tiết</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int i = 1;
+                    }
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="text-center text-muted fw-bold">@i</td>
+
+                            <td class="text-center">
+                                <div class="fw-bold" style="color: var(--yellow); letter-spacing: 0.5px;">
+                                    <i class="bi bi-clock-history me-2"></i>@item.Timestamp.ToLocalTime().ToString("dd/MM/yyyy")
+                                </div>
+                                <div class="text-muted small mt-1">
+                                    @item.Timestamp.ToLocalTime().ToString("HH:mm:ss")
+                                </div>
+                            </td>
+
+                            <td class="text-center">
+                                <span class="badge @GetLevelColor(item.Level) fs-6 px-3">@item.Level</span>
+                            </td>
+
+                            <td class="text-center">
+                                <div class="text-light small d-inline-block text-truncate" style="max-width: 400px;" title="@item.Message">
+                                    @item.Message
+                                </div>
+                            </td>
+
+                            <td class="text-center">
+                                @if (item.DaXuLy)
+                                {
+                                    <span class="badge bg-success w-100 py-2" id="badge-status-@item.Id">✔ Đã xử lý</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark w-100 py-2" id="badge-status-@item.Id">⚠ Đang chờ xử lý</span>
+                                }
+                            </td>
+
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center align-items-center gap-2">
+                                    <div id="msg-@item.Id" style="display:none;">@item.Message</div>
+                                    <div id="exc-@item.Id" style="display:none;">@item.Exception</div>
+
+                                    @if (!item.DaXuLy)
+                                    {
+                                        <button class="btn btn-icon-luxury btn-success-glow"
+                                                id="btn-quick-resolve-@item.Id"
+                                                onclick="markAsResolved(@item.Id)"
+                                                title="Đánh dấu đã sửa xong">
+                                            <i class="bi bi-check-lg" style="font-size: 1.2rem;"></i>
+                                        </button>
+                                    }
+
+                                    <button class="btn btn-icon-luxury btn-info-glow"
+                                            onclick="showDetailModal(@item.Id, '@item.Level', '@GetLevelColor(item.Level)', '@item.Timestamp.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")', @item.DaXuLy.ToString().ToLower())"
+                                            title="Xem chi tiết">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        i++;
+                    }
+                </tbody>
+            </table>
+
+            <div id="noResults" class="text-center py-5" style="display: none;">
+                <div class="mb-3">
+                    <i class="bi bi-shield-check" style="font-size: 3rem; color: var(--yellow); opacity: 0.5;"></i>
+                </div>
+                <h5 class="text-light">Không tìm thấy lỗi nào</h5>
+                <p class="text-secondary">Hệ thống đang hoạt động ổn định hoặc sai từ khóa tìm kiếm.</p>
+                <button type="button" onclick="pageConfig.clearSearch()" class="btn btn-outline-warning mt-2 rounded-pill px-4">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Hiển thị tất cả
+                </button>
+            </div>
+        </div>
+
+        <div class="table-footer d-flex justify-content-between align-items-center mt-auto pt-3" style="border-top: 1px solid var(--border-color)">
+            <span class="text-secondary small">Đang hiển thị <strong id="visibleCount" class="text-light">0</strong> lỗi</span>
+            <ul id="pagination" class="pagination-luxury">
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="detailLogModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow-lg" style="background-color: #1e1e1e; border: 1px solid var(--border-color);">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-warning fw-bold">
+                    <i class="bi bi-file-earmark-break text-danger me-2"></i> CHI TIẾT SỰ CỐ
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <span class="badge me-2 fs-6 px-3" id="modalLevel"></span>
+                    <span class="text-secondary fw-bold" id="modalTime"></span>
+                </div>
+                <div class="mb-3 text-light" style="border-left: 4px solid var(--danger); padding-left: 12px;" id="modalMessage">
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-4 mb-2">
+                    <h6 class="text-info mb-0"><i class="bi bi-terminal me-1"></i> Stack Trace</h6>
+                </div>
+                <div class="p-3 rounded" style="background-color: #0d1117; max-height: 400px; overflow-y: auto;">
+                    <pre id="modalException" style="color: #00ff00; font-family: 'Consolas', monospace; font-size: 0.85rem; white-space: pre-wrap; margin: 0;"></pre>
+                </div>
+            </div>
+            <div class="modal-footer border-top border-secondary d-flex justify-content-between">
+                <div>
+                    <button type="button" class="btn btn-success fw-bold" id="btnXuLyLoi" style="display:none;">
+                        <i class="bi bi-check-circle me-1"></i> Đánh dấu đã xử lý xong
+                    </button>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-outline-info me-2" onclick="copyExceptionModal()">
+                        <i class="bi bi-clipboard me-1"></i> Copy Lỗi
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <input type="hidden" id="successMessage" value="@TempData["SuccessMessage"]" />
+    <input type="hidden" id="errorMessage" value="@TempData["ErrorMessage"]" />
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/Share/Success.js" asp-append-version="true"></script>
+    <script src="~/js/Share/PhanTrang.js" asp-append-version="true"></script>
+
+    <script>
+        var pageConfig;
+        document.addEventListener("DOMContentLoaded", function () {
+            pageConfig = new TablePaginator({
+                tableId: 'logTable',
+                searchInputId: 'searchLog',
+                paginationId: 'pagination',
+                visibleCountId: 'visibleCount',
+                noResultsId: 'noResults',
+                rowsPerPage: 10
+            });
+        });
+
+        let currentLogId = 0;
+
+        function showDetailModal(id, levelText, levelColorClass, time, isProcessed) {
+            currentLogId = id;
+
+            const msg = document.getElementById(`msg-${id}`).innerText;
+            const exc = document.getElementById(`exc-${id}`).innerText;
+
+            const badgeLevel = document.getElementById('modalLevel');
+            badgeLevel.innerText = levelText;
+            badgeLevel.className = `badge me-2 fs-6 px-3 ${levelColorClass}`;
+
+            document.getElementById('modalTime').innerText = time;
+            document.getElementById('modalMessage').innerText = msg;
+
+            const excElement = document.getElementById('modalException');
+            if (exc && exc.trim() !== "") {
+                excElement.innerText = exc;
+                excElement.style.color = "#00ff00";
+            } else {
+                excElement.innerText = "Không có dữ liệu Stack Trace đính kèm cho sự kiện này.";
+                excElement.style.color = "#888";
+            }
+
+            const btnXuLy = document.getElementById('btnXuLyLoi');
+            if(isProcessed) {
+                btnXuLy.style.display = 'none';
+            } else {
+                btnXuLy.style.display = 'inline-block';
+                btnXuLy.onclick = function() {
+                    markAsResolved(currentLogId);
+                };
+            }
+
+            var myModal = new bootstrap.Modal(document.getElementById('detailLogModal'));
+            myModal.show();
+        }
+
+        async function markAsResolved(id) {
+            try {
+                const response = await fetch(`/SystemLogs/DoiTrangThai/${id}`, {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    const badge = document.getElementById(`badge-status-${id}`);
+                    if (badge) {
+                        badge.style.display = "inline-block";
+                    }
+
+                    const quickBtn = document.getElementById(`btn-quick-resolve-${id}`);
+                    if (quickBtn) {
+                        quickBtn.style.display = "none";
+                    }
+
+                    const btnXuLyModal = document.getElementById('btnXuLyLoi');
+                    if (btnXuLyModal) {
+                        btnXuLyModal.style.display = 'none';
+                    }
+
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Đã đóng Issue thành công',
+                        showConfirmButton: false,
+                        timer: 1500,
+                        background: '#242526',
+                        color: '#fff'
+                    }).then(() => {
+                        location.reload();
+                    });
+
+                } else {
+                    Swal.fire('Lỗi!', result.message, 'error');
+                }
+            } catch (error) {
+                Swal.fire('Lỗi!', 'Không thể kết nối đến máy chủ.', 'error');
+            }
+        }
+
+        function copyExceptionModal() {
+            var content = document.getElementById('modalException').innerText;
+            navigator.clipboard.writeText(content).then(function() {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Đã copy vào Clipboard',
+                    showConfirmButton: false,
+                    timer: 1500,
+                    background: '#242526',
+                    color: '#fff'
+                });
+            }).catch(function(err) {
+                console.error('Không thể copy: ', err);
+            });
+        }
+    </script>
+}

@@ -53,6 +53,12 @@ namespace DoAn_HotelBooking.Security
                     context.Result = new ForbidResult();
                     return;
                 }
+
+                if (controller == "SystemLogs")
+                {
+                    context.Result = new ForbidResult();
+                    return;
+                }
             }
 
             // ===== LUẬT CHO KHÁCH HÀNG =====
@@ -107,6 +113,11 @@ namespace DoAn_HotelBooking.Security
                     return;
                 }
 
+                if (controller == "SystemLogs")
+                {
+                    context.Result = new ForbidResult();
+                    return;
+                }
             }
         }
 

@@ -5,16 +5,17 @@ using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
-using Npgsql.EntityFrameworkCore.PostgreSQL;
+using Serilog;
+using Serilog.Sinks.PostgreSQL;
+using NpgsqlTypes;
 
 Env.Load("../.env");
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. CẤU HÌNH PROXY RENDER (Đã gộp thành 1 khối duy nhất)
+// 1. CẤU HÌNH PROXY RENDER
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -26,10 +27,33 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
     ?? throw new Exception("DATABASE_URL not found");
 
+// ==========================================
+// 🌟 TÍCH HỢP SERILOG GHI LỖI VÀO POSTGRESQL
+// ==========================================
+IDictionary<string, ColumnWriterBase> columnWriters = new Dictionary<string, ColumnWriterBase>
+{
+    {"Timestamp", new TimestampColumnWriter(NpgsqlDbType.TimestampTz) },
+    {"Level", new LevelColumnWriter(true, NpgsqlDbType.Varchar) },
+    {"Message", new RenderedMessageColumnWriter(NpgsqlDbType.Text) },
+    {"Exception", new ExceptionColumnWriter(NpgsqlDbType.Text) }
+};
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Error() // Chỉ lưu lỗi (Error) để tránh rác Database
+    .WriteTo.PostgreSQL(
+        connectionString: connectionString,
+        tableName: "SystemLogs",
+        columnOptions: columnWriters,
+        needAutoCreateTable: true) // Tự động tạo bảng nếu chưa có
+    .CreateLogger();
+
+builder.Host.UseSerilog(); // Kích hoạt Serilog
+// ==========================================
+
 builder.Services.AddDbContext<DoAn_HotelBookingContext>(options =>
     options.UseNpgsql(connectionString));
 
-// 3. SAU ĐÓ MỚI GỌI DATA PROTECTION (Vì nó cần Database ở trên để lưu chìa khóa)
+// 3. SAU ĐÓ MỚI GỌI DATA PROTECTION
 builder.Services.AddDataProtection()
     .PersistKeysToDbContext<DoAn_HotelBookingContext>();
 
@@ -46,7 +70,7 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// ✅ Thêm Authentication (Google + Cookie)
+// Authentication (Google + Cookie)
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -68,9 +92,7 @@ builder.Services.AddControllersWithViews(options =>
 
 var app = builder.Build();
 
-// ==========================================
 // FIX LỖI ĐĂNG NHẬP GOOGLE TRÊN RENDER
-// ==========================================
 app.UseForwardedHeaders();
 app.Use((context, next) =>
 {
@@ -84,10 +106,7 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<DoAn_HotelBookingContext>();
 
-    // Dòng này sẽ xây lại toàn bộ các bảng mới tinh (bao gồm cả bảng chứa chìa khóa)
     context.Database.Migrate();
-
-    // Nạp lại dữ liệu mẫu
     SeedData.Initialize(services);
 }
 
@@ -105,7 +124,6 @@ app.UseRouting();
 
 app.UseSession();
 
-// ✅ Bắt buộc: thêm Authentication trước Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
