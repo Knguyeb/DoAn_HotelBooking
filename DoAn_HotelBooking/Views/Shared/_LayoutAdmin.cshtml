@@ -95,7 +95,14 @@
                     </a>
                 </div>
 
-                <div class="navbar-nav flex-row">
+                <div class="navbar-nav flex-row align-items-center">
+
+                    <div class="position-relative me-1 d-flex align-items-center">
+                        <a asp-controller="SystemLogs" asp-action="Index" class="nav-link text-danger px-3 py-2" title="Nhật ký hệ thống">
+                            <i class="fas fa-bug fs-5"></i>
+                        </a>
+                    </div>
+
                     <li class="nav-item d-flex align-items-center">
                         <a href="javascript:void(0);" class="nav-link text-light px-3 py-2" onclick="showDetail(@HttpContextAccessor.HttpContext.Session.GetInt32("ID"))">
                             <i class="fas fa-user-circle me-2 text-warning"></i> @HttpContextAccessor.HttpContext.Session.GetString("HoVaTen")
