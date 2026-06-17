@@ -106,6 +106,7 @@ namespace DoAn_HotelBooking.Security
                     context.Result = new ForbidResult();
                     return;
                 }
+
             }
         }
 
