@@ -175,33 +175,6 @@ namespace DoAn_HotelBooking.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DanhGiaPhong",
-                columns: table => new
-                {
-                    ID = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    MaPhong = table.Column<int>(type: "integer", nullable: false),
-                    MaTaiKhoan = table.Column<int>(type: "integer", nullable: false),
-                    SoSao = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DanhGiaPhong", x => x.ID);
-                    table.ForeignKey(
-                        name: "FK_DanhGiaPhong_Phong_MaPhong",
-                        column: x => x.MaPhong,
-                        principalTable: "Phong",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_DanhGiaPhong_TaiKhoan_MaTaiKhoan",
-                        column: x => x.MaTaiKhoan,
-                        principalTable: "TaiKhoan",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "DatPhong",
                 columns: table => new
                 {
@@ -236,6 +209,43 @@ namespace DoAn_HotelBooking.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "DanhGiaPhong",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    MaPhong = table.Column<int>(type: "integer", nullable: false),
+                    MaTaiKhoan = table.Column<int>(type: "integer", nullable: false),
+                    MaDatPhong = table.Column<int>(type: "integer", nullable: false),
+                    SoSao = table.Column<int>(type: "integer", nullable: false),
+                    NoiDung = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    NgayTao = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    NgayCapNhat = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DanhGiaPhong", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_DanhGiaPhong_DatPhong_MaDatPhong",
+                        column: x => x.MaDatPhong,
+                        principalTable: "DatPhong",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DanhGiaPhong_Phong_MaPhong",
+                        column: x => x.MaPhong,
+                        principalTable: "Phong",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DanhGiaPhong_TaiKhoan_MaTaiKhoan",
+                        column: x => x.MaTaiKhoan,
+                        principalTable: "TaiKhoan",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_DanhGiaKS_MaKhachSan",
                 table: "DanhGiaKS",
@@ -245,6 +255,11 @@ namespace DoAn_HotelBooking.Migrations
                 name: "IX_DanhGiaKS_MaTaiKhoan",
                 table: "DanhGiaKS",
                 column: "MaTaiKhoan");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DanhGiaPhong_MaDatPhong",
+                table: "DanhGiaPhong",
+                column: "MaDatPhong");
 
             migrationBuilder.CreateIndex(
                 name: "IX_DanhGiaPhong_MaPhong",
@@ -301,13 +316,13 @@ namespace DoAn_HotelBooking.Migrations
                 name: "DataProtectionKeys");
 
             migrationBuilder.DropTable(
-                name: "DatPhong");
-
-            migrationBuilder.DropTable(
                 name: "SystemLogs");
 
             migrationBuilder.DropTable(
                 name: "ThongBao");
+
+            migrationBuilder.DropTable(
+                name: "DatPhong");
 
             migrationBuilder.DropTable(
                 name: "Phong");

@@ -85,7 +85,6 @@
                                 <span class="badge bg-warning text-dark shadow-sm px-2 py-1" style="font-size: 0.9rem;">
                                     <i class="fas fa-star"></i> @item.TrungBinhSao.ToString("0.0")
                                 </span>
-                                <small class="text-muted ms-2 fst-italic">(@ViewBag.SoDanhGia đánh giá)</small>
                             }
                             else
                             {
@@ -176,4 +175,69 @@
     <script src="~/js/Share/DoiTien.js"></script>
     <script src="~/js/DanhGia/DanhGiaPhong.js" asp-append-version="true"></script>
     <script src="~/js/Share/PopUpDetails.js" asp-append-version="true"></script>
+
+    <script>
+        function toggleRoomView(maPhong, btnElement) {
+            var $viewChiTiet = $('#viewChiTiet_' + maPhong);
+            var $viewBinhLuan = $('#viewBinhLuan_' + maPhong);
+            var $btn = $(btnElement);
+
+            if ($viewChiTiet.is(':visible')) {
+                $viewChiTiet.hide();
+                $viewBinhLuan.show();
+                $btn.html('<i class="fas fa-info-circle me-1"></i> Chi tiết phòng');
+
+                if (!$viewBinhLuan.data('loaded')) {
+                    loadCommentsData(maPhong);
+                }
+            } else {
+                $viewBinhLuan.hide();
+                $viewChiTiet.show();
+                $btn.html('<i class="fas fa-comments me-1"></i> Xem bình luận');
+            }
+        }
+
+        // Hàm gọi dữ liệu Bình luận
+        function loadCommentsData(maPhong) {
+            var area = $('#areaDanhSachBinhLuan_' + maPhong);
+            $('#viewBinhLuan_' + maPhong).data('loaded', true);
+
+            $.ajax({
+                url: '/DanhGiaPhongs/GetBinhLuanByPhong',
+                type: 'GET',
+                data: { maPhong: maPhong },
+                success: function (res) {
+                    area.empty();
+                    if (res.success === false) {
+                        area.append('<div class="alert alert-danger text-center"><i class="fas fa-bug me-2"></i>Lỗi Backend: ' + res.errorMessage + '</div>');
+                        return;
+                    }
+
+                    if (res.data && res.data.length > 0) {
+                        res.data.forEach(function(item) {
+                            area.append(`
+                                <div style="border-bottom: 1px solid rgba(255,255,255,0.1); padding: 15px 0;">
+                                    <div class="d-flex justify-content-between">
+                                        <strong class="text-info"><i class="fas fa-user-circle me-2"></i> ${item.tenKhachHang}</strong>
+                                        <span class="text-muted" style="font-size: 0.8rem;"><i class="far fa-clock me-1"></i> ${item.ngayTao}</span>
+                                    </div>
+                                    <p class="text-light mt-2 mb-0 ps-4" style="border-left: 2px solid #ffc107;">${item.noiDung}</p>
+                                </div>
+                            `);
+                        });
+                    } else {
+                        area.append(`
+                            <div class="text-center text-muted py-5 fst-italic" style="background: rgba(255,255,255,0.02); border-radius: 8px;">
+                                <i class="fas fa-comment-slash fa-2x mb-3 d-block opacity-50"></i>
+                                Chưa có bình luận nào cho phòng này.
+                            </div>
+                        `);
+                    }
+                },
+                error: function () {
+                    area.html('<div class="text-danger text-center py-4"><i class="fas fa-exclamation-circle me-1"></i> Lỗi kết nối API! Vui lòng kiểm tra lại đường dẫn.</div>');
+                }
+            });
+        }
+    </script>
 }

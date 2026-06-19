@@ -16,7 +16,6 @@ namespace DoAn_HotelBooking.Controllers
         }
 
         // GET: Phongs
-        // GET: Phongs
         public async Task<IActionResult> Index(string id) // id = MaKhachSan
         {
             if (string.IsNullOrEmpty(id)) return NotFound();
@@ -43,13 +42,14 @@ namespace DoAn_HotelBooking.Controllers
         // GET: Phongs/TatCaPhong
         public async Task<IActionResult> TatCaPhong(string? maKhachSan)
         {
-            // 🌟 BỔ SUNG .Include(p => p.DatPhongs) VÀO ĐÂY
+            // 1. GỌI THÊM CẢ BẢNG ĐÁNH GIÁ PHÒNG
             var query = _context.Phong
                 .Include(p => p.KhachSan)
                 .Include(p => p.DatPhongs)
+                .Include(p => p.DanhGiaPhongs) // 🌟 QUAN TRỌNG: Lấy dữ liệu đánh giá
                 .AsQueryable();
 
-            // KIỂM TRA MÃ KHÁCH SẠN TỪ NÚT BẤM
+            // 2. KIỂM TRA MÃ KHÁCH SẠN TỪ NÚT BẤM
             if (!string.IsNullOrEmpty(maKhachSan))
             {
                 query = query.Where(p => p.MaKhachSan == maKhachSan);
@@ -67,6 +67,23 @@ namespace DoAn_HotelBooking.Controllers
             }
 
             var dsPhong = await query.OrderBy(p => p.SoPhong).ToListAsync();
+
+            // 3. 🌟 VÒNG LẶP TÍNH TOÁN ĐIỂM SAO & SỐ LƯỢT ĐÁNH GIÁ TRƯỚC KHI HIỂN THỊ
+            foreach (var p in dsPhong)
+            {
+                // Đếm số lượng đánh giá
+                p.SoDanhGia = p.DanhGiaPhongs != null ? p.DanhGiaPhongs.Count : 0;
+
+                // Tính trung bình cộng số sao
+                if (p.SoDanhGia > 0)
+                {
+                    p.TrungBinhSao = Math.Round(p.DanhGiaPhongs.Average(d => d.SoSao), 1);
+                }
+                else
+                {
+                    p.TrungBinhSao = 0;
+                }
+            }
 
             return View(dsPhong);
         }

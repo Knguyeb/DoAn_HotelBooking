@@ -2,10 +2,12 @@
     // Dùng Event Delegation để bắt sự kiện ổn định
     $(document).on("click", "#btnDanhGiaPopup, .btnDanhGiaPhong", function (e) {
         e.preventDefault();
-        const maPhong = $(this).data("maphong");
 
-        if (!maPhong) {
-            console.error("Không tìm thấy mã phòng (data-maphong)!");
+        const maPhong = $(this).data("maphong");
+        const maDatPhong = $(this).data("madatphong"); // 🟢 LẤY THÊM MÃ ĐẶT PHÒNG
+
+        if (!maPhong || !maDatPhong) {
+            console.error("Không tìm thấy mã phòng hoặc mã đặt phòng (data-maphong / data-madatphong)!");
             return;
         }
 
@@ -13,7 +15,7 @@
         $.ajax({
             url: '/DanhGiaPhongs/KiemTraDanhGia',
             type: 'GET',
-            data: { maPhong: parseInt(maPhong) },
+            data: { maDatPhong: parseInt(maDatPhong) }, // 🟢 SỬA THÀNH maDatPhong THEO CONTROLLER MỚI
             success: function (checkRes) {
 
                 // Nếu chưa đăng nhập hoặc ĐÃ ĐÁNH GIÁ RỒI -> Quăng cảnh báo
@@ -29,9 +31,9 @@
                     return; // Dừng lại, không mở form 5 sao nữa
                 }
 
-                // 🌟 NẾU HỢP LỆ -> MỞ FORM 5 SAO BÌNH THƯỜNG
+                // 🌟 NẾU HỢP LỆ -> MỞ FORM 5 SAO KÈM Ô NHẬP BÌNH LUẬN
                 Swal.fire({
-                    title: "Chọn số sao đánh giá phòng",
+                    title: "Đánh giá phòng",
                     background: '#242526', // Màu nền tối đồng bộ theme
                     color: '#fff',
                     html: `
@@ -61,6 +63,8 @@
                         <div id="ratingText" style="text-align:center;margin-top:10px;font-weight:bold;color:#f4a825;font-size:18px;">
                             Hãy chọn số sao đánh giá
                         </div>
+
+                        <textarea id="noiDungDanhGia" class="swal2-textarea" placeholder="Nhập bình luận của bạn (không bắt buộc)..." rows="3" style="width: 80%; background: #3a3b3c; color: #fff; border: 1px solid #555; resize: none;"></textarea>
 
                         <style>
                             .rating { display: flex; flex-direction: row-reverse; justify-content: center; gap: 6px; }
@@ -94,11 +98,15 @@
                     },
                     preConfirm: () => {
                         const soSao = $('input[name="rating"]:checked').val();
+                        const noiDung = document.getElementById('noiDungDanhGia').value.trim(); // 🟢 LẤY NỘI DUNG BÌNH LUẬN
+
                         if (!soSao) {
                             Swal.showValidationMessage("Vui lòng chọn số sao!");
                             return false;
                         }
-                        return soSao;
+
+                        // 🟢 TRẢ VỀ CẢ SỐ SAO VÀ NỘI DUNG
+                        return { soSao: soSao, noiDung: noiDung };
                     }
                 }).then(result => {
                     if (result.isConfirmed) {
@@ -108,10 +116,11 @@
                             contentType: 'application/json',
                             data: JSON.stringify({
                                 MaPhong: parseInt(maPhong),
-                                SoSao: parseInt(result.value)
+                                MaDatPhong: parseInt(maDatPhong), // 🟢 GỬI THÊM MÃ ĐẶT PHÒNG
+                                SoSao: parseInt(result.value.soSao),
+                                NoiDung: result.value.noiDung     // 🟢 GỬI THÊM NỘI DUNG
                             }),
                             success: function (res) {
-                                // Bắt thông báo trả về (ưu tiên message thành công, nếu thất bại thì bắt errorMessage)
                                 let msg = res.message || res.errorMessage;
                                 Swal.fire({
                                     icon: res.success ? 'success' : 'error',

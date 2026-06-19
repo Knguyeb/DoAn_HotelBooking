@@ -48,6 +48,9 @@ namespace DoAn_HotelBooking.Models
         [NotMapped]
         public double TrungBinhSao { get; set; }
 
+        [NotMapped]
+        public int SoDanhGia { get; set; }
+
         // Thuộc tính để Include danh sách đánh giá từ bảng DanhGiaPhong
         public virtual ICollection<DanhGiaPhong> DanhGiaPhongs { get; set; }
 

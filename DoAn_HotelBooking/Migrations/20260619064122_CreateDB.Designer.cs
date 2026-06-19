@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DoAn_HotelBooking.Migrations
 {
     [DbContext(typeof(DoAn_HotelBookingContext))]
-    [Migration("20260617044401_CreateDB")]
+    [Migration("20260619064122_CreateDB")]
     partial class CreateDB
     {
         /// <inheritdoc />
@@ -60,16 +60,31 @@ namespace DoAn_HotelBooking.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
 
+                    b.Property<int>("MaDatPhong")
+                        .HasColumnType("integer");
+
                     b.Property<int>("MaPhong")
                         .HasColumnType("integer");
 
                     b.Property<int>("MaTaiKhoan")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("NgayCapNhat")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("NgayTao")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("NoiDung")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
                     b.Property<int>("SoSao")
                         .HasColumnType("integer");
 
                     b.HasKey("ID");
+
+                    b.HasIndex("MaDatPhong");
 
                     b.HasIndex("MaPhong");
 
@@ -380,6 +395,12 @@ namespace DoAn_HotelBooking.Migrations
 
             modelBuilder.Entity("DoAn_HotelBooking.Models.DanhGiaPhong", b =>
                 {
+                    b.HasOne("DoAn_HotelBooking.Models.DatPhong", "DatPhong")
+                        .WithMany()
+                        .HasForeignKey("MaDatPhong")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("DoAn_HotelBooking.Models.Phong", "Phong")
                         .WithMany("DanhGiaPhongs")
                         .HasForeignKey("MaPhong")
@@ -391,6 +412,8 @@ namespace DoAn_HotelBooking.Migrations
                         .HasForeignKey("MaTaiKhoan")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("DatPhong");
 
                     b.Navigation("Phong");
 

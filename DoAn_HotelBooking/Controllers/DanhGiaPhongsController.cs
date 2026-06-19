@@ -17,30 +17,40 @@ namespace DoAn_HotelBooking.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateFromSwal([FromBody] DanhGiaPhong model)
         {
-            // ✅ Kiểm tra dữ liệu đầu vào (Đổi key thành errorMessage)
-            if (model == null || model.MaPhong <= 0 || model.SoSao < 1 || model.SoSao > 5)
+            // ✅ 1. Kiểm tra dữ liệu đầu vào (Bổ sung kiểm tra MaDatPhong)
+            if (model == null || model.MaPhong <= 0 || model.MaDatPhong <= 0 || model.SoSao < 1 || model.SoSao > 5)
                 return Json(new { success = false, errorMessage = "Dữ liệu không hợp lệ!" });
 
-            // ✅ 1. Kiểm tra đăng nhập (Bảo vệ ứng dụng không bị văng lỗi khi Session null)
+            // ✅ 2. Kiểm tra đăng nhập
             var maTaiKhoan = HttpContext.Session.GetInt32("ID");
             if (maTaiKhoan == null)
             {
                 return Json(new { success = false, errorMessage = "Vui lòng đăng nhập để thực hiện đánh giá!" });
             }
 
-            // ✅ 2. KIỂM TRA ĐÁNH GIÁ TRÙNG LẶP
-            // Quét xem tài khoản này đã từng đánh giá phòng cụ thể này chưa
-            bool daDanhGia = await _context.DanhGiaPhong.AnyAsync(d =>
-                d.MaPhong == model.MaPhong &&
-                d.MaTaiKhoan == maTaiKhoan.Value);
+            // ✅ 3. Xác thực quyền sở hữu đơn đặt phòng (Bảo mật: Tránh user fake MaDatPhong của người khác)
+            // Lưu ý: Đảm bảo DbContext của bạn có DbSet<DatPhong> DatPhong
+            bool donHangHopLe = await _context.DatPhong.AnyAsync(dp =>
+                dp.ID == model.MaDatPhong &&
+                dp.MaTaiKhoan == maTaiKhoan.Value &&
+                dp.MaPhong == model.MaPhong); // Đảm bảo đơn đặt phòng này khớp đúng với mã phòng
+
+            if (!donHangHopLe)
+            {
+                return Json(new { success = false, errorMessage = "Đơn đặt phòng không hợp lệ hoặc không thuộc về bạn!" });
+            }
+
+            // ✅ 4. KIỂM TRA ĐÁNH GIÁ TRÙNG LẶP (Dựa trên MaDatPhong)
+            bool daDanhGia = await _context.DanhGiaPhong.AnyAsync(d => d.MaDatPhong == model.MaDatPhong);
 
             if (daDanhGia)
             {
-                return Json(new { success = false, errorMessage = "Bạn đã đánh giá phòng này rồi! Mỗi khách hàng chỉ được đánh giá 1 lần." });
+                return Json(new { success = false, errorMessage = "Bạn đã đánh giá cho đơn đặt phòng này rồi!" });
             }
 
-            // ✅ 3. Gán dữ liệu còn thiếu và lưu vào DB
+            // ✅ 5. Gán dữ liệu còn thiếu và lưu vào DB
             model.MaTaiKhoan = maTaiKhoan.Value;
+            model.NgayTao = DateTime.UtcNow; // Model có default value, nhưng gán lại cho chắc chắn đúng múi giờ hiện tại
 
             _context.Add(model);
             await _context.SaveChangesAsync();
@@ -50,23 +60,61 @@ namespace DoAn_HotelBooking.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> KiemTraDanhGia(int maPhong)
+        public IActionResult GetBinhLuanByPhong(int maPhong)
+        {
+            try
+            {
+                // 1. Dùng .ToList() để kéo thẳng dữ liệu thô về RAM trước, CHỐNG MỌI LỖI SQL
+                var dbData = _context.DanhGiaPhong
+                    .Include(d => d.TaiKhoan)
+                    .Where(d => d.MaPhong == maPhong)
+                    .OrderByDescending(d => d.NgayTao)
+                    .ToList();
+
+                // 2. Chuyển đổi dữ liệu đơn giản
+                var result = dbData.Select(d => new {
+                    // ⚠️ LƯU Ý: Nếu bảng TaiKhoan của bạn không có cột "HoTen", hãy đổi chữ HoTen dưới đây thành "TenTaiKhoan" hoặc thuộc tính đúng của bạn.
+                    tenKhachHang = d.TaiKhoan != null ? d.TaiKhoan.HoVaTen : "Ẩn danh",
+                    ngayTao = d.NgayTao.ToString("dd/MM/yyyy HH:mm"),
+                    noiDung = d.NoiDung ?? "Không có bình luận"
+                });
+
+                return Json(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                // Nếu code backend chết, nó sẽ ném lỗi thẳng ra màn hình cho bạn xem
+                return Json(new { success = false, errorMessage = ex.Message });
+            }
+        }
+
+
+        [HttpGet]
+        // Đổi tham số từ maPhong sang maDatPhong (hoặc nhận cả 2 tùy thiết kế UI của bạn)
+        // Mình khuyên dùng maDatPhong vì nó là định danh duy nhất cho việc "được phép đánh giá"
+        public async Task<IActionResult> KiemTraDanhGia(int maDatPhong)
         {
             var maTaiKhoan = HttpContext.Session.GetInt32("ID");
 
             // 1. Kiểm tra đăng nhập
             if (maTaiKhoan == null)
-                return Json(new { hopLe = false, message = "Vui lòng đăng nhập để đánh giá phòng này!" });
+                return Json(new { hopLe = false, message = "Vui lòng đăng nhập để đánh giá!" });
 
-            // 2. Kiểm tra xem đã đánh giá chưa
-            bool daDanhGia = await _context.DanhGiaPhong.AnyAsync(d =>
-                d.MaPhong == maPhong &&
-                d.MaTaiKhoan == maTaiKhoan.Value);
+            // 2. Xác thực quyền sở hữu đơn đặt phòng
+            bool donHangHopLe = await _context.DatPhong.AnyAsync(dp =>
+                dp.ID == maDatPhong &&
+                dp.MaTaiKhoan == maTaiKhoan.Value);
+
+            if (!donHangHopLe)
+                return Json(new { hopLe = false, message = "Đơn đặt phòng không tồn tại hoặc không thuộc về bạn!" });
+
+            // 3. Kiểm tra xem đơn này đã đánh giá chưa
+            bool daDanhGia = await _context.DanhGiaPhong.AnyAsync(d => d.MaDatPhong == maDatPhong);
 
             if (daDanhGia)
-                return Json(new { hopLe = false, message = "Bạn đã đánh giá phòng này rồi! Mỗi khách hàng chỉ được đánh giá 1 lần." });
+                return Json(new { hopLe = false, message = "Bạn đã đánh giá đơn đặt phòng này rồi!" });
 
-            // 3. Nếu chưa đánh giá, cho phép mở form 5 sao
+            // 4. Nếu hợp lệ, cho phép mở form đánh giá
             return Json(new { hopLe = true });
         }
     }
