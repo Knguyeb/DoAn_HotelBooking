@@ -266,6 +266,17 @@
         box-shadow: 0 0 15px rgba(25, 135, 84, 0.4);
     }
 
+.btn-ai-glow {
+    color: #b533d6; /* Tím Neon / AI */
+    border-color: rgba(181, 51, 214, 0.3);
+}
+
+    .btn-ai-glow:hover {
+        background: #b533d6;
+        color: #fff;
+        box-shadow: 0 0 15px rgba(181, 51, 214, 0.4);
+    }
+
 /* ================= PHÂN TRANG (LUXURY) ================= */
 .pagination-luxury {
     display: flex;

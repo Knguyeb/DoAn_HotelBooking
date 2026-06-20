@@ -1,5 +1,6 @@
 ﻿using DoAn_HotelBooking.Data;
 using DoAn_HotelBooking.Models;
+using DoAn_HotelBooking.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,10 +9,47 @@ namespace DoAn_HotelBooking.Controllers
     public class DanhGiaPhongsController : Controller
     {
         private readonly DoAn_HotelBookingContext _context;
+        private readonly IAI_ReviewService _aiService;
 
-        public DanhGiaPhongsController(DoAn_HotelBookingContext context)
+        public DanhGiaPhongsController(DoAn_HotelBookingContext context, IAI_ReviewService aiService)
         {
             _context = context;
+            _aiService = aiService;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> TongHopAi(int maPhong)
+        {
+            // 1. Lấy tất cả đánh giá của mã phòng này từ DB
+            var danhGias = await _context.DanhGiaPhong
+                .Where(d => d.MaPhong == maPhong)
+                .ToListAsync();
+
+            // Nếu chưa có đánh giá nào, trả về View với Model rỗng
+            if (danhGias == null || !danhGias.Any())
+            {
+                return PartialView("~/Views/Phongs/_TongHopAiPartial.cshtml", new AI_ReviewViewModel());
+            }
+
+            // 2. Tính Tỉ lệ yêu thích bằng LINQ (Số sao >= 4 là yêu thích)
+            int tongSoDanhGia = danhGias.Count;
+            int soDanhGiaTot = danhGias.Count(d => d.SoSao >= 4);
+            double tiLeYeuThich = Math.Round((double)soDanhGiaTot / tongSoDanhGia * 100, 2);
+
+            // 3. Gom bình luận dạng chữ (bỏ qua các đánh giá chỉ chấm sao, không viết chữ)
+            var cacBinhLuan = danhGias
+                .Where(d => !string.IsNullOrWhiteSpace(d.NoiDung))
+                .Select(d => d.NoiDung)
+                .ToList();
+
+            // 4. Gọi Service AI phân tích Ưu/Nhược điểm
+            var viewModel = await _aiService.AnalyzeReviewsAsync(cacBinhLuan);
+
+            // 5. Gán thêm phần trăm yêu thích đã tính được
+            viewModel.TiLeYeuThich = tiLeYeuThich;
+
+            // 6. Trả Model này về cho file View tên là "TongHopAi.cshtml" hiển thị
+            return PartialView("~/Views/Phongs/_TongHopAiPartial.cshtml", viewModel);
         }
 
         [HttpPost]

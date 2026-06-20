@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Sinks.PostgreSQL;
 using NpgsqlTypes;
+using DoAn_HotelBooking.Services;
 
 Env.Load("../.env");
 
@@ -22,6 +23,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownNetworks.Clear();
     options.KnownProxies.Clear();
 });
+
+builder.Services.AddHttpClient<IAI_ReviewService, AI_ReviewService>();
 
 // 2. KHAI BÁO KẾT NỐI DATABASE TRƯỚC
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")

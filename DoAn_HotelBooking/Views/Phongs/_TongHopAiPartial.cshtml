@@ -1,0 +1,83 @@
+﻿@model DoAn_HotelBooking.Models.AI_ReviewViewModel
+
+@if ((Model.UuDiem == null || !Model.UuDiem.Any()) && (Model.NhuocDiem == null || !Model.NhuocDiem.Any()))
+{
+    <div class="text-center py-4">
+        <i class="bi bi-chat-square-text text-secondary" style="font-size: 3rem; opacity: 0.5;"></i>
+        <p class="mt-3 text-secondary">Phòng này chưa có đánh giá nào để AI phân tích.</p>
+    </div>
+}
+else
+{
+    <div class="mb-4">
+        <div class="d-flex justify-content-between mb-1">
+            <span class="fw-bold">Tỉ lệ yêu thích</span>
+            <span class="badge" style="background-color: #b533d6;">@Model.TiLeYeuThich%</span>
+        </div>
+        <div class="progress" style="height: 8px; background-color: rgba(255,255,255,0.1);">
+            <div class="progress-bar progress-bar-animated progress-bar-striped" style="width: @Model.TiLeYeuThich%; background-color: #b533d6;"></div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12">
+            <div class="p-3 rounded-3" style="background-color: rgba(25, 135, 84, 0.1); border: 1px solid rgba(25, 135, 84, 0.3);">
+                <h6 class="text-success fw-bold"><i class="bi bi-hand-thumbs-up-fill me-1"></i> Ưu điểm</h6>
+                <ul class="list-unstyled mb-0" style="font-size: 0.95rem;">
+                    @if (Model.UuDiem != null && Model.UuDiem.Any())
+                    {
+                        foreach (var item in Model.UuDiem)
+                        {
+                            <li class="mb-1"><i class="bi bi-check2 text-success me-2"></i>@item</li>
+                        }
+                    }
+                    else
+                    {
+                        <li class="text-secondary fst-italic">Không có dữ liệu.</li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="p-3 rounded-3" style="background-color: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3);">
+                <h6 class="text-danger fw-bold"><i class="bi bi-hand-thumbs-down-fill me-1"></i> Nhược điểm</h6>
+                <ul class="list-unstyled mb-0" style="font-size: 0.95rem;">
+                    @if (Model.NhuocDiem != null && Model.NhuocDiem.Any())
+                    {
+                        foreach (var item in Model.NhuocDiem)
+                        {
+                            <li class="mb-1"><i class="bi bi-x text-danger me-2"></i>@item</li>
+                        }
+                    }
+                    else
+                    {
+                        <li class="text-secondary fst-italic">Không có dữ liệu.</li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="p-3 rounded-3" style="background-color: rgba(13, 110, 253, 0.1); border: 1px solid rgba(13, 110, 253, 0.3);">
+                <h6 class="text-primary fw-bold mb-3">
+                    <i class="bi bi-lightbulb-fill me-1"></i>
+                    @(Model.NhuocDiem != null && Model.NhuocDiem.Any() ? "Gợi ý cải thiện" : "Gợi ý nâng cấp")
+                </h6>
+                <ul class="list-unstyled mb-0" style="font-size: 0.95rem;">
+                    @if (Model.GoiY != null && Model.GoiY.Any())
+                    {
+                        foreach (var item in Model.GoiY)
+                        {
+                            <li class="mb-1"><i class="bi bi-arrow-right-short text-info me-2"></i>@item</li>
+                        }
+                    }
+                    else
+                    {
+                        <li class="text-secondary fst-italic">Không có dữ liệu.</li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+}
