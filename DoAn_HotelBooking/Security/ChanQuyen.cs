@@ -11,8 +11,20 @@ namespace DoAn_HotelBooking.Security
             var action = context.RouteData.Values["action"]?.ToString();
             var method = context.HttpContext.Request.Method;
 
-            // ✅ BỎ QUA LOGIN + HOME
+            // ✅ Các trang public không cần đăng nhập
             if (controller == "DangKy_DangNhap" || controller == "Home")
+                return;
+
+            if (controller == "KhachSans" &&
+               (action == "Details"))
+                return;
+
+            if (controller == "Phongs" &&
+               (action == "DetailsPartial" || action == "TatCaPhong"))
+                return;
+
+            if (controller == "DanhGiaPhongs" &&
+                (action == "GetBinhLuanByPhong"))
                 return;
 
             var session = context.HttpContext.Session;
@@ -38,7 +50,7 @@ namespace DoAn_HotelBooking.Security
                     return;
                 }
 
-                if (controller == "KhachSan" &&
+                if (controller == "KhachSans" &&
                     (action == "Create" ||
                     action == "Edit" ||
                     action == "Delete" ||
@@ -71,7 +83,7 @@ namespace DoAn_HotelBooking.Security
                     return;
                 }
 
-                if (controller == "KhachSan" &&
+                if (controller == "KhachSans" &&
                     (action == "Create" ||
                     action == "Edit" ||
                     action == "Delete" ||
@@ -81,7 +93,7 @@ namespace DoAn_HotelBooking.Security
                     return;
                 }
 
-                if (controller == "Phong" &&
+                if (controller == "Phongs" &&
                     (action == "Create" ||
                     action == "Edit" ||
                     action == "Delete" ||
@@ -91,7 +103,7 @@ namespace DoAn_HotelBooking.Security
                     return;
                 }
 
-                if (controller == "DatPhong" &&
+                if (controller == "DatPhongs" &&
                     (action == "Edit" ||
                     action == "Delete" ||
                     action == "XacNhan" ||
@@ -104,7 +116,7 @@ namespace DoAn_HotelBooking.Security
                     return;
                 }
 
-                if (controller == "TaiKhoan" &&
+                if (controller == "TaiKhoans" &&
                     (action == "Create" ||
                     action == "Delete" ||
                     method == "POST"))
