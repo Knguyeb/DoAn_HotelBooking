@@ -13,6 +13,10 @@ function confirmLogoutSwal(logoutUrl) {
         color: '#fff'
     }).then((result) => {
         if (result.isConfirmed) {
+
+            // BỔ SUNG Ở ĐÂY: Xóa sạch lịch sử chat của AI trước khi thoát
+            localStorage.removeItem('aiChatHistory');
+
             window.location.href = logoutUrl;
         }
     });

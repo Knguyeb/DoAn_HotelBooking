@@ -1,11 +1,35 @@
-﻿// Bắt sự kiện nhấn Enter
+﻿// ========================================================
+// 1. HÀM TẢI VÀ LƯU LỊCH SỬ CHAT
+// ========================================================
+function loadChatHistory() {
+    let savedHistory = localStorage.getItem('aiChatHistory');
+    let chatBody = document.getElementById('chatbotBody');
+
+    if (savedHistory && chatBody) {
+        chatBody.innerHTML = savedHistory;
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+}
+
+function saveChatHistory() {
+    let chatBody = document.getElementById('chatbotBody');
+    if (chatBody) {
+        localStorage.setItem('aiChatHistory', chatBody.innerHTML);
+    }
+}
+
+// ========================================================
+// 2. XỬ LÝ SỰ KIỆN NHẤN NÚT ENTER
+// ========================================================
 function handleEnter(event) {
     if (event.key === 'Enter') {
         sendChat();
     }
 }
 
-// Xử lý gửi tin nhắn
+// ========================================================
+// 3. XỬ LÝ GỬI TIN NHẮN (GỌI API)
+// ========================================================
 async function sendChat() {
     const inputField = document.getElementById('chatInput');
     const chatBody = document.getElementById('chatbotBody');
@@ -14,6 +38,8 @@ async function sendChat() {
     if (message === '') return;
 
     chatBody.innerHTML += `<div class="chat-message user-message">${message}</div>`;
+    saveChatHistory(); // Lưu câu hỏi của khách
+
     inputField.value = '';
     chatBody.scrollTop = chatBody.scrollHeight;
 
@@ -36,7 +62,6 @@ async function sendChat() {
         if (response.ok) {
             let formattedAnswer = data.answer.replace(/\n/g, '<br>');
 
-            // Bước 4.2: Dùng Regex tìm [ROOM:id:tên] và biến thành thẻ Link gọi Modal
             formattedAnswer = formattedAnswer.replace(
                 /\[ROOM:(\d+):(.*?)\]/g,
                 `<a onclick="openRoomDetailsFromAI('/Phongs/DetailsPartial?id=$1', '$2')" 
@@ -51,29 +76,44 @@ async function sendChat() {
             );
 
             chatBody.innerHTML += `<div class="chat-message ai-message">${formattedAnswer}</div>`;
+            saveChatHistory(); // Lưu câu trả lời của AI
+
         } else {
             chatBody.innerHTML += `<div class="chat-message ai-message text-danger">Lỗi: ${data.error}</div>`;
+            saveChatHistory(); // Lưu thông báo lỗi
         }
     } catch (error) {
         document.getElementById(loadingId).remove();
         chatBody.innerHTML += `<div class="chat-message ai-message text-danger">Không thể kết nối đến Lễ tân AI. Vui lòng thử lại sau.</div>`;
+        saveChatHistory(); // Lưu thông báo mất kết nối
     }
 
     chatBody.scrollTop = chatBody.scrollHeight;
+} // <-- Kết thúc hàm sendChat tại đây, không để các hàm khác chui vào ruột nó!
+
+// ========================================================
+// 4. KHỞI ĐỘNG LẠI TRÍ NHỚ CỦA AI KHI VỪA VÀO TRANG MỚI
+// ========================================================
+function initChatbot() {
+    loadChatHistory();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initChatbot);
+} else {
+    initChatbot();
 }
 
 // ========================================================
-// HÀM MỚI: Xử lý mở Modal độc lập, không lo xung đột Bootstrap
+// 5. MỞ MODAL CHI TIẾT PHÒNG
 // ========================================================
 window.openRoomDetailsFromAI = function (url, title) {
-    // 1. (Tùy chọn) Ẩn khung Chatbot đi để nhường chỗ cho Popup chi tiết phòng
     let offcanvasEl = document.getElementById('chatbotOffcanvas');
     let offcanvasInstance = bootstrap.Offcanvas.getInstance(offcanvasEl);
     if (offcanvasInstance) {
         offcanvasInstance.hide();
     }
 
-    // 2. Lấy Modal và thiết lập giao diện Loading
     let modalEl = document.getElementById('dynamicAjaxModal');
     let modalTitle = modalEl.querySelector('.modal-title');
     let modalBody = modalEl.querySelector('.modal-body');
@@ -81,11 +121,9 @@ window.openRoomDetailsFromAI = function (url, title) {
     if (modalTitle) modalTitle.innerHTML = `<div class="spinner-border spinner-border-sm text-warning me-2"></div> ${title}`;
     if (modalBody) modalBody.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-warning"></div><p class="mt-2">Đang tải...</p></div>`;
 
-    // 3. Mở Modal lên ngay lập tức
     let myModal = bootstrap.Modal.getOrCreateInstance(modalEl);
     myModal.show();
 
-    // 4. Fetch dữ liệu từ Controller và đổ vào Modal (giống hệt logic popupchitiet.js)
     fetch(url)
         .then(response => {
             if (!response.ok) throw new Error("Lỗi mạng");
@@ -93,8 +131,6 @@ window.openRoomDetailsFromAI = function (url, title) {
         })
         .then(html => {
             if (modalBody) modalBody.innerHTML = html;
-
-            // Cập nhật lại tiêu đề nếu trong PartialView có thẻ hidden-modal-title
             const hiddenTitle = modalBody.querySelector('#hidden-modal-title');
             if (hiddenTitle && modalTitle) {
                 modalTitle.innerHTML = hiddenTitle.innerHTML;
