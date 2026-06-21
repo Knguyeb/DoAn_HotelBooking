@@ -84,12 +84,18 @@ namespace DoAn_HotelBooking.Controllers
                 foreach (var p in phongTrong)
                 {
                     string tenKS = p.KhachSan?.TenKhachSan ?? "Chưa xác định";
+                    string diaChi = p.KhachSan?.DiaChi ?? "Chưa xác định";
 
-                    string maKhachSan = $"[HOTEL:{tenKS}]";
+                    // BỔ SUNG LẤY ID KHÁCH SẠN (Thay p.KhachSan.ID bằng đúng tên thuộc tính ID khách sạn của bạn)
+                    string idKS = p.KhachSan?.MaKhachSan.ToString() ?? "0";
+
+                    // SỬA DÒNG NÀY: Ép đúng định dạng [HOTEL:id:tên] để JS nhận diện được
+                    string maKhachSan = $"[HOTEL:{idKS}:{tenKS}]";
+
                     string maPhong = $"[ROOM:{p.ID}:Phòng {p.SoPhong}]";
 
-                    thongTinPhong +=
-                        $"- {maPhong} tại {maKhachSan}, giá: {((long)p.GiaPhong):N0} VNĐ/đêm.\n";
+                    // Nhồi thêm Địa chỉ vào dữ liệu cho AI
+                    thongTinPhong += $"- {maPhong} tại {maKhachSan} (Địa chỉ: {diaChi}), giá: {((long)p.GiaPhong):N0} VNĐ/đêm.\n";
                 }
             }
             else
@@ -97,29 +103,43 @@ namespace DoAn_HotelBooking.Controllers
                 thongTinPhong = "Không có phòng trống.";
             }
 
+            // NÂNG CẤP PROMPT: Dạy AI phân biệt lúc nào trả lời Khách sạn, lúc nào trả lời Phòng
             string promptCuoiCung = $@"
-         Bạn là một Lễ tân AI cực kỳ kiệm lời, chuyên nghiệp và đi thẳng vào vấn đề.
+             Bạn là Lễ tân AI cực kỳ kiệm lời, chuyên nghiệp và đi thẳng vào vấn đề. TUYỆT ĐỐI tuân thủ các quy tắc sau:
 
-         NHIỆM VỤ BẮT BUỘC:
-         Đọc câu hỏi của khách, TỰ TÍNH TOÁN LỌC TÌM các phòng thỏa mãn điều kiện trong đầu (chú ý kỹ các khoảng giá 'từ... đến...', 'trên', 'dưới'), và CHỈ in ra kết quả cuối cùng.
+             [QUY TẮC PHÂN TÍCH YÊU CẦU - QUAN TRỌNG NHẤT]
+             1. Bắt buộc phân tích xem khách đang hỏi tìm 'KHÁCH SẠN' hay tìm 'PHÒNG'.
+             2. NẾU KHÁCH HỎI TÌM 'KHÁCH SẠN' (VD: 'khách sạn ở quận 1', 'có những khách sạn nào'):
+                - CHỈ liệt kê TÊN CÁC KHÁCH SẠN thỏa mãn điều kiện.
+                - Phải gom nhóm lại: Nếu có nhiều phòng thuộc cùng 1 khách sạn, CHỈ IN TÊN KHÁCH SẠN ĐÓ 1 LẦN DUY NHẤT.
+                - TUYỆT ĐỐI KHÔNG liệt kê ID phòng, tên phòng hay giá tiền.
+                - BẮT BUỘC IN KÈM ĐỊA CHỈ. Định dạng mẫu phải dùng: - [HOTEL:id:tên khách sạn], Địa chỉ: ...
+                - Định dạng bắt buộc phải dùng: - [ROOM:id:tên phòng] tại [HOTEL:id:tên khách sạn], giá: ... VNĐ/đêm.
+             3. NẾU KHÁCH HỎI TÌM 'PHÒNG' (VD: 'phòng ở quận 1', 'phòng dưới 800k'):
+                - Liệt kê chi tiết TỪNG PHÒNG thỏa mãn điều kiện.
+                - Định dạng bắt buộc phải dùng: - [ROOM:id:tên phòng] tại [HOTEL:tên khách sạn], giá: ... VNĐ/đêm.
 
-         CÁC LỆNH CẤM KỴ (VI PHẠM LÀ LỖI NGHIÊM TRỌNG):
-         1. CẤM TƯỜNG THUẬT: Tuyệt đối không giải thích quá trình bạn lọc dữ liệu.
-         2. CẤM NHẮC PHÒNG SAI: Không bao giờ được phép in ra những phòng nằm ngoài yêu cầu của khách. 
-            (Ví dụ: Khách tìm 'từ 600 tới 800', BẠN PHẢI XÓA BỎ HOÀN TOÀN phòng 500k hoặc 900k khỏi câu trả lời. TUYỆT ĐỐI KHÔNG được in ra phòng 500k rồi chèn thêm câu 'không nằm trong khoảng giá').
-         3. CẤM DÙNG TỪ NỐI THỪA: Không dùng các từ như 'Tuy nhiên', 'nhưng có', 'không hợp lệ', 'không nằm trong khoảng giá'.
+             [QUY TẮC LỌC DỮ LIỆU & ĐỊA CHỈ - SỐNG CÒN]
+             1. Lọc chuẩn xác theo GIÁ và ĐỊA ĐIỂM (VD: Khách hỏi 'Quận 1' phải tìm đúng chữ 'Quận 1' hoặc 'Q.1').
+             2. TUYỆT ĐỐI KHÔNG xuất ra dữ liệu sai quận, sai giá. KHÔNG giải thích.
+             3. CẤM TƯỜNG THUẬT: KHÔNG dùng các câu rườm rà như 'Xin chào', 'Dưới đây là...', 'Tuy nhiên...'. CHỈ IN RA KẾT QUẢ.
 
-         QUY TẮC ĐỊNH DẠNG (BẮT BUỘC GIỮ NGUYÊN MÃ HOẶC SẼ BỊ PHẠT):
-         - Phòng: [ROOM:id:tên phòng] (Ví dụ: [ROOM:15:Phòng 101])
-         - Khách sạn: [HOTEL:tên khách sạn] (Ví dụ: [HOTEL:Vinpearl])
-         - Mỗi phòng in trên 1 dòng chuẩn: - [ROOM:...] tại [HOTEL:...], giá: ... VNĐ/đêm.
+             [QUY TẮC VỀ THỜI GIAN - RẤT QUAN TRỌNG]
+             1. Dữ liệu bên dưới chỉ là của HÔM NAY.
+             2. Nếu khách hỏi ngày tương lai, hãy từ chối: 'Hiện tại Lễ tân AI chỉ kiểm tra phòng trống trong ngày. Quý khách vui lòng dùng công cụ Tìm Kiếm trên website để xem các ngày tới.'
+             3. Mặc định không nhắc thời gian là hỏi cho hôm nay.
 
-         Danh sách phòng hiện có:
-         {thongTinPhong}
+            [QUY TẮC ĐỊNH DẠNG - BẮT BUỘC]
+             1. Khi nhắc tới phòng PHẢI GIỮ NGUYÊN định dạng: [ROOM:id:tên phòng] (VD: [ROOM:15:Phòng 101]).
+             2. Khi nhắc tới khách sạn PHẢI GIỮ NGUYÊN định dạng: [HOTEL:id:tên khách sạn] (VD: [HOTEL:5:Vinpearl]).
+             3. Trình bày mỗi phòng trên 1 dòng theo mẫu: - [ROOM:...] tại [HOTEL:...], giá: ... VNĐ/đêm. Không đổi thành chữ thường, không xóa ngoặc vuông.
 
-         Câu hỏi khách:
-         {request.Message}
-         ";
+             Danh sách dữ liệu phòng trống TRONG HÔM NAY:
+             {thongTinPhong}
+
+             Câu hỏi khách:
+             {request.Message}
+             ";
 
             string aiResponse = await _aiChatService.TuVanKhachHangAsync(
                 request.Message,

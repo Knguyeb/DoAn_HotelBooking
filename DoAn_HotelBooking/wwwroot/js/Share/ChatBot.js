@@ -71,8 +71,11 @@ async function sendChat() {
             );
 
             formattedAnswer = formattedAnswer.replace(
-                /\[HOTEL:(.*?)\]/g,
-                `<strong style="color: #ffc107 !important; font-weight: bold !important;">$1</strong>`
+                /\[HOTEL:([^:]+):(.*?)\]/g,   // Đã thay \d+ thành ([^:]+)
+                `<a href="/KhachSans/Details?id=$1" target="_blank" 
+                    class="fw-bold" style="color: #ffc107; text-decoration: none; cursor: pointer;">
+                    <i class="fas fa-building"></i> $2
+                </a>`
             );
 
             chatBody.innerHTML += `<div class="chat-message ai-message">${formattedAnswer}</div>`;
