@@ -25,6 +25,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 });
 
 builder.Services.AddHttpClient<IAI_ReviewService, AI_ReviewService>();
+builder.Services.AddHttpClient<IAI_ChatService, AI_ChatService>();
 
 // 2. KHAI BÁO KẾT NỐI DATABASE TRƯỚC
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
@@ -66,6 +67,7 @@ builder.Services.AddHttpContextAccessor();
 
 // Session
 builder.Services.AddDistributedMemoryCache();
+
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);

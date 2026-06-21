@@ -37,7 +37,7 @@ namespace DoAn_HotelBooking.Services
 
         private async Task<AI_ReviewViewModel> CallGroqApiAsync(string prompt)
         {
-            // Lấy API Key từ cấu hình (đảm bảo file .env hoặc biến môi trường đã set GROQ_API_KEY)
+            // Lấy API Key từ cấu hình
             string apiKey = _configuration["GROQ_API_KEY"] ?? Environment.GetEnvironmentVariable("GROQ_API_KEY");
 
             if (string.IsNullOrEmpty(apiKey))
@@ -50,13 +50,14 @@ namespace DoAn_HotelBooking.Services
 
             var requestBody = new
             {
-                // Bạn có thể đổi sang "llama-3.3-70b-versatile" hoặc model khác tùy chọn
                 model = "llama-3.3-70b-versatile",
+                // TÍNH NĂNG MỚI: Bắt buộc model phải trả về định dạng JSON hợp lệ 100%
+                response_format = new { type = "json_object" },
                 messages = new[]
                 {
-            new { role = "system", content = "Bạn là trợ lý AI. Trả về kết quả JSON, không markdown." },
-            new { role = "user", content = prompt }
-        }
+                    new { role = "system", content = "Bạn là trợ lý AI. Bắt buộc trả về kết quả ở định dạng JSON chuẩn." },
+                    new { role = "user", content = prompt }
+                }
             };
 
             string jsonBody = JsonSerializer.Serialize(requestBody);
@@ -85,10 +86,22 @@ namespace DoAn_HotelBooking.Services
                                              .GetProperty("content")
                                              .GetString();
 
-                textContent = textContent.Replace("```json", "").Replace("```", "").Trim();
+                // Đề phòng model vẫn sinh ra ký tự markdown
+                textContent = textContent?.Replace("```json", "").Replace("```", "").Trim();
 
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                return JsonSerializer.Deserialize<AI_ReviewViewModel>(textContent, options);
+                // TÍNH NĂNG MỚI: Bắt riêng lỗi Parse JSON để xem nội dung AI trả về là gì nếu nó bị lỗi
+                try
+                {
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    return JsonSerializer.Deserialize<AI_ReviewViewModel>(textContent, options);
+                }
+                catch (JsonException)
+                {
+                    return new AI_ReviewViewModel
+                    {
+                        NhuocDiem = new List<string> { "AI trả về chuỗi JSON bị lỗi cấu trúc: " + textContent }
+                    };
+                }
             }
             catch (Exception ex)
             {

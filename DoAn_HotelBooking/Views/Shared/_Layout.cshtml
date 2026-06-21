@@ -10,9 +10,11 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/DoAn_HotelBooking.styles.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/_Layout.css" />
+    <link rel="stylesheet" href="~/css/_Layout.css" asp-append-version="true" />
 </head>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -103,6 +105,58 @@
         @RenderBody()
     </main>
 
+    @if (quyen == "Khách hàng")
+    {
+        <button id="chatbotFab" class="chatbot-fab" type="button" data-bs-toggle="offcanvas" data-bs-target="#chatbotOffcanvas" aria-controls="chatbotOffcanvas">
+            <i class="fas fa-robot"></i>
+        </button>
+
+        <div class="offcanvas offcanvas-end custom-modal-bg text-light shadow-lg" tabindex="-1" id="chatbotOffcanvas" aria-labelledby="chatbotLabel"
+             style="width: 400px; border-left: 1px solid rgba(181, 51, 214, 0.4) !important; background-color: rgba(20, 20, 20, 0.98) !important; backdrop-filter: blur(10px) !important;">
+
+            <div class="offcanvas-header" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <h5 class="offcanvas-title fw-bold" id="chatbotLabel" style="color: #b533d6;">
+                    <i class="bi bi-robot me-2"></i> Lễ Tân AI
+                </h5>
+                <button type="button" class="btn-close btn-close-white opacity-75" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+
+            <div class="offcanvas-body d-flex flex-column p-0" style="background-color: transparent !important;">
+                <div class="chatbot-body flex-grow-1 p-3" id="chatbotBody" style="overflow-y: auto;">
+                    <div class="chat-message ai-message">
+                        Xin chào! Tôi là Lễ tân AI của khách sạn. Bạn cần tìm phòng hay có thắc mắc gì không?
+                    </div>
+                </div>
+
+                <div class="chatbot-footer p-3 mt-auto" style="border-top: 1px solid rgba(255,255,255,0.1); background-color: rgba(0,0,0,0.2) !important;">
+                    <div class="input-group">
+                        <input type="text" id="chatInput" class="form-control text-light shadow-none" style="background-color: rgba(255,255,255,0.05) !important; border: 1px solid rgba(181, 51, 214, 0.5);" placeholder="Nhập câu hỏi..." onkeypress="handleEnter(event)" />
+                        <button class="btn" style="background-color: #b533d6 !important; color: white !important; border: 1px solid #b533d6;" onclick="sendChat()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Modal Chi tiết phòng -->
+    <div class="modal fade" id="dynamicAjaxModal" tabindex="-1" aria-labelledby="dynamicAjaxModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content custom-modal-bg text-light" style="border: 1px solid rgba(255, 215, 0, 0.2); border-radius: 15px;">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title text-warning fw-bold" id="dynamicAjaxModalLabel">
+                        <div class="spinner-border spinner-border-sm text-warning me-2" role="status"></div> Đang tải...
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white opacity-75" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body pt-3 pb-4">
+                </div>
+            </div>
+        </div>
+    </div>
+
     <input type="hidden" id="successMessage" value="@TempData["SuccessMessage"]" />
     <input type="hidden" id="errorMessage" value="@TempData["ErrorMessage"]" />
 
@@ -115,6 +169,8 @@
     <script src="~/js/Share/DangXuat.js"></script>
     <script src="~/js/Share/ThongTinChiTiet.js"></script>
     <script src="~/js/Share/Success.js"></script>
+    <script src="~/js/Share/ChatBot.js"></script>
+    <script src="~/js/Share/PopUpDetails.js"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

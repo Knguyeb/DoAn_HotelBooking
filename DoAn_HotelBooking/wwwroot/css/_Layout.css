@@ -566,3 +566,121 @@ main {
 #thongBaoModal .text-muted {
     color: #b0b0b0 !important;
 }
+
+/* Nút nổi (Float Button) */
+.chatbot-fab {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background-color: #ffc107;
+    color: #212529;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    font-size: 28px;
+    cursor: pointer;
+    z-index: 1040; /* Đặt dưới lớp nền mờ của Offcanvas (1045) */
+    transition: transform 0.3s ease;
+}
+
+    .chatbot-fab:hover {
+        transform: scale(1.1);
+    }
+
+/* Kiểu dáng tin nhắn */
+.chat-message {
+    max-width: 85%;
+    padding: 10px 15px;
+    border-radius: 15px;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.ai-message {
+    background-color: #ffffff;
+    color: #333;
+    align-self: flex-start;
+    border-bottom-left-radius: 2px;
+    border: 1px solid #e9ecef;
+}
+
+.user-message {
+    background-color: #ffc107; /* Màu vàng đồng bộ với Bootstrap */
+    color: #212529;
+    align-self: flex-end;
+    border-bottom-right-radius: 2px;
+    margin-left: auto; /* Đẩy tin nhắn của User sang phải */
+}
+
+/* Hiệu ứng loading */
+.typing-indicator {
+    font-style: italic;
+    color: #6c757d;
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+/* Kiểu dáng bong bóng tin nhắn tông tối (Dark Theme) */
+.chat-message {
+    max-width: 85%;
+    padding: 10px 15px;
+    border-radius: 15px;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Tin nhắn của AI (Nền đen nhạt, viền mờ) */
+.ai-message {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #e9ecef;
+    align-self: flex-start;
+    border-bottom-left-radius: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Tin nhắn của User (Màu tím đồng bộ) */
+.user-message {
+    background-color: rgba(181, 51, 214, 0.8);
+    color: #ffffff;
+    align-self: flex-end;
+    border-bottom-right-radius: 2px;
+    margin-left: auto;
+    border: 1px solid rgba(181, 51, 214, 1);
+}
+
+/* Hiệu ứng gõ phím màu tím */
+.typing-indicator {
+    font-style: italic;
+    color: #b533d6;
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+/* Cập nhật lại màu nút Float (bong bóng nổi ở ngoài góc phải) cho hợp tông */
+.chatbot-fab {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background-color: #b533d6; /* Chuyển từ vàng sang tím */
+    color: white;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 0 15px rgba(181, 51, 214, 0.5);
+    font-size: 28px;
+    cursor: pointer;
+    z-index: 1040;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+    .chatbot-fab:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 25px rgba(181, 51, 214, 0.8);
+    }
