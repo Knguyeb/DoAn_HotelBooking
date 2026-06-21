@@ -10,7 +10,6 @@
 
 <div class="container-fluid fade-in-up py-5 px-4">
 
-    <!-- Tiêu đề & Nút Quay lại -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h4 class="text-subtitle">QUẢN LÝ PHÒNG</h4>
@@ -21,7 +20,6 @@
         </a>
     </div>
 
-    <!-- Form Container -->
     <div class="glass-form-container">
         <form asp-action="Edit" method="post" enctype="multipart/form-data" id="editForm">
             @Html.AntiForgeryToken()
@@ -30,13 +28,10 @@
 
             <div class="row g-5">
 
-                <!-- PHẦN TRÊN: THÔNG TIN PHÒNG -->
                 <div class="col-12">
                     <h5 class="section-header"><i class="bi bi-info-circle-fill me-2"></i>Thông tin chung</h5>
 
                     <div class="row g-4">
-                        <!-- ================= DÒNG 1 ================= -->
-                        <!-- Nhập số phòng -->
                         <div class="col-md-6 col-lg-3">
                             <label asp-for="SoPhong" class="form-label-luxury">Số phòng <span class="text-danger">*</span></label>
                             <div class="input-group luxury-input-group">
@@ -46,7 +41,6 @@
                             <span asp-validation-for="SoPhong" class="text-danger small fw-bold"></span>
                         </div>
 
-                        <!-- Nhập tầng -->
                         <div class="col-md-6 col-lg-3">
                             <label asp-for="Tang" class="form-label-luxury">Tầng <span class="text-danger">*</span></label>
                             <div class="input-group luxury-input-group">
@@ -56,7 +50,6 @@
                             <span asp-validation-for="Tang" class="text-danger small fw-bold"></span>
                         </div>
 
-                        <!-- Sức chứa -->
                         <div class="col-md-6 col-lg-3">
                             <label asp-for="SucChua" class="form-label-luxury">Sức chứa <span class="text-danger">*</span></label>
                             <div class="input-group luxury-input-group">
@@ -66,7 +59,6 @@
                             <span asp-validation-for="SucChua" class="text-danger small fw-bold"></span>
                         </div>
 
-                        <!-- Loại phòng -->
                         <div class="col-md-6 col-lg-3">
                             <label asp-for="LoaiPhong" class="form-label-luxury">Loại phòng <span class="text-danger">*</span></label>
                             <div class="input-group luxury-input-group">
@@ -81,39 +73,31 @@
                             <span asp-validation-for="LoaiPhong" class="text-danger small"></span>
                         </div>
 
-                        <!-- ================= DÒNG 2 ================= -->
-                        <!-- Giá phòng (Chiếm không gian vừa phải) -->
                         <div class="col-md-12 col-lg-5">
                             <label asp-for="GiaPhong" class="form-label-luxury">Giá phòng / đêm (VNĐ) <span class="text-danger">*</span></label>
                             <div class="input-group luxury-input-group">
                                 <span class="input-group-text"><i class="bi bi-cash"></i></span>
-                                <!-- Input hiển thị (Dùng text để JS có thể format dấu chấm 1.000.000) -->
                                 <input id="GiaPhongDisplay" type="text" inputmode="numeric" class="form-control" placeholder="Nhập giá phòng..." value="@(Model?.GiaPhong.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) ?? "")" />
-                                <!-- Hidden input để post giá trị thực (số) về server -->
                                 <input type="hidden" asp-for="GiaPhong" id="GiaPhong" />
                             </div>
                             <span asp-validation-for="GiaPhong" class="text-danger small fw-bold"></span>
                         </div>
 
-                        <!-- Trạng thái (Chiếm không gian lớn để 3 nút được dàn ngang đẹp mắt) -->
                         <div class="col-md-12 col-lg-7">
                             <label asp-for="TrangThai" class="form-label-luxury mb-2">Trạng thái phòng <span class="text-danger">*</span></label>
                             <div class="d-flex gap-2">
-                                <!-- Nút: Còn trống (Xanh lá) -->
                                 <input type="radio" asp-for="TrangThai" value="Còn trống" class="btn-check" id="status-empty" required>
                                 <label class="btn btn-status btn-status-green flex-fill" for="status-empty">
                                     <i class="bi bi-check-circle-fill mb-1 d-block" style="font-size: 1.2rem;"></i>
                                     Còn trống
                                 </label>
 
-                                <!-- Nút: Đã đặt (Đỏ) -->
                                 <input type="radio" asp-for="TrangThai" value="Đã đặt" class="btn-check" id="status-booked">
                                 <label class="btn btn-status btn-status-red flex-fill" for="status-booked">
                                     <i class="bi bi-door-closed-fill mb-1 d-block" style="font-size: 1.2rem;"></i>
                                     Đã đặt
                                 </label>
 
-                                <!-- Nút: Bảo trì (Vàng) -->
                                 <input type="radio" asp-for="TrangThai" value="Bảo trì" class="btn-check" id="status-maintenance">
                                 <label class="btn btn-status btn-status-yellow flex-fill" for="status-maintenance">
                                     <i class="bi bi-tools mb-1 d-block" style="font-size: 1.2rem;"></i>
@@ -123,18 +107,24 @@
                             <span asp-validation-for="TrangThai" class="text-danger small fw-bold mt-2 d-block"></span>
                         </div>
 
+                        <div class="col-12">
+                            <label asp-for="MoTa" class="form-label-luxury">Mô tả chi tiết <span class="text-muted fw-normal">(Không bắt buộc)</span></label>
+                            <div class="input-group luxury-input-group">
+                                <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+                                <textarea asp-for="MoTa" class="form-control" rows="4" placeholder="Nhập mô tả về tiện nghi, không gian, view của phòng..."></textarea>
+                            </div>
+                            <span asp-validation-for="MoTa" class="text-danger small fw-bold"></span>
+                        </div>
+
                     </div>
                 </div>
 
-                <!-- PHẦN DƯỚI: MEDIA & UPLOAD ẢNH -->
                 <div class="col-12">
                     <h5 class="section-header"><i class="bi bi-images me-2"></i>Thư viện Hình ảnh</h5>
 
-                    <!-- Input ẩn lưu danh sách ảnh cũ -->
                     <input type="hidden" name="ExistingImages" id="existingImagesInput" value="@Model?.HinhAnh" />
 
                     <div class="row g-4">
-                        <!-- Khu vực Upload -->
                         <div class="col-md-4 col-lg-3">
                             <div class="upload-zone-container h-100">
                                 <input type="file" name="HinhAnhFiles" id="fileInput" multiple accept="image/*" class="visually-hidden" onchange="handleFileSelect(event)">
@@ -146,7 +136,6 @@
                             </div>
                         </div>
 
-                        <!-- Khung Preview Ảnh Cũ & Mới (Nằm ngang) -->
                         <div class="col-md-8 col-lg-9">
                             <div id="imageThumbnailsContainer"
                                  class="thumbnail-container thumbnail-horizontal thin-scrollbar border border-secondary border-opacity-25 rounded p-3"
@@ -183,7 +172,6 @@
 
             </div>
 
-            <!-- Nút Lưu -->
             <div class="form-actions mt-5 pt-4 border-top border-secondary border-opacity-25 text-end">
                 <a class="btn btn-back-luxury" asp-action="Index" asp-route-id="@Model.MaKhachSan">
                     <i class="bi bi-arrow-left me-2"></i>Hủy bỏ

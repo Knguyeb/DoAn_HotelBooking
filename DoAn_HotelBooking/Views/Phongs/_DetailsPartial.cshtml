@@ -190,6 +190,19 @@
             </div>
         </div>
     </div>
+
+    <!-- PHẦN MÔ TẢ PHÒNG ĐÃ THÊM THANH CUỘN ĐỘC LẬP -->
+    @if (!string.IsNullOrEmpty(Model.MoTa))
+    {
+        <div class="mt-4 p-3 p-lg-4 rounded-3" style="border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.15);">
+            <h6 class="text-warning mb-3 fw-bold"><i class="fas fa-align-left me-2"></i>Mô tả chi tiết</h6>
+            <div class="custom-scrollbar pe-2" style="max-height: 150px; overflow-y: auto;">
+                <p class="text-light mb-0">
+                    @Model.MoTa
+                </p>
+            </div>
+        </div>
+    }
 </div>
 
 <div id="viewBinhLuan_@Model.ID" style="display: none;" class="fade-in-tab pt-2">

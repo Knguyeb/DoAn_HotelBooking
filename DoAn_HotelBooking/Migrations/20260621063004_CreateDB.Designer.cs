@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DoAn_HotelBooking.Migrations
 {
     [DbContext(typeof(DoAn_HotelBookingContext))]
-    [Migration("20260619064122_CreateDB")]
+    [Migration("20260621063004_CreateDB")]
     partial class CreateDB
     {
         /// <inheritdoc />
@@ -222,6 +222,10 @@ namespace DoAn_HotelBooking.Migrations
 
                     b.Property<string>("MaKhachSan")
                         .HasColumnType("text");
+
+                    b.Property<string>("MoTa")
+                        .HasMaxLength(3000)
+                        .HasColumnType("character varying(3000)");
 
                     b.Property<int>("SoPhong")
                         .HasColumnType("integer");

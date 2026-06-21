@@ -9,7 +9,6 @@
 
 <div class="container-fluid fade-in-up py-5 px-4">
 
-    <!-- Tiêu đề & Nút Quay lại -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h4 class="text-subtitle">QUẢN LÝ PHÒNG</h4>
@@ -20,47 +19,49 @@
         </a>
     </div>
 
-    <!-- Form Container -->
     <div class="glass-form-container">
         <form asp-action="Create" method="post" enctype="multipart/form-data" id="createForm">
             @Html.AntiForgeryToken()
-            <!-- Giữ lại mã khách sạn -->
             <input type="hidden" asp-for="MaKhachSan" value="@Model.MaKhachSan" />
 
-            <!-- Sử dụng cột 12 (full-width) xếp chồng lên nhau -->
             <div class="row g-5">
 
-                <!-- PHẦN TRÊN: THÔNG TIN PHÒNG -->
                 <div class="col-12">
                     <h5 class="section-header"><i class="bi bi-info-circle-fill me-2"></i>Thông tin chung</h5>
 
                     <div class="row g-4">
-                        <!-- Nhập số phòng -->
-                        <div class="col-md-4">
+                        <div class="col-md-6 col-lg-3">
                             <label asp-for="SoPhong" class="form-label-luxury">Số phòng <span class="text-danger">*</span></label>
                             <div class="input-group luxury-input-group">
                                 <span class="input-group-text"><i class="bi bi-door-closed-fill"></i></span>
-                                <input asp-for="SoPhong" class="form-control" placeholder="Nhập số phòng" />
+                                <input asp-for="SoPhong" class="form-control" placeholder="VD: 101" required />
                             </div>
                             <span asp-validation-for="SoPhong" class="text-danger small"></span>
                         </div>
 
-                        <!-- Nhập tầng -->
-                        <div class="col-md-4">
+                        <div class="col-md-6 col-lg-3">
                             <label asp-for="Tang" class="form-label-luxury">Tầng <span class="text-danger">*</span></label>
                             <div class="input-group luxury-input-group">
                                 <span class="input-group-text"><i class="bi bi-building"></i></span>
-                                <input asp-for="Tang" class="form-control" placeholder="Nhập tầng" />
+                                <input asp-for="Tang" class="form-control" placeholder="VD: 1" required />
                             </div>
                             <span asp-validation-for="Tang" class="text-danger small"></span>
                         </div>
 
-                        <!-- Loại phòng --> 
-                        <div class="col-md-4">
+                        <div class="col-md-6 col-lg-3">
+                            <label asp-for="SucChua" class="form-label-luxury">Sức chứa <span class="text-danger">*</span></label>
+                            <div class="input-group luxury-input-group">
+                                <span class="input-group-text"><i class="bi bi-people-fill"></i></span>
+                                <input asp-for="SucChua" type="number" class="form-control" placeholder="Số người" required min="1" />
+                            </div>
+                            <span asp-validation-for="SucChua" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6 col-lg-3">
                             <label asp-for="LoaiPhong" class="form-label-luxury">Loại phòng <span class="text-danger">*</span></label>
                             <div class="input-group luxury-input-group">
                                 <span class="input-group-text"><i class="bi bi-star-fill"></i></span>
-                                <select asp-for="LoaiPhong" class="form-control luxury-dropdown">
+                                <select asp-for="LoaiPhong" class="form-control luxury-dropdown" required>
                                     <option value="">-- Chọn loại phòng --</option>
                                     <option value="Standard">Standard</option>
                                     <option value="Deluxe">Deluxe</option>
@@ -70,34 +71,30 @@
                             <span asp-validation-for="LoaiPhong" class="text-danger small"></span>
                         </div>
 
-                        <!-- Sức chứa -->
-                        <div class="col-md-6">
-                            <label asp-for="SucChua" class="form-label-luxury">Sức chứa <span class="text-danger">*</span></label>
-                            <div class="input-group luxury-input-group">
-                                <span class="input-group-text"><i class="bi bi-people-fill"></i></span>
-                                <input asp-for="SucChua" type="number" class="form-control" />
-                            </div>
-                            <span asp-validation-for="SucChua" class="text-danger small"></span>
-                        </div>
-
-                        <!-- Giá phòng -->
-                        <div class="col-md-6">
-                            <label asp-for="GiaPhong" class="form-label-luxury">Giá phòng / đêm <span class="text-danger">*</span></label>
+                        <div class="col-md-12 col-lg-6">
+                            <label asp-for="GiaPhong" class="form-label-luxury">Giá phòng / đêm (VNĐ) <span class="text-danger">*</span></label>
                             <div class="input-group luxury-input-group">
                                 <span class="input-group-text"><i class="bi bi-cash"></i></span>
-                                <input asp-for="GiaPhong" type="number" step="1000" class="form-control" placeholder="Nhập giá phòng / đêm" />
+                                <input asp-for="GiaPhong" type="number" step="1000" class="form-control" placeholder="Nhập giá phòng / đêm" required />
                             </div>
                             <span asp-validation-for="GiaPhong" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="MoTa" class="form-label-luxury">Mô tả chi tiết <span class="text-muted fw-normal">(Không bắt buộc)</span></label>
+                            <div class="input-group luxury-input-group">
+                                <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+                                <textarea asp-for="MoTa" class="form-control" rows="4" placeholder="Nhập mô tả về tiện nghi, không gian, view của phòng..."></textarea>
+                            </div>
+                            <span asp-validation-for="MoTa" class="text-danger small fw-bold"></span>
                         </div>
                     </div>
                 </div>
 
-                <!-- PHẦN DƯỚI: MEDIA & UPLOAD ẢNH (Kéo ngang trải dài) -->
                 <div class="col-12">
                     <h5 class="section-header"><i class="bi bi-images me-2"></i>Thư viện Hình ảnh</h5>
 
                     <div class="row g-4">
-                        <!-- Khu vực Upload Kéo thả -->
                         <div class="col-md-4 col-lg-3">
                             <div class="upload-zone-container h-100">
                                 <input type="file" name="HinhAnhFiles" id="fileInput" multiple accept="image/*" class="visually-hidden" onchange="handleFileSelect(event)">
@@ -110,13 +107,12 @@
                             <span class="text-danger fw-bold d-block mt-2 text-center">@Html.ValidationMessage("HinhAnh")</span>
                         </div>
 
-                        <!-- Khung Preview Ảnh (Nằm ngang) -->
                         <div class="col-md-8 col-lg-9">
                             <div id="imageThumbnailsContainer"
                                  class="thumbnail-container thumbnail-horizontal thin-scrollbar border border-secondary border-opacity-25 rounded p-3"
                                  style="height: 340px; overflow-x: auto; overflow-y: hidden; background: rgba(0,0,0,0.1);">
 
-                                <p id="noImageText" class="text-muted small fst-italic text-center w-100 m-0">
+                                <p id="noImageText" class="text-muted small fst-italic text-center w-100 m-0" style="margin-top: 150px !important;">
                                     <i class="bi bi-camera me-1"></i> Chưa có hình ảnh nào được chọn.
                                 </p>
                             </div>
@@ -126,7 +122,6 @@
 
             </div>
 
-            <!-- Nút Lưu -->
             <div class="form-actions mt-5 pt-4 border-top border-secondary border-opacity-25 text-end">
                 <a class="btn btn-back-luxury" asp-action="Index" asp-route-id="@Model.MaKhachSan">
                     <i class="bi bi-arrow-left me-2"></i>Hủy bỏ
@@ -172,7 +167,7 @@
 
         function createThumbnail(src, container, fileObj) {
             const imgWrapper = document.createElement("div");
-            imgWrapper.className = "thumbnail-wrapper";
+            imgWrapper.className = "thumbnail-wrapper fade-in-up";
 
             const deleteBtn = document.createElement("button");
             deleteBtn.className = "btn-delete-image";

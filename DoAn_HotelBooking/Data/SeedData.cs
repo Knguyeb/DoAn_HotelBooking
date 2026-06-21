@@ -57,7 +57,7 @@ namespace DoAn_HotelBooking.Data
                     {
                         MaKhachSan = "REX101",
                         TenKhachSan = "Rex SaiGon",
-                        DiaChi = "Nguyễn Huệ, Bến Nghé, Quận 1, Hồ Chí Minh",
+                        DiaChi = "Nguyễn Huệ, Bến Nghé, Quận 1, Hồ Chí Minh",
                         ViDo = "10.7758664792898",
                         KinhDo = "106.70127532883585",
                         SoDienThoai = "0917590900",
@@ -127,7 +127,7 @@ namespace DoAn_HotelBooking.Data
                     {
                         MaKhachSan = "RVR101",
                         TenKhachSan = "The Reverie Saigon",
-                        DiaChi = "22-36 Nguyễn Huệ, Bến Nghé, Quận 1, Hồ Chí Minh",
+                        DiaChi = "22-36 Nguyễn Huệ, Bến Nghé, Quận 1, Hồ Chí Minh",
                         ViDo = "10.774066089559152",
                         KinhDo = "106.70420124338432",
                         SoDienThoai = "02838236688",
@@ -149,7 +149,7 @@ namespace DoAn_HotelBooking.Data
                     });
                 }
 
-                if (!context.KhachSan.Any(k => k.MaKhachSan == "AAA001")) 
+                if (!context.KhachSan.Any(k => k.MaKhachSan == "AAA001"))
                 {
                     context.KhachSan.Add(new KhachSan
                     {
@@ -366,21 +366,23 @@ namespace DoAn_HotelBooking.Data
                             Tang = 1,
                             LoaiPhong = "Standard",
                             SucChua = 2,
-                            GiaPhong = 500000,
+                            GiaPhong = 1800000,
                             TrangThai = "Còn trống",
                             HinhAnh = "/Images/phong1.jpg; /Images/phong2.jpg",
-                            MaKhachSan = "AAA000"
+                            MaKhachSan = "AAA000",
+                            MoTa = "Phòng tiêu chuẩn ấm cúng mang nét kiến trúc cổ điển Pháp. Với cửa sổ hướng phố Đồng Khởi, không gian cung cấp sự thoải mái trọn vẹn để du khách thư giãn sau ngày dài dạo bước quanh trung tâm Quận 1."
                         },
                         new Phong
                         {
                             SoPhong = 102,
                             Tang = 1,
                             LoaiPhong = "Deluxe",
-                            SucChua = 3,
-                            GiaPhong = 800000,
+                            SucChua = 2,
+                            GiaPhong = 2500000,
                             TrangThai = "Còn trống",
                             HinhAnh = "/Images/phong3.jpg; /Images/phong4.jpg",
-                            MaKhachSan = "AAA000"
+                            MaKhachSan = "AAA000",
+                            MoTa = "Phòng Deluxe rộng rãi, thiết kế sang trọng pha lẫn nét hoài cổ. Trang bị đầy đủ tiện nghi cao cấp bao gồm bồn tắm nằm và khu vực ghế sofa thư giãn, tận hưởng nhịp sống nhộn nhịp của Bến Nghé."
                         },
                         new Phong
                         {
@@ -388,65 +390,71 @@ namespace DoAn_HotelBooking.Data
                             Tang = 2,
                             LoaiPhong = "VIP",
                             SucChua = 4,
-                            GiaPhong = 1200000,
+                            GiaPhong = 6500000,
                             TrangThai = "Còn trống",
                             HinhAnh = "/Images/phong5.jpg; /Images/phong6.webp",
-                            MaKhachSan = "AAA001"
+                            MaKhachSan = "AAA001",
+                            MoTa = "Trải nghiệm không gian sống thượng lưu tại khu vực An Khánh với phòng VIP đẳng cấp. Nội thất hiện đại, không gian riêng tư tối đa và ban công thoáng đãng với tầm nhìn bao quát Xa lộ Hà Nội."
                         },
                         new Phong
                         {
                             SoPhong = 501,
                             Tang = 5,
                             LoaiPhong = "President",
-                            SucChua = 2,
-                            GiaPhong = 2500000,
+                            SucChua = 6,
+                            GiaPhong = 25000000,
                             TrangThai = "Còn trống",
                             HinhAnh = "/Images/phong7.jpg; /Images/phong8.jpg",
-                            MaKhachSan = "AAA001"
+                            MaKhachSan = "AAA001",
+                            MoTa = "Căn hộ Tổng thống (Presidential Suite) độc bản nằm trên tầng cao nhất. Cung cấp không gian xa hoa, dịch vụ tiện ích cá nhân 24/7 và hệ thống cách âm tuyệt đối để tận hưởng kỳ nghỉ thượng hạng."
                         },
                         new Phong
                         {
                             SoPhong = 501,
                             Tang = 5,
                             LoaiPhong = "President",
-                            SucChua = 2,
-                            GiaPhong = 2500000,
+                            SucChua = 4,
+                            GiaPhong = 35000000,
                             TrangThai = "Còn trống",
                             HinhAnh = "/Images/srt1.jpg; /Images/srt2.jpg",
-                            MaKhachSan = "SRT101"
+                            MaKhachSan = "SRT101",
+                            MoTa = "Căn Tổng thống đỉnh cao tọa lạc ngay giữa lòng Cần Thơ nhộn nhịp. Tận hưởng đặc quyền với tầm nhìn panorama ôm trọn dòng sông Hậu thơ mộng, quầy bar mini riêng và không gian phòng khách tinh xảo."
                         },
                         new Phong
                         {
                             SoPhong = 501,
                             Tang = 5,
                             LoaiPhong = "President",
-                            SucChua = 2,
-                            GiaPhong = 2500000,
+                            SucChua = 6,
+                            GiaPhong = 55000000,
                             TrangThai = "Còn trống",
                             HinhAnh = "/Images/srt1.jpg; /Images/srt2.jpg",
-                            MaKhachSan = "SRT202"
+                            MaKhachSan = "SRT202",
+                            MoTa = "Tuyệt tác Tổng thống sát bờ biển Bãi Dài hoang sơ. Mang đến đặc quyền nghỉ dưỡng đẳng cấp quốc tế với hồ bơi vô cực ngắm hoàng hôn Phú Quốc, sân hiên tắm nắng riêng và dịch vụ quản gia cao cấp."
                         },
                         new Phong
                         {
                             SoPhong = 201,
                             Tang = 2,
                             LoaiPhong = "VIP",
-                            SucChua = 4,
-                            GiaPhong = 1200000,
+                            SucChua = 2,
+                            GiaPhong = 8500000,
                             TrangThai = "Còn trống",
                             HinhAnh = "/Images/rex1.jpg; /Images/rex2.webp",
-                            MaKhachSan = "REX101"
+                            MaKhachSan = "REX101",
+                            MoTa = "Phòng VIP phong cách Đông Dương ngay trên phố đi bộ Nguyễn Huệ hoa lệ. Không gian bài trí tinh tế, hoa tươi được thay mới mỗi ngày cùng cửa kính lớn đón trọn nhịp đập sôi động của thành phố không ngủ."
                         },
                         new Phong
                         {
                             SoPhong = 102,
                             Tang = 1,
                             LoaiPhong = "Deluxe",
-                            SucChua = 3,
-                            GiaPhong = 800000,
+                            SucChua = 2,
+                            GiaPhong = 3200000,
                             TrangThai = "Còn trống",
                             HinhAnh = "/Images/lvl1.jpg; /Images/lvl2.jpg",
-                            MaKhachSan = "LVL101"
+                            MaKhachSan = "LVL101",
+                            MoTa = "Không gian Deluxe đương đại nổi bật trên trục Nam Kỳ Khởi Nghĩa sầm uất. Sự kết hợp hoàn hảo giữa thiết kế sang trọng, giường king-size chuẩn quốc tế và tiện ích giải trí ngay tại Quận 3."
                         },
                         new Phong
                         {
@@ -454,43 +462,47 @@ namespace DoAn_HotelBooking.Data
                             Tang = 1,
                             LoaiPhong = "Standard",
                             SucChua = 2,
-                            GiaPhong = 500000,
+                            GiaPhong = 3800000,
                             TrangThai = "Còn trống",
                             HinhAnh = "/Images/new1.jpg; /Images/new2.jpg",
-                            MaKhachSan = "NEW101"
+                            MaKhachSan = "NEW101",
+                            MoTa = "Phòng Standard tối ưu hóa công năng và mang lại sự yên tĩnh tuyệt đối ngay cạnh không khí tấp nập của khu vực chợ Bến Thành. Sự lựa chọn hoàn hảo và cực kỳ thuận tiện để tham quan các di tích lân cận."
                         },
                         new Phong
                         {
                             SoPhong = 501,
                             Tang = 5,
                             LoaiPhong = "President",
-                            SucChua = 2,
-                            GiaPhong = 2500000,
+                            SucChua = 4,
+                            GiaPhong = 45000000,
                             TrangThai = "Còn trống",
                             HinhAnh = "/Images/srt1.jpg; /Images/srt2.jpg",
-                            MaKhachSan = "MEL101"
+                            MaKhachSan = "MEL101",
+                            MoTa = "Căn phòng biểu tượng của sự uy quyền ngay trung tâm Lý Thường Kiệt. Thể hiện sự hòa quyện giữa di sản văn hóa Hà Nội cổ kính và thiết kế lộng lẫy, trang bị công nghệ phòng ngủ tiên tiến nhất."
                         },
                         new Phong
                         {
                             SoPhong = 501,
                             Tang = 5,
                             LoaiPhong = "President",
-                            SucChua = 2,
-                            GiaPhong = 2500000,
+                            SucChua = 4,
+                            GiaPhong = 95000000,
                             TrangThai = "Còn trống",
                             HinhAnh = "/Images/srt1.jpg; /Images/srt2.jpg",
-                            MaKhachSan = "PKH101"
+                            MaKhachSan = "PKH101",
+                            MoTa = "Đẳng cấp không thể chối từ tại Công trường Lam Sơn, Quận 1. Căn Tổng thống cung cấp trải nghiệm hoàng gia thực thụ với những bức tranh nghệ thuật sơn mài đắt giá và đặc quyền thượng lưu tối thượng."
                         },
                         new Phong
                         {
                             SoPhong = 501,
                             Tang = 5,
                             LoaiPhong = "President",
-                            SucChua = 2,
-                            GiaPhong = 2500000,
+                            SucChua = 4,
+                            GiaPhong = 150000000,
                             TrangThai = "Còn trống",
                             HinhAnh = "/Images/srt1.jpg; /Images/srt2.jpg",
-                            MaKhachSan = "RVR101"
+                            MaKhachSan = "RVR101",
+                            MoTa = "Đỉnh cao của sự phồn hoa với nội thất dát vàng thủ công nhập khẩu từ Ý. Nằm trên tầng cao đường Nguyễn Huệ, phòng Tổng thống này thu trọn vẻ đẹp lộng lẫy của sông Sài Gòn qua những ô kính chạm trần kỳ vĩ."
                         }
                     );
                 }

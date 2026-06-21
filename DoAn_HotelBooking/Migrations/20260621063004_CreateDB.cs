@@ -104,6 +104,7 @@ namespace DoAn_HotelBooking.Migrations
                     GiaPhong = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     TrangThai = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     HinhAnh = table.Column<string>(type: "text", nullable: false),
+                    MoTa = table.Column<string>(type: "character varying(3000)", maxLength: 3000, nullable: true),
                     MaKhachSan = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>

@@ -39,6 +39,9 @@ namespace DoAn_HotelBooking.Models
         [Display(Name = "HÌNH ẢNH")]
         public string HinhAnh { get; set; }
 
+        [StringLength(3000)]
+        public string? MoTa { get; set; }
+
         [Display(Name = "KHÁCH SẠN")]
         // Liên kết với khách sạn
         [ForeignKey("KhachSan")]
