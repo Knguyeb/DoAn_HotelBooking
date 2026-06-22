@@ -110,7 +110,7 @@ namespace DoAn_HotelBooking.Security
                     action == "CheckIn" ||
                     action == "CheckOut" ||
                     method == "Delete" ||
-                    method == "POST"))
+                    (method == "POST" && action != "Create")))
                 {
                     context.Result = new ForbidResult();
                     return;
