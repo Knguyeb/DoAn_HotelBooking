@@ -71,11 +71,16 @@ async function sendChat() {
             );
 
             formattedAnswer = formattedAnswer.replace(
-                /\[HOTEL:([^:]+):(.*?)\]/g,   // Đã thay \d+ thành ([^:]+)
+                /\[HOTEL:([^:]+):(.*?)\]/g,
                 `<a href="/KhachSans/Details?id=$1" target="_blank" 
                     class="fw-bold" style="color: #ffc107; text-decoration: none; cursor: pointer;">
                     <i class="fas fa-building"></i> $2
                 </a>`
+            );
+
+            formattedAnswer = formattedAnswer.replace(
+                /giá:\s*([\d.,]+\s*VNĐ(?:\/đêm)?)/gi,
+                `giá: <span class="fw-bold" style="color: #28a745;">$1</span>`
             );
 
             chatBody.innerHTML += `<div class="chat-message ai-message">${formattedAnswer}</div>`;
