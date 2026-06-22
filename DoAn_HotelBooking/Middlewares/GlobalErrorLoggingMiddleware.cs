@@ -3,8 +3,7 @@ using DoAn_HotelBooking.Models;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Threading.Tasks;
-// Thêm thư viện chứa model SystemLog của bạn
-// using DoAn_HotelBooking.Models; 
+using DoAn_HotelBooking.Models; 
 
 namespace DoAn_HotelBooking.Middlewares
 {
