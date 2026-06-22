@@ -1,6 +1,8 @@
 ﻿using DoAn_HotelBooking.Data;
 using DoAn_HotelBooking.Helpers;
 using DoAn_HotelBooking.Security;
+using DoAn_HotelBooking.Services;
+using DoAn_HotelBooking.Middlewares;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -10,7 +12,6 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Sinks.PostgreSQL;
 using NpgsqlTypes;
-using DoAn_HotelBooking.Services;
 
 Env.Load("../.env");
 
@@ -99,6 +100,7 @@ var app = builder.Build();
 
 // FIX LỖI ĐĂNG NHẬP GOOGLE TRÊN RENDER
 app.UseForwardedHeaders();
+
 app.Use((context, next) =>
 {
     context.Request.Scheme = "https";
@@ -114,6 +116,8 @@ using (var scope = app.Services.CreateScope())
     context.Database.Migrate();
     SeedData.Initialize(services);
 }
+
+app.UseMiddleware<GlobalErrorLoggingMiddleware>();
 
 // Pipeline
 if (!app.Environment.IsDevelopment())
