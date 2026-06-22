@@ -55,10 +55,8 @@ namespace DoAn_HotelBooking.Controllers
 
             var logs = await query.OrderByDescending(l => l.Timestamp).ToListAsync();
 
-            // 🌟 XỬ LÝ DỮ LIỆU CHO BIỂU ĐỒ CHART.JS (7 Ngày qua)
-            // Lấy danh sách 7 ngày gần nhất theo giờ Việt Nam (UTC+7)
             var last7Days = Enumerable.Range(0, 7)
-                .Select(i => DateTime.UtcNow.AddHours(7).Date.AddDays(-i))
+                .Select(i => DateTime.UtcNow.Date.AddDays(-i))
                 .Reverse()
                 .ToList();
 
@@ -74,7 +72,7 @@ namespace DoAn_HotelBooking.Controllers
             foreach (var day in last7Days)
             {
                 // Chuyển thời gian DB sang giờ VN rồi đếm
-                var count = allLogs7Days.Count(l => l.Timestamp.AddHours(7).Date == day);
+                var count = allLogs7Days.Count(l => l.Timestamp.Date == day);
                 chartData.Add(count);
             }
 
