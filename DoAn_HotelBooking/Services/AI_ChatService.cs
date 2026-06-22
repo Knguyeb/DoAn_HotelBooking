@@ -15,18 +15,9 @@ namespace DoAn_HotelBooking.Services
             _configuration = configuration;
         }
 
-        public async Task<string> TuVanKhachHangAsync(string userMessage, string thongTinPhongTrong)
+        // Đổi tham số thứ 2 thành systemPrompt để nhận toàn bộ luật từ Controller
+        public async Task<string> TuVanKhachHangAsync(string userMessage, string systemPrompt)
         {
-            // System prompt để định hình tính cách và nạp dữ liệu cho AI
-            string systemPrompt = $@"
-                Bạn là nhân viên lễ tân ảo vô cùng lịch sự và chuyên nghiệp của hệ thống đặt phòng khách sạn. 
-                Nhiệm vụ của bạn là tư vấn cho khách dựa trên danh sách phòng trống thực tế dưới đây. 
-                Tuyệt đối KHÔNG bịa đặt thông tin khách sạn hoặc giá cả không có trong danh sách. 
-                Nếu khách hỏi ngoài lề (không liên quan đến đặt phòng), hãy khéo léo từ chối và quay lại chủ đề phòng ốc.
-
-                [DANH SÁCH PHÒNG CÒN TRỐNG HÔM NAY]
-                {thongTinPhongTrong}";
-
             return await CallGroqApiAsync(systemPrompt, userMessage);
         }
 
@@ -49,7 +40,7 @@ namespace DoAn_HotelBooking.Services
                     new { role = "system", content = systemPrompt },
                     new { role = "user", content = userMessage }
                 },
-                temperature = 0.5 // Mức 0.5 giúp AI trả lời tự nhiên nhưng không bị ảo giác bịa thông tin
+                temperature = 0.1
             };
 
             string jsonBody = JsonSerializer.Serialize(requestBody);
