@@ -560,7 +560,7 @@ namespace DoAn_HotelBooking.Controllers
             if (taiKhoan?.HangThanhVien != null)
             {
                 // Tính số tiền được giảm dựa theo % của hạng (Ví dụ: 5%, 10%)
-                decimal tienGiam = datPhong.TongTien * (decimal)(taiKhoan.HangThanhVien.TyLeGiamGia / 100);
+                decimal tienGiam = datPhong.TongTien * ((decimal)taiKhoan.HangThanhVien.TyLeGiamGia / 100);
 
                 datPhong.TienGiam = tienGiam;
                 datPhong.TongTien -= tienGiam; // Khấu trừ thẳng vào tổng tiền phải trả

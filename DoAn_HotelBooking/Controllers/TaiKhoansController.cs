@@ -327,11 +327,18 @@ namespace DoAn_HotelBooking.Controllers
                 }
 
                 // ✅ Kiểm tra trùng email
-                if (!string.IsNullOrEmpty(taiKhoan.Email) &&
-                    _context.TaiKhoan.Any(x => x.ID != id && x.Email.Trim().ToLower() == taiKhoan.Email.Trim().ToLower()))
+                string emailMoi = taiKhoan.Email?.Trim().ToLower();
+                if (!string.IsNullOrEmpty(emailMoi))
                 {
-                    ModelState.AddModelError("Email", "⚠️ Email đã được sử dụng.");
-                    return ReloadViewWithError(taiKhoan, returnUrl);
+                    // Thêm x.Email != null để chống lỗi EF Core khi gặp dòng trống
+                    bool isDuplicateEmail = await _context.TaiKhoan
+                        .AnyAsync(x => x.ID != id && x.Email != null && x.Email.Trim().ToLower() == emailMoi);
+
+                    if (isDuplicateEmail)
+                    {
+                        ModelState.AddModelError("Email", "⚠️ Email đã được sử dụng.");
+                        return ReloadViewWithError(taiKhoan, returnUrl);
+                    }
                 }
 
                 // ✅ Cập nhật dữ liệu (BỎ GÁN MaKhachSan ĐỂ GIỮ NGUYÊN DỮ LIỆU CŨ)

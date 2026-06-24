@@ -119,7 +119,7 @@ namespace DoAn_HotelBooking.Security
                 if (controller == "TaiKhoans" &&
                     (action == "Create" ||
                     action == "Delete" ||
-                    method == "POST"))
+                    (method == "POST" && action != "Edit")))
                 {
                     context.Result = new ForbidResult();
                     return;
